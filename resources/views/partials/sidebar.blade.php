@@ -55,15 +55,59 @@
                 </a>
             </li>
 
-            {{-- Perusahaan --}}
+            @role('super-admin')
             <li class="sidebar-item {{ request()->is('perusahaan*') ? 'active' : '' }}">
                 <a href="{{ url('/perusahaan') }}" class="sidebar-link">
                     <i class="bi bi-building-fill"></i>
                     <span>Perusahaan</span>
                 </a>
             </li>
+            <li class="sidebar-item {{ request()->is('setting-menu*') ? 'active' : '' }}">
+                <a href="{{ url('/setting-menu') }}" class="sidebar-link">
+                    <i class="bi bi-gear-fill"></i>
+                    <span>Setting Menu</span>
+                </a>
+            </li>
+            @endrole
 
-            
+            @role('admin')
+            <li class="sidebar-item {{ request()->is('pipeline*') ? 'active' : '' }}">
+                <a href="{{ url('/pipeline') }}" class="sidebar-link">
+                    <i class="bi bi-diagram-3"></i>
+                    <span>Pipeline</span>
+                </a>
+            </li>
+            <li class="sidebar-item {{ request()->is('customers*') ? 'active' : '' }}">
+                <a href="{{ url('/customers') }}" class="sidebar-link">
+                    <i class="bi bi-people-fill"></i>
+                    <span>Customers</span>
+                </a>
+            </li>
+            <li class="sidebar-item {{ request()->is('tim-dan-role*') ? 'active' : '' }}">
+                <a href="{{ url('/tim-dan-role') }}" class="sidebar-link">
+                    <i class="bi bi-people-gear"></i>
+                    <span>Tim dan Role</span>
+                </a>
+            </li>
+            @endrole
+
+            @role('marketing')
+            <li class="sidebar-item {{ request()->is('customers/create') ? 'active' : '' }}">
+                <a href="{{ url('/customers/create') }}" class="sidebar-link">
+                    <i class="bi bi-person-plus"></i>
+                    <span>Tambah Customers</span>
+                </a>
+            </li>
+            @endrole
+
+            @role('cs')
+            <li class="sidebar-item {{ request()->is('assign/self*') ? 'active' : '' }}">
+                <a href="{{ url('/assign/self') }}" class="sidebar-link">
+                    <i class="bi bi-person-check"></i>
+                    <span>MengAssign ke diri sendiri</span>
+                </a>
+            </li>
+            @endrole
 
             <li class="sidebar-title">Akun</li>
 

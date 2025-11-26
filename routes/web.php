@@ -37,4 +37,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard/cs', function () {
         return view('cs.dashboard');
     })->middleware('role:cs')->name('dashboard.cs');
+
+    Route::get('/perusahaan', [\App\Http\Controllers\Superadmin\PerusahaanController::class, 'index'])
+        ->middleware('role:super-admin')
+        ->name('perusahaan.index');
 });
