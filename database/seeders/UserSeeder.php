@@ -21,7 +21,7 @@ class UserSeeder extends Seeder
             [
                 'name'     => 'Super Admin',
                 'password' => bcrypt('password'),
-                // 'company_id' => 1, 
+                'company_id' => 1,
             ]
         );
         $superAdmin->assignRole('super-admin');
@@ -32,7 +32,7 @@ class UserSeeder extends Seeder
             [
                 'name'     => 'Admin Utama',
                 'password' => bcrypt('password'),
-                // 'company_id' => 1,
+                'company_id' => 1,
             ]
         );
         $admin->assignRole('admin');
@@ -43,7 +43,7 @@ class UserSeeder extends Seeder
             [
                 'name'     => 'Marketing Depati',
                 'password' => bcrypt('password'),
-                // 'company_id' => 1,
+                'company_id' => 1,
             ]
         );
         $marketing->assignRole('marketing');
@@ -54,7 +54,7 @@ class UserSeeder extends Seeder
             [
                 'name'     => 'Customer Service',
                 'password' => bcrypt('password'),
-                // 'company_id' => 1,
+                'company_id' => 1,
             ]
         );
         $cs->assignRole('cs');
