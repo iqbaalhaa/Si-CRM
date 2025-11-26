@@ -19,12 +19,22 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     Route::get('/dashboard', function () {
-        // sementara simple, nanti arahkan ke dashboard CRM kamu
         return view('dashboard');
     })->name('dashboard');
-});
 
-Route::get('/dashboard', function () {
-    return view('superadmin/dashboard');
-});
+    Route::get('/dashboard/superadmin', function () {
+        return view('superadmin.dashboard');
+    })->middleware('role:super-admin')->name('dashboard.superadmin');
 
+    Route::get('/dashboard/admin', function () {
+        return view('admin.dashboard');
+    })->middleware('role:admin')->name('dashboard.admin');
+
+    Route::get('/dashboard/marketing', function () {
+        return view('marketing.dashboard');
+    })->middleware('role:marketing')->name('dashboard.marketing');
+
+    Route::get('/dashboard/cs', function () {
+        return view('cs.dashboard');
+    })->middleware('role:cs')->name('dashboard.cs');
+});

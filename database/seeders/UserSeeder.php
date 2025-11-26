@@ -4,11 +4,17 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Role;
 
 class UserSeeder extends Seeder
 {
     public function run(): void
     {
+        // Ensure required roles exist for guard 'web'
+        foreach (['super-admin', 'admin', 'marketing', 'cs'] as $roleName) {
+            Role::findOrCreate($roleName, 'web');
+        }
+
         // SUPER ADMIN
         $superAdmin = User::firstOrCreate(
             ['email' => 'superadmin@example.com'],

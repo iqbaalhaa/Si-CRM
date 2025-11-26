@@ -107,6 +107,21 @@ class AuthController extends Controller
             return route('login');
         }
 
+        if (method_exists($user, 'hasRole')) {
+            if ($user->hasRole('super-admin')) {
+                return route('dashboard.superadmin');
+            }
+            if ($user->hasRole('admin')) {
+                return route('dashboard.admin');
+            }
+            if ($user->hasRole('marketing')) {
+                return route('dashboard.marketing');
+            }
+            if ($user->hasRole('cs')) {
+                return route('dashboard.cs');
+            }
+        }
+
         return route('dashboard');
     }
 }

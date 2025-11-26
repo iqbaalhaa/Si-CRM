@@ -55,13 +55,15 @@
                 </a>
             </li>
 
-            {{-- SKPI --}}
-            <li class="sidebar-item {{ request()->is('skpi*') ? 'active' : '' }}">
-                <a href="{{ url('/skpi') }}" class="sidebar-link">
+            {{-- Perusahaan --}}
+            <li class="sidebar-item {{ request()->is('perusahaan*') ? 'active' : '' }}">
+                <a href="{{ url('/perusahaan') }}" class="sidebar-link">
                     <i class="bi bi-building-fill"></i>
-                    <span>Customers</span>
+                    <span>Perusahaan</span>
                 </a>
             </li>
+
+            
 
             <li class="sidebar-title">Akun</li>
 
@@ -73,8 +75,6 @@
                 </a>
             </li>
 
-            {{-- Logout (opsional, bisa kamu matikan dulu kalau belum butuh) --}}
-            {{-- 
             <li class="sidebar-item">
                 <form action="{{ route('logout') }}" method="POST">
                     @csrf
@@ -84,7 +84,6 @@
                     </button>
                 </form>
             </li>
-            --}}
         </ul>
     </div>
 </div>
