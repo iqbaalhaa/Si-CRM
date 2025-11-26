@@ -78,8 +78,8 @@
                         <span>Pipeline</span>
                     </a>
                 </li>
-                <li class="sidebar-item {{ request()->is('customers*') ? 'active' : '' }}">
-                    <a href="{{ url('/customers') }}" class="sidebar-link">
+                <li class="sidebar-item {{ request()->routeIs('customers.*') ? 'active' : '' }}">
+                    <a href="{{ route('customers.index') }}" class="sidebar-link">
                         <i class="bi bi-people-fill"></i>
                         <span>Customers</span>
                     </a>

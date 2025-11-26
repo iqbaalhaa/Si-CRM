@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CustomerController;
 
 
 
@@ -41,4 +42,22 @@ Route::middleware('auth')->group(function () {
     Route::get('/perusahaan', [\App\Http\Controllers\Superadmin\PerusahaanController::class, 'index'])
         ->middleware('role:super-admin')
         ->name('perusahaan.index');
+
+
+
+    Route::get('/customers', [CustomerController::class, 'index'])
+        ->middleware('permission:view customer')
+        ->name('customers.index');
+
+    Route::post('/customers', [CustomerController::class, 'store'])
+        ->middleware('permission:create customer')
+        ->name('customers.store');
+
+    Route::put('/customers/{customer}', [CustomerController::class, 'update'])
+        ->middleware('permission:update customer')
+        ->name('customers.update');
+
+    Route::delete('/customers/{customer}', [CustomerController::class, 'destroy'])
+        ->middleware('permission:delete customer')
+        ->name('customers.destroy');
 });
