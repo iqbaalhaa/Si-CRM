@@ -9,25 +9,16 @@ class CustomerController extends Controller
 {
     public function index()
     {
-        $customers = Customer::with(['company', 'assignedTo', 'stage', 'creator'])->get();
+        $customers = Customer::with(['company', 'assignedTo', 'stage', 'creator'])
+            ->latest()
+            ->get();
 
-        // build rows
-        $rows = $customers->map(function ($c, $index) {
-            return [
-                $index + 1,                 // No
-                $c->name,
-                optional($c->company)->code,
-                optional($c->company)->name,
-                $c->phone,
-                $c->email,
-                optional($c->stage)->name ?? '-',
-                '<a href="' . route('customers.edit', $c->id) . '" class="btn btn-sm btn-primary">Edit</a>',
-            ];
-        });
+        return view('pages.customers.index', compact('customers'));
+    }
 
-        return view('pages.customers.index', [
-            'tableRows' => $rows,
-        ]);
+    public function create()
+    {
+        return view('pages.customers.create');
     }
 
 
@@ -79,6 +70,11 @@ class CustomerController extends Controller
         $customer->update($data);
 
         return response()->json($customer);
+    }
+
+    public function edit(Customer $customer)
+    {
+        return view('pages.customers.edit', compact('customer'));
     }
 
     public function destroy(Customer $customer)

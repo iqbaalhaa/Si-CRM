@@ -43,29 +43,23 @@ Route::middleware('auth')->group(function () {
         ->middleware('role:super-admin')
         ->name('perusahaan.index');
 
+    Route::get('/perusahaan/create', [\App\Http\Controllers\Superadmin\PerusahaanController::class, 'create'])
+        ->middleware('role:super-admin')
+        ->name('perusahaan.create');
 
+    Route::post('/perusahaan', [\App\Http\Controllers\Superadmin\PerusahaanController::class, 'store'])
+        ->middleware('role:super-admin')
+        ->name('perusahaan.store');
 
-    Route::get('/customers', [CustomerController::class, 'index'])
-        ->middleware('permission:view customer')
-        ->name('customers.index');
+    Route::get('/perusahaan/{perusahaan}/edit', [\App\Http\Controllers\Superadmin\PerusahaanController::class, 'edit'])
+        ->middleware('role:super-admin')
+        ->name('perusahaan.edit');
 
-    Route::get('/customers/create', [CustomerController::class, 'create'])
-        ->middleware('permission:create customer')
-        ->name('customers.create');
+    Route::put('/perusahaan/{perusahaan}', [\App\Http\Controllers\Superadmin\PerusahaanController::class, 'update'])
+        ->middleware('role:super-admin')
+        ->name('perusahaan.update');
 
-    Route::post('/customers', [CustomerController::class, 'store'])
-        ->middleware('permission:create customer')
-        ->name('customers.store');
-
-    Route::get('/customers/{customer}/edit', [CustomerController::class, 'edit'])
-        ->middleware('permission:update customer')
-        ->name('customers.edit');
-
-    Route::put('/customers/{customer}', [CustomerController::class, 'update'])
-        ->middleware('permission:update customer')
-        ->name('customers.update');
-
-    Route::delete('/customers/{customer}', [CustomerController::class, 'destroy'])
-        ->middleware('permission:delete customer')
-        ->name('customers.destroy');
+    Route::delete('/perusahaan/{perusahaan}', [\App\Http\Controllers\Superadmin\PerusahaanController::class, 'destroy'])
+        ->middleware('role:super-admin')
+        ->name('perusahaan.destroy');
 });

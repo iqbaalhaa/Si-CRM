@@ -90,24 +90,6 @@
                     <span>Tim & Role</span>
                 </a>
             </li>
-                <li class="sidebar-item {{ request()->is('pipeline*') ? 'active' : '' }}">
-                    <a href="{{ url('/pipeline') }}" class="sidebar-link">
-                        <i class="bi bi-diagram-3"></i>
-                        <span>Pipeline</span>
-                    </a>
-                </li>
-                <li class="sidebar-item {{ request()->routeIs('customers.*') ? 'active' : '' }}">
-                    <a href="{{ route('customers.index') }}" class="sidebar-link">
-                        <i class="bi bi-people-fill"></i>
-                        <span>Customers</span>
-                    </a>
-                </li>
-                <li class="sidebar-item {{ request()->is('tim-dan-role*') ? 'active' : '' }}">
-                    <a href="{{ url('/tim-dan-role') }}" class="sidebar-link">
-                        <i class="bi bi-people-gear"></i>
-                        <span>Tim dan Role</span>
-                    </a>
-                </li>
             @endrole
 
             @role('marketing')
