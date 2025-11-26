@@ -58,8 +58,8 @@
             {{-- SKPI --}}
             <li class="sidebar-item {{ request()->is('skpi*') ? 'active' : '' }}">
                 <a href="{{ url('/skpi') }}" class="sidebar-link">
-                    <i class="bi bi-file-earmark-text"></i>
-                    <span>Perusahaan</span>
+                    <i class="bi bi-building-fill"></i>
+                    <span>Customers</span>
                 </a>
             </li>
 
