@@ -1,0 +1,29 @@
+<svg width="260" height="90" viewBox="0 0 260 90" xmlns="http://www.w3.org/2000/svg">
+  <!-- ICON KIRI -->
+  <g transform="translate(10,10)">
+    <!-- Lingkaran luar -->
+    <circle cx="32" cy="32" r="30" fill="none" stroke="#03a6e5" stroke-width="4"></circle>
+
+    <!-- Link biru -->
+    <rect x="14" y="24" width="28" height="14" rx="7" fill="none" stroke="#03a6e5" stroke-width="4" transform="rotate(-28 28 31)"></rect>
+
+    <!-- Link kuning -->
+    <rect x="22" y="24" width="28" height="14" rx="7" fill="none" stroke="#ff9c00" stroke-width="4" transform="rotate(28 36 31)"></rect>
+
+    <!-- Titik pusat kecil -->
+    <circle cx="32" cy="32" r="4" fill="#ff9c00"></circle>
+  </g>
+
+  <!-- TEKS KANAN (lebih dekat ke ikon) -->
+  <g transform="translate(90,30)">
+    <!-- Depati -->
+    <text x="0" y="0" font-family="Montserrat, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="26" font-weight="600" fill="#03a6e5">
+      Depati
+    </text>
+
+    <!-- CRM -->
+    <text x="0" y="34" font-family="Montserrat, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="32" font-weight="700" fill="#ff9c00">
+      CRM
+    </text>
+  </g>
+</svg>
