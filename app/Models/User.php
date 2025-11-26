@@ -46,4 +46,22 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function dashboardRoute()
+    {
+        $map = [
+            'superadmin' => 'dashboard.superadmin',
+            'admin'      => 'dashboard.admin',
+            'marketing'  => 'dashboard.marketing',
+            'cs'         => 'dashboard.cs',
+        ];
+
+        foreach ($map as $role => $route) {
+            if ($this->hasRole($role)) {
+                return route($route);
+            }
+        }
+
+        return url('/'); // fallback
+    }
 }
