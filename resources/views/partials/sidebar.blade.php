@@ -85,8 +85,8 @@
             </li>
             <li class="sidebar-item {{ request()->is('tim-dan-role*') ? 'active' : '' }}">
                 <a href="{{ url('/tim-dan-role') }}" class="sidebar-link">
-                    <i class="bi bi-people-gear"></i>
-                    <span>Tim dan Role</span>
+                    <i class="bi bi-gear-fill"></i>
+                    <span>Tim & Role</span>
                 </a>
             </li>
             @endrole
