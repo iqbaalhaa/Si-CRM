@@ -2,38 +2,23 @@
 
 @section('content')
 <div class="page-heading d-flex justify-content-between align-items-center">
-    <h3>Manage Admin Perusahaan</h3>
-    <a href="{{ url('/perusahaan') }}" class="btn btn-secondary">Lihat Perusahaan</a>
+    <h3>Tim & Role</h3>
+    <div></div>
 </div>
-
-@php
-    $perusahaans = $perusahaans ?? \App\Models\Perusahaan::orderBy('name')->get();
-    $admins = $admins ?? \App\Models\User::role('admin')->get();
-@endphp
 
 <div class="page-content">
     <div class="row">
         <div class="col-lg-5">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">Tambah Admin Perusahaan</h5>
+                    <h5 class="card-title mb-0">Tambah Akun Tim</h5>
                 </div>
                 <div class="card-body">
-                    <form action="{{ url('/manage-admin-perusahaan') }}" method="POST">
+                    <form action="{{ route('teamrole.store') }}" method="POST">
                         @csrf
 
                         <div class="mb-3">
-                            <label for="company_id" class="form-label fw-semibold">Perusahaan</label>
-                            <select name="company_id" id="company_id" class="form-select" required>
-                                <option value="" disabled selected>Pilih Perusahaan</option>
-                                @foreach($perusahaans as $p)
-                                    <option value="{{ $p->id }}">{{ $p->name }} ({{ $p->code }})</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="name" class="form-label fw-semibold">Nama Admin</label>
+                            <label for="name" class="form-label fw-semibold">Nama</label>
                             <input type="text" name="name" id="name" class="form-control" placeholder="Nama lengkap" required>
                         </div>
 
@@ -43,13 +28,22 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="password" class="form-label fw-semibold">Password Awal</label>
+                            <label for="password" class="form-label fw-semibold">Password</label>
                             <input type="password" name="password" id="password" class="form-control" placeholder="Minimal 8 karakter" minlength="8" required>
                         </div>
 
+                        <div class="mb-3">
+                            <label for="role" class="form-label fw-semibold">Role</label>
+                            <select name="role" id="role" class="form-select" required>
+                                <option value="" disabled selected>Pilih Role</option>
+                                <option value="marketing">Marketing</option>
+                                <option value="cs">CS</option>
+                            </select>
+                        </div>
+
                         <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary">Daftarkan Admin</button>
-                            <a href="{{ url('/manage-admin-perusahaan') }}" class="btn btn-light">Bersihkan</a>
+                            <button type="submit" class="btn btn-primary">Buat Akun</button>
+                            <button type="reset" class="btn btn-light">Bersihkan</button>
                         </div>
                     </form>
                 </div>
@@ -59,33 +53,32 @@
         <div class="col-lg-7">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">Daftar Admin Perusahaan</h5>
+                    <h5 class="card-title mb-0">Daftar Akun Tim Perusahaan</h5>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-striped" id="table-admins">
+                        <table class="table table-striped" id="table-team">
                             <thead>
                                 <tr class="text-center">
                                     <th>No</th>
                                     <th>Nama</th>
                                     <th>Email</th>
-                                    <th>Perusahaan</th>
+                                    <th>Role</th>
                                     <th>Dibuat</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse($admins as $u)
-                                    @php $company = $u->company_id ? \App\Models\Perusahaan::find($u->company_id) : null; @endphp
+                                @forelse($teamUsers as $u)
                                     <tr>
                                         <td>{{ $loop->iteration }}</td>
                                         <td>{{ $u->name }}</td>
                                         <td>{{ $u->email }}</td>
-                                        <td>{{ $company?->name ?? '-' }}</td>
+                                        <td>{{ $u->getRoleNames()->first() }}</td>
                                         <td>{{ $u->created_at?->format('d M Y') }}</td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td class="text-center">Belum ada admin perusahaan</td>
+                                        <td class="text-center">Belum ada akun tim</td>
                                         <td></td>
                                         <td></td>
                                         <td></td>
@@ -96,13 +89,6 @@
                         </table>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-    <div class="row mt-3">
-        <div class="col-12">
-            <div class="alert alert-info">
-                Super Admin mendaftarkan admin perusahaan. Admin perusahaan akan login dan mengelola akun CS & Marketing per perusahaan.
             </div>
         </div>
     </div>
@@ -119,7 +105,7 @@
 <script src="{{ asset('admindash/assets/extensions/datatables.net-bs5/js/dataTables.bootstrap5.min.js') }}"></script>
 <script>
     $(function(){
-        $('#table-admins').DataTable({
+        $('#table-team').DataTable({
             pageLength: 10,
             lengthMenu: [10, 25, 50, 100],
             order: [[0, 'asc']]
