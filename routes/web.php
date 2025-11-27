@@ -66,6 +66,15 @@ Route::middleware('auth')->group(function () {
         ->middleware('role:super-admin')
         ->name('perusahaan.destroy');
 
+    // Tim & Role (Admin perusahaan)
+    Route::get('/tim-dan-role', [\App\Http\Controllers\TeamRoleController::class, 'index'])
+        ->middleware('role:admin')
+        ->name('teamrole.index');
+
+    Route::post('/tim-dan-role', [\App\Http\Controllers\TeamRoleController::class, 'store'])
+        ->middleware('role:admin')
+        ->name('teamrole.store');
+
     // Manage Admin Perusahaan (Super Admin)
     Route::get('/manage-admin-perusahaan', [\App\Http\Controllers\Superadmin\ManageAdminController::class, 'index'])
         ->middleware('role:super-admin')
