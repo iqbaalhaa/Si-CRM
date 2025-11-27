@@ -37,8 +37,8 @@ class RolePermissionSeeder extends Seeder
             'delete customers',
 
             // CRM & reports
-            'view crm',              // akses dashboard & halaman utama CRM
-            'manage reports',        // CRUD report
+            'view crm',
+            'manage reports',
         ];
 
         foreach ($permissions as $perm) {
@@ -62,11 +62,7 @@ class RolePermissionSeeder extends Seeder
         $superAdmin->syncPermissions(Permission::all());
 
         // ADMIN:
-        // - CRUD akun team
-        // - CRUD pipeline
-        // - CRU customer
-        // - read CRM
-        // - CRUD report
+
         $admin->syncPermissions([
             'manage team accounts',
             'manage pipelines',
@@ -74,16 +70,14 @@ class RolePermissionSeeder extends Seeder
             'view customers',
             'create customers',
             'update customers',
-            // (hapus 'delete customers' kalau admin tidak boleh hapus)
+            'delete customers',
 
             'view crm',
             'manage reports',
         ]);
 
         // MARKETING:
-        // - CRU customer
-        // - read CRM
-        // - CRUD report
+
         $marketing->syncPermissions([
             'view customers',
             'create customers',
@@ -94,11 +88,11 @@ class RolePermissionSeeder extends Seeder
         ]);
 
         // CS:
-        // - read CRM
-        // - CRUD report
-        // (bisa juga dikasih view customers kalau mau)
+
         $cs->syncPermissions([
             'view customers',
+            'update customers',
+
             'view crm',
             'manage reports',
         ]);

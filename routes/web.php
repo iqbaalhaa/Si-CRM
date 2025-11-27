@@ -44,28 +44,28 @@ Route::middleware('auth')->group(function () {
         ->name('perusahaan.index');
 
 
-
+    // Customers
     Route::get('/customers', [CustomerController::class, 'index'])
-        ->middleware('permission:view customer')
+        ->middleware('permission:view customers')
         ->name('customers.index');
 
     Route::get('/customers/create', [CustomerController::class, 'create'])
-        ->middleware('permission:create customer')
+        ->middleware('permission:create customers')
         ->name('customers.create');
 
     Route::post('/customers', [CustomerController::class, 'store'])
-        ->middleware('permission:create customer')
+        ->middleware('permission:create customers')
         ->name('customers.store');
 
     Route::get('/customers/{customer}/edit', [CustomerController::class, 'edit'])
-        ->middleware('permission:update customer')
+        ->middleware('permission:update customers')
         ->name('customers.edit');
 
     Route::put('/customers/{customer}', [CustomerController::class, 'update'])
-        ->middleware('permission:update customer')
+        ->middleware('permission:update customers')
         ->name('customers.update');
 
     Route::delete('/customers/{customer}', [CustomerController::class, 'destroy'])
-        ->middleware('permission:delete customer')
+        ->middleware('permission:delete customers')
         ->name('customers.destroy');
 });
