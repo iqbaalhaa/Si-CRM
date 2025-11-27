@@ -103,6 +103,19 @@
     <script src="{{ asset('admindash/assets/static/js/components/dark.js') }}"></script>
     <script src="{{ asset('admindash/assets/extensions/perfect-scrollbar/perfect-scrollbar.min.js') }}"></script>
     <script src="{{ asset('admindash/assets/compiled/js/app.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    @if(session('success'))
+        <script>
+            window.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil',
+                    text: {!! json_encode(session('success')) !!}
+                });
+            });
+        </script>
+    @endif
 
     @stack('scripts')
 

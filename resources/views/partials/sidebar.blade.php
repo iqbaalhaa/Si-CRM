@@ -77,6 +77,14 @@
                         <span>Perusahaan</span>
                     </a>
                 </li>
+
+                <li class="sidebar-item {{ request()->is('manage-admin-perusahaan*') ? 'active' : '' }}">
+                    <a href="{{ url('/manage-admin-perusahaan') }}" class="sidebar-link">
+                        <i class="bi bi-person-fill-gear"></i>
+                        <span>Manage Admin Perusahaan</span>
+                    </a>
+                </li>
+
                 <li class="sidebar-item {{ request()->is('setting-menu*') ? 'active' : '' }}">
                     <a href="{{ url('/setting-menu') }}" class="sidebar-link">
                         <i class="bi bi-gear-fill"></i>
@@ -92,12 +100,14 @@
                     <span>Pipeline</span>
                 </a>
             </li>
+
             <li class="sidebar-item {{ request()->is('customers*') ? 'active' : '' }}">
                 <a href="{{ url('/customers') }}" class="sidebar-link">
                     <i class="bi bi-people-fill"></i>
                     <span>Customers</span>
                 </a>
             </li>
+
             <li class="sidebar-item {{ request()->is('tim-dan-role*') ? 'active' : '' }}">
                 <a href="{{ url('/tim-dan-role') }}" class="sidebar-link">
                     <i class="bi bi-gear-fill"></i>
