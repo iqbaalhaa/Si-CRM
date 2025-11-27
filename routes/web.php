@@ -4,8 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\PipelineStageController;
-
-
+use App\Http\Controllers\CRMController;
 
 // Guest only
 Route::middleware('guest')->group(function () {
@@ -75,6 +74,14 @@ Route::middleware('auth')->group(function () {
         ->middleware('role:admin')
         ->name('teamrole.store');
 
+    Route::put('/tim-dan-role/{user}', [\App\Http\Controllers\TeamRoleController::class, 'update'])
+        ->middleware('role:admin')
+        ->name('teamrole.update');
+
+    Route::delete('/tim-dan-role/{user}', [\App\Http\Controllers\TeamRoleController::class, 'destroy'])
+        ->middleware('role:admin')
+        ->name('teamrole.destroy');
+
     // Manage Admin Perusahaan (Super Admin)
     Route::get('/manage-admin-perusahaan', [\App\Http\Controllers\Superadmin\ManageAdminController::class, 'index'])
         ->middleware('role:super-admin')
@@ -134,4 +141,8 @@ Route::middleware('auth')->group(function () {
     Route::delete('/pipeline-stages/{pipelineStage}', [PipelineStageController::class, 'destroy'])
         ->middleware('permission:manage pipelines')
         ->name('pipeline-stages.destroy');
+
+    Route::get('/assigned',[CRMController::class, 'assigned_index']);
+    Route::get('/stages',[CRMController::class, 'stages_index']);
+    Route::get('/stages-single',[CRMController::class, 'stages_single_index']);
 });

@@ -139,6 +139,20 @@
                     </a>
                 </li>
             @endrole
+            <li class="sidebar-title">CRM</li>
+
+            <li class="sidebar-item ">
+                <a href="/assigned" class="sidebar-link">
+                    <i class="bi bi-file-earmark-person-fill"></i>
+                    <span>Assign To</span>
+                </a>
+            </li>
+            <li class="sidebar-item ">
+                <a href="/stages" class="sidebar-link">
+                    <i class="bi bi-graph-up-arrow"></i>
+                    <span>Stage / Progression</span>
+                </a>
+            </li>
 
             <li class="sidebar-title">Akun</li>
 
