@@ -49,8 +49,22 @@
             <li class="sidebar-title">Menu</li>
 
             {{-- Dashboard --}}
-            <li class="sidebar-item {{ request()->is('dashboard') ? 'active' : '' }}">
-                <a href="{{ url('/dashboard') }}" class="sidebar-link">
+            @php
+                $dashboardHref = route('dashboard');
+                if (Auth::check() && method_exists(Auth::user(), 'hasRole')) {
+                    if (Auth::user()->hasRole('super-admin')) {
+                        $dashboardHref = route('dashboard.superadmin');
+                    } elseif (Auth::user()->hasRole('admin')) {
+                        $dashboardHref = route('dashboard.admin');
+                    } elseif (Auth::user()->hasRole('marketing')) {
+                        $dashboardHref = route('dashboard.marketing');
+                    } elseif (Auth::user()->hasRole('cs')) {
+                        $dashboardHref = route('dashboard.cs');
+                    }
+                }
+            @endphp
+            <li class="sidebar-item {{ request()->is('dashboard*') ? 'active' : '' }}">
+                <a href="{{ $dashboardHref }}" class="sidebar-link">
                     <i class="bi bi-grid-fill"></i>
                     <span>Dashboard</span>
                 </a>
