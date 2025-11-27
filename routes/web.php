@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\PipelineStageController;
 
 
 
@@ -90,4 +91,29 @@ Route::middleware('auth')->group(function () {
     Route::delete('/customers/{customer}', [CustomerController::class, 'destroy'])
         ->middleware('permission:delete customers')
         ->name('customers.destroy');
+
+    // Pipeline Stages
+    Route::get('/pipeline-stages', [PipelineStageController::class, 'index'])
+        ->middleware('permission:manage pipelines')
+        ->name('pipeline-stages.index');
+
+    Route::get('/pipeline-stages/create', [PipelineStageController::class, 'create'])
+        ->middleware('permission:manage pipelines')
+        ->name('pipeline-stages.create');
+
+    Route::post('/pipeline-stages', [PipelineStageController::class, 'store'])
+        ->middleware('permission:manage pipelines')
+        ->name('pipeline-stages.store');
+
+    Route::get('/pipeline-stages/{pipelineStage}/edit', [PipelineStageController::class, 'edit'])
+        ->middleware('permission:manage pipelines')
+        ->name('pipeline-stages.edit');
+
+    Route::put('/pipeline-stages/{pipelineStage}', [PipelineStageController::class, 'update'])
+        ->middleware('permission:manage pipelines')
+        ->name('pipeline-stages.update');
+
+    Route::delete('/pipeline-stages/{pipelineStage}', [PipelineStageController::class, 'destroy'])
+        ->middleware('permission:manage pipelines')
+        ->name('pipeline-stages.destroy');
 });

@@ -72,27 +72,35 @@
             @endrole
 
             @role('admin')
-            <li class="sidebar-item {{ request()->is('pipeline*') ? 'active' : '' }}">
-                <a href="{{ url('/pipeline') }}" class="sidebar-link">
-                    <i class="bi bi-diagram-3"></i>
-                    <span>Pipeline</span>
-                </a>
-            </li>
-            <li class="sidebar-item {{ request()->is('customers*') ? 'active' : '' }}">
-                <a href="{{ url('/customers') }}" class="sidebar-link">
-                    <i class="bi bi-people-fill"></i>
-                    <span>Customers</span>
-                </a>
-            </li>
-            <li class="sidebar-item {{ request()->is('tim-dan-role*') ? 'active' : '' }}">
-                <a href="{{ url('/tim-dan-role') }}" class="sidebar-link">
-                    <i class="bi bi-gear-fill"></i>
-                    <span>Tim & Role</span>
-                </a>
-            </li>
+                <li class="sidebar-item {{ request()->is('pipeline-stages*') ? 'active' : '' }}">
+                    <a href="{{ route('pipeline-stages.index') }}" class="sidebar-link">
+                        <i class="bi bi-diagram-3"></i>
+                        <span>Pipeline</span>
+                    </a>
+                </li>
+
+                <li class="sidebar-item {{ request()->is('customers*') ? 'active' : '' }}">
+                    <a href="{{ url('/customers') }}" class="sidebar-link">
+                        <i class="bi bi-people-fill"></i>
+                        <span>Customers</span>
+                    </a>
+                </li>
+                <li class="sidebar-item {{ request()->is('tim-dan-role*') ? 'active' : '' }}">
+                    <a href="{{ url('/tim-dan-role') }}" class="sidebar-link">
+                        <i class="bi bi-gear-fill"></i>
+                        <span>Tim & Role</span>
+                    </a>
+                </li>
             @endrole
 
             @role('marketing')
+                <li class="sidebar-item {{ request()->is('pipeline-stages*') ? 'active' : '' }}">
+                    <a href="{{ route('pipeline-stages.index') }}" class="sidebar-link">
+                        <i class="bi bi-diagram-3"></i>
+                        <span>Pipeline</span>
+                    </a>
+                </li>
+
                 <li class="sidebar-item {{ request()->is('customers/create') ? 'active' : '' }}">
                     <a href="{{ url('/customers/create') }}" class="sidebar-link">
                         <i class="bi bi-person-plus"></i>
