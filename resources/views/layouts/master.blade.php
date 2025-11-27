@@ -84,11 +84,12 @@
 
         <div id="main">
             {{-- Header (burger button) --}}
-            <header class="mb-3">
-                <a href="#" class="burger-btn d-block d-xl-none">
-                    <i class="bi bi-justify fs-3"></i>
-                </a>
-            </header>
+            @php
+                $adminName = \App\Models\User::role('admin')->first()?->name
+                    ?? \App\Models\User::role('super-admin')->first()?->name
+                    ?? (Auth::user()->name ?? 'User');
+            @endphp
+            @include('partials.header', ['adminName' => $adminName])
 
             {{-- ISI HALAMAN --}}
             @yield('content')

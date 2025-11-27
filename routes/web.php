@@ -39,9 +39,31 @@ Route::middleware('auth')->group(function () {
         return view('cs.dashboard');
     })->middleware('role:cs')->name('dashboard.cs');
 
+
+    // Perusahaan
     Route::get('/perusahaan', [\App\Http\Controllers\Superadmin\PerusahaanController::class, 'index'])
         ->middleware('role:super-admin')
         ->name('perusahaan.index');
+
+    Route::get('/perusahaan/create', [\App\Http\Controllers\Superadmin\PerusahaanController::class, 'create'])
+        ->middleware('role:super-admin')
+        ->name('perusahaan.create');
+
+    Route::post('/perusahaan', [\App\Http\Controllers\Superadmin\PerusahaanController::class, 'store'])
+        ->middleware('role:super-admin')
+        ->name('perusahaan.store');
+
+    Route::get('/perusahaan/{perusahaan}/edit', [\App\Http\Controllers\Superadmin\PerusahaanController::class, 'edit'])
+        ->middleware('role:super-admin')
+        ->name('perusahaan.edit');
+
+    Route::put('/perusahaan/{perusahaan}', [\App\Http\Controllers\Superadmin\PerusahaanController::class, 'update'])
+        ->middleware('role:super-admin')
+        ->name('perusahaan.update');
+
+    Route::delete('/perusahaan/{perusahaan}', [\App\Http\Controllers\Superadmin\PerusahaanController::class, 'destroy'])
+        ->middleware('role:super-admin')
+        ->name('perusahaan.destroy');
 
 
     // Customers
