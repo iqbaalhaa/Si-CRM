@@ -85,7 +85,11 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5" class="text-center">Belum ada admin perusahaan</td>
+                                        <td class="text-center">Belum ada admin perusahaan</td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
                                     </tr>
                                 @endforelse
                             </tbody>

@@ -4,7 +4,7 @@
 <div class="page-heading d-flex justify-content-between align-items-center">
     <h3>Tim & Role</h3>
     <div></div>
-}</div>
+</div>
 
 <div class="page-content">
     <div class="row">
@@ -78,7 +78,11 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5" class="text-center">Belum ada akun tim</td>
+                                        <td class="text-center">Belum ada akun tim</td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -88,7 +92,7 @@
             </div>
         </div>
     </div>
-}</div>
+</div>
 @endsection
 
 @push('styles')
