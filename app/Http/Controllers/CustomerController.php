@@ -40,13 +40,9 @@ class CustomerController extends Controller
         $data['company_id'] = auth()->user()->company_id;
         $data['created_by'] = auth()->id();
 
-        $customer = Customer::create($data);
+        Customer::create($data);
 
-        return response()->json([
-            'status'  => 'success',
-            'message' => 'Customer berhasil dibuat.',
-            'data'    => $customer,
-        ], 201);
+        return redirect()->route('customers.index')->with('success', 'Customer berhasil dibuat.');
     }
 
 
@@ -86,6 +82,6 @@ class CustomerController extends Controller
     {
         $customer->delete();
 
-        return response()->json(['status' => 'deleted']);
+        return redirect()->route('customers.index')->with('success', 'Customer berhasil dihapus.');
     }
 }

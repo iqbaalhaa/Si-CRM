@@ -66,6 +66,15 @@ Route::middleware('auth')->group(function () {
         ->middleware('role:super-admin')
         ->name('perusahaan.destroy');
 
+    // Manage Admin Perusahaan (Super Admin)
+    Route::get('/manage-admin-perusahaan', [\App\Http\Controllers\Superadmin\ManageAdminController::class, 'index'])
+        ->middleware('role:super-admin')
+        ->name('manageadmin.index');
+
+    Route::post('/manage-admin-perusahaan', [\App\Http\Controllers\Superadmin\ManageAdminController::class, 'store'])
+        ->middleware('role:super-admin')
+        ->name('manageadmin.store');
+
 
     // Customers
     Route::get('/customers', [CustomerController::class, 'index'])
