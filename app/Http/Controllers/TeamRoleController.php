@@ -43,4 +43,48 @@ class TeamRoleController extends Controller
 
         return redirect()->route('teamrole.index')->with('success', 'Akun tim berhasil dibuat');
     }
+
+    public function update(Request $request, User $user)
+    {
+        $companyId = Auth::user()->company_id;
+        if ($user->company_id !== $companyId) {
+            return redirect()->route('teamrole.index');
+        }
+
+        $data = $request->validate([
+            'name' => ['sometimes', 'string', 'max:150'],
+            'email' => ['sometimes', 'email', 'max:150', 'unique:users,email,'.$user->id],
+            'password' => ['nullable', 'string', 'min:8'],
+            'role' => ['sometimes', 'in:marketing,cs'],
+        ]);
+
+        if (array_key_exists('name', $data)) {
+            $user->name = $data['name'];
+        }
+        if (array_key_exists('email', $data)) {
+            $user->email = $data['email'];
+        }
+        if (!empty($data['password'])) {
+            $user->password = $data['password'];
+        }
+        $user->save();
+
+        if (array_key_exists('role', $data)) {
+            $user->syncRoles([$data['role']]);
+        }
+
+        return redirect()->route('teamrole.index')->with('success', 'Akun tim berhasil diperbarui');
+    }
+
+    public function destroy(User $user)
+    {
+        $companyId = Auth::user()->company_id;
+        if ($user->company_id !== $companyId || Auth::id() === $user->id) {
+            return redirect()->route('teamrole.index');
+        }
+
+        $user->delete();
+
+        return redirect()->route('teamrole.index')->with('success', 'Akun tim berhasil dihapus');
+    }
 }
