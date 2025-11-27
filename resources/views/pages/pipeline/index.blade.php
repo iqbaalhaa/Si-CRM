@@ -132,8 +132,7 @@
                                                         </button>
                         
                                                         <form action="{{ route('pipeline-stages.destroy', $stage->id) }}"
-                                                            method="POST" class="d-inline"
-                                                            onsubmit="return confirm('Hapus stage ini?');">
+                                                            method="POST" class="d-inline pipeline-delete-form">
                                                             @csrf
                                                             @method('DELETE')
                                                             <button class="btn btn-sm btn-danger">
@@ -177,7 +176,7 @@
             });
 
             // Ambil CSRF dari meta (pastikan di <head> layout sudah ada)
-            const csrfToken = $('meta[name="csrf-token"]').attr('content');
+            const csrfToken = $('meta[name="csrf-token"]').attr('content') || $('input[name="_token"]').first().val();
 
             // Click handler untuk tombol Simpan di setiap baris
             $('#table-pipeline-stages').on('click', '.btn-save-sort', function() {
@@ -185,23 +184,45 @@
                 const id = $row.data('id');
                 const sort = $row.find('.sort-input').val();
 
-                $.ajax({
-                    url: '{{ url('/pipeline-stages') }}/' + id,
-                    method: 'PUT',
-                    data: {
-                        _token: csrfToken,
-                        sort_order: sort
-                    },
-                    success: function(res) {
-                        // Opsional: kasih feedback kecil
-                        toastr?.success?.('Urutan berhasil diperbarui'); // kalau pakai Toastr
-                        // atau:
-                        // alert('Urutan berhasil diperbarui');
-                    },
-                    error: function(xhr) {
-                        console.error(xhr);
-                        alert('Gagal mengupdate urutan. Coba lagi.');
-                    }
+                Swal.fire({
+                    icon: 'question',
+                    title: 'Simpan perubahan urutan?',
+                    showCancelButton: true,
+                    confirmButtonText: 'Simpan',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (!result.isConfirmed) return;
+
+                    $.ajax({
+                        url: '{{ url('/pipeline-stages') }}/' + id,
+                        method: 'PUT',
+                        data: {
+                            _token: csrfToken,
+                            sort_order: sort
+                        },
+                        success: function() {
+                            Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Urutan diperbarui' });
+                        },
+                        error: function() {
+                            Swal.fire({ icon: 'error', title: 'Gagal', text: 'Tidak dapat menyimpan perubahan' });
+                        }
+                    });
+                });
+            });
+
+            $('#table-pipeline-stages').on('submit', '.pipeline-delete-form', function(e) {
+                e.preventDefault();
+                const form = this;
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Hapus stage?',
+                    text: 'Tindakan tidak dapat dibatalkan',
+                    showCancelButton: true,
+                    confirmButtonText: 'Hapus',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#d33'
+                }).then((result) => {
+                    if (result.isConfirmed) form.submit();
                 });
             });
         });
