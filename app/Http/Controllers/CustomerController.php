@@ -10,14 +10,23 @@ use Illuminate\Support\Facades\Log;
 
 class CustomerController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $user = $request->user();
+
+        // opsional: kalau user belum terhubung ke company, tolak akses
+        if (!$user->company_id) {
+            abort(403, 'User belum terhubung ke perusahaan mana pun.');
+        }
+
         $customers = Customer::with(['company', 'assignedTo', 'stage', 'creator'])
+            ->where('company_id', $user->company_id) // hanya customer di company user
             ->latest()
             ->get();
 
         return view('pages.customers.index', compact('customers'));
     }
+
 
     public function create()
     {
