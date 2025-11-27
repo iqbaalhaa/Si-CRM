@@ -1,10 +1,10 @@
 @extends('layouts.error')
 
-@section('title', '404 Not Found')
+@section('title', '403 Not Found')
 
 @section('content')
-    <div class="error-code">404</div>
-    <div class="error-message">Halaman tidak ditemukan.</div>
+    <div class="error-code">403</div>
+    <div class="error-message">You are not authorized.</div>
 
     <a href="{{ auth()->user()->dashboardRoute() }}">Go to Dashboard</a>
 @endsection
