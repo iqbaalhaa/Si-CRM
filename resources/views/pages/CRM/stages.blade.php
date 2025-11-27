@@ -8,13 +8,14 @@
     </div>
 
     <div class="page-content">
+
+        {{-- Ringkasan per stage --}}
         <div class="row mb-3">
-            {{-- Kartu ringkasan per stage (dummy data) --}}
             <div class="col-6 col-md-4 col-xl-2">
                 <div class="card">
                     <div class="card-body py-3">
                         <small class="text-muted">New</small>
-                        <h4 class="mb-0">12</h4>
+                        <h4 class="mb-0">{{ $stageCounts['New'] ?? 0 }}</h4>
                     </div>
                 </div>
             </div>
@@ -22,7 +23,7 @@
                 <div class="card">
                     <div class="card-body py-3">
                         <small class="text-muted">Contact</small>
-                        <h4 class="mb-0">8</h4>
+                        <h4 class="mb-0">{{ $stageCounts['Contact'] ?? 0 }}</h4>
                     </div>
                 </div>
             </div>
@@ -30,7 +31,7 @@
                 <div class="card">
                     <div class="card-body py-3">
                         <small class="text-muted">Hold</small>
-                        <h4 class="mb-0">5</h4>
+                        <h4 class="mb-0">{{ $stageCounts['Hold'] ?? 0 }}</h4>
                     </div>
                 </div>
             </div>
@@ -38,7 +39,7 @@
                 <div class="card">
                     <div class="card-body py-3">
                         <small class="text-muted">No Respon</small>
-                        <h4 class="mb-0">3</h4>
+                        <h4 class="mb-0">{{ $stageCounts['No Respon'] ?? 0 }}</h4>
                     </div>
                 </div>
             </div>
@@ -46,7 +47,7 @@
                 <div class="card">
                     <div class="card-body py-3">
                         <small class="text-muted">Loss</small>
-                        <h4 class="mb-0">2</h4>
+                        <h4 class="mb-0">{{ $stageCounts['Loss'] ?? 0 }}</h4>
                     </div>
                 </div>
             </div>
@@ -54,13 +55,13 @@
                 <div class="card">
                     <div class="card-body py-3">
                         <small class="text-muted">Close</small>
-                        <h4 class="mb-0">4</h4>
+                        <h4 class="mb-0">{{ $stageCounts['Close'] ?? 0 }}</h4>
                     </div>
                 </div>
             </div>
         </div>
 
-        {{-- Tabel list akun customer + progresi sekarang --}}
+        {{-- Tabel list akun customer + stage sekarang --}}
         <div class="row">
             <div class="col-12">
                 <div class="card">
@@ -99,98 +100,53 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {{-- Dummy row 1 --}}
-                                    <tr>
-                                        <td class="text-center">1</td>
-                                        <td>Andi Pratama</td>
-                                        <td>PT Contoh Jaya</td>
-                                        <td>0812-3456-7890</td>
-                                        <td>
-                                            <span class="badge bg-info text-dark">Contact</span>
-                                        </td>
-                                        <td>27 Nov 2025 10:15</td>
-                                        <td class="text-center">
-                                            <a href="{{ url('/stages-single') }}" class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-graph-up-arrow me-1"></i>Detail
-                                            </a>
-                                        </td>
-                                    </tr>
-
-                                    {{-- Dummy row 2 --}}
-                                    <tr>
-                                        <td class="text-center">2</td>
-                                        <td>Siti Rahma</td>
-                                        <td>CV Digital Maju</td>
-                                        <td>0852-1111-2222</td>
-                                        <td>
-                                            <span class="badge bg-success">Close</span>
-                                        </td>
-                                        <td>26 Nov 2025 16:30</td>
-                                        <td class="text-center">
-                                            <a href="{{ url('/stages-single') }}" class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-graph-up-arrow me-1"></i>Detail
-                                            </a>
-                                        </td>
-                                    </tr>
-
-                                    {{-- Dummy row 3 --}}
-                                    <tr>
-                                        <td class="text-center">3</td>
-                                        <td>Joko Santoso</td>
-                                        <td>-</td>
-                                        <td>0878-9999-0000</td>
-                                        <td>
-                                            <span class="badge bg-warning text-dark">Hold</span>
-                                        </td>
-                                        <td>25 Nov 2025 09:20</td>
-                                        <td class="text-center">
-                                            <a href="{{ url('/stages-single') }}" class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-graph-up-arrow me-1"></i>Detail
-                                            </a>
-                                        </td>
-                                    </tr>
-
-                                    {{-- Dummy row 4 --}}
-                                    <tr>
-                                        <td class="text-center">4</td>
-                                        <td>Maria Ulfa</td>
-                                        <td>PT Sejahtera Abadi</td>
-                                        <td>0813-9999-1111</td>
-                                        <td>
-                                            <span class="badge bg-secondary">New</span>
-                                        </td>
-                                        <td>27 Nov 2025 08:05</td>
-                                        <td class="text-center">
-                                            <a href="{{ url('/stages-single') }}" class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-graph-up-arrow me-1"></i>Detail
-                                            </a>
-                                        </td>
-                                    </tr>
-
-                                    {{-- Dummy row 5 --}}
-                                    <tr>
-                                        <td class="text-center">5</td>
-                                        <td>Rudi Hartono</td>
-                                        <td>CV Maju Bersama</td>
-                                        <td>0812-0000-5555</td>
-                                        <td>
-                                            <span class="badge bg-dark">No Respon</span>
-                                        </td>
-                                        <td>24 Nov 2025 14:10</td>
-                                        <td class="text-center">
-                                            <a href="{{ url('/stages-single') }}" class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-graph-up-arrow me-1"></i>Detail
-                                            </a>
-                                        </td>
-                                    </tr>
-
+                                    @forelse ($customers as $index => $customer)
+                                        @php
+                                            $stageName = optional($customer->stage)->name;
+                                            $badgeClass = match ($stageName) {
+                                                'New' => 'bg-secondary',
+                                                'Contact' => 'bg-info text-dark',
+                                                'Hold' => 'bg-warning text-dark',
+                                                'No Respon' => 'bg-dark',
+                                                'Loss' => 'bg-danger',
+                                                'Close' => 'bg-success',
+                                                default => 'bg-light text-dark',
+                                            };
+                                        @endphp
+                                        <tr>
+                                            <td class="text-center">{{ $index + 1 }}</td>
+                                            <td>{{ $customer->name }}</td>
+                                            <td>{{ optional($customer->company)->name ?? '-' }}</td>
+                                            <td>{{ $customer->phone ?? '-' }}</td>
+                                            <td>
+                                                @if ($stageName)
+                                                    <span class="badge {{ $badgeClass }}">{{ $stageName }}</span>
+                                                @else
+                                                    <span class="badge bg-light text-muted">-</span>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                {{ optional($customer->updated_at)->format('d M Y H:i') }}
+                                            </td>
+                                            <td class="text-center">
+                                                <a href="{{ route('stages.show', $customer) }}"
+                                                    class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-graph-up-arrow me-1"></i>Detail
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="7" class="text-center">Belum ada customer</td>
+                                        </tr>
+                                    @endforelse
                                 </tbody>
                             </table>
                         </div>
 
                         <div class="mt-3">
                             <small class="text-muted">
-                                *ini catatan utk keperlian footer.
+                                * Footer catatan: bisa diisi info SLA follow-up, definisi tiap stage, atau ringkasan pipeline.
                             </small>
                         </div>
 

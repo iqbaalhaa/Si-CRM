@@ -144,7 +144,7 @@ Route::middleware('auth')->group(function () {
         ->name('pipeline-stages.destroy');
 
     Route::get('/assigned', [CRMController::class, 'assigned_index']);
-    Route::get('/stages', [CRMController::class, 'stages_index']);
+    // Route::get('/stages', [CRMController::class, 'stages_index']);
     Route::get('/stages-single', [CRMController::class, 'stages_single_index']);
 
     Route::get('/stages', [CustomerStageHistoryController::class, 'index'])
