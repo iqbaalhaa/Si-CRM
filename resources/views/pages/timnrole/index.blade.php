@@ -96,6 +96,7 @@
             $('#modal-team input#email')[0].required = true;
             $('#modal-team input#password')[0].required = true;
             $('#modal-team select#role')[0].required = true;
+            $('#modal-team input#password').attr('placeholder', '');
         });
 
         $('.btn-edit-team').on('click', function(){
@@ -121,6 +122,7 @@
             $('#modal-team input#email')[0].required = false;
             $('#modal-team select#role')[0].required = false;
             $('#modal-team input#password')[0].required = false;
+            $('#modal-team input#password').attr('placeholder', 'Kosongkan jika tidak ingin mengganti password');
         });
 
         $('.team-delete-form').on('submit', function(e){
@@ -163,7 +165,7 @@
                     </div>
                     <div class="mb-3">
                         <label for="password" class="form-label">Password</label>
-                        <input type="password" name="password" id="password" class="form-control"  placeholder="Kosongkan jika tidak ingin mengganti password" minlength="8">
+                        <input type="password" name="password" id="password" class="form-control" minlength="8">
                     </div>
                     <div class="mb-3">
                         <label for="role" class="form-label">Role</label>
