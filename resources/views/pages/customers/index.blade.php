@@ -33,7 +33,9 @@
                                         <th>Telepon</th>
                                         <th>Email</th>
                                         <th>Stage</th>
-                                        <th>Aksi</th>
+                                        @can('update customers')
+                                            <th>Aksi</th>
+                                        @endcan
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -46,20 +48,23 @@
                                             <td>{{ $c->phone }}</td>
                                             <td>{{ $c->email }}</td>
                                             <td>{{ optional($c->stage)->name ?? '-' }}</td>
-                                            <td class="text-center">
-                                                <a href="{{ route('customers.edit', $c->id) }}"
-                                                    class="btn btn-sm btn-secondary">
-                                                    <i class="bi bi-pencil-square"></i>
-                                                </a>
-                                                <form action="{{ route('customers.destroy', $c->id) }}" method="POST"
-                                                    class="d-inline" onsubmit="return confirm('Hapus customer ini?');">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button class="btn btn-sm btn-danger">
-                                                        <i class="bi bi-trash"></i>
-                                                    </button>
-                                                </form>
-                                            </td>
+                                            @can('update customers')
+                                                <td class="text-center">
+                                                    <a href="{{ route('customers.edit', $c->id) }}"
+                                                        class="btn btn-sm btn-secondary">
+                                                        <i class="bi bi-pencil-square"></i>
+                                                    </a>
+                                                    <form action="{{ route('customers.destroy', $c->id) }}" method="POST"
+                                                        class="d-inline" onsubmit="return confirm('Hapus customer ini?');">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button class="btn btn-sm btn-danger">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </form>
+
+                                                </td>
+                                            @endcan
                                         </tr>
                                     @empty
                                         <tr>

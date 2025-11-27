@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\PipelineStageController;
 use App\Http\Controllers\CRMController;
+use App\Http\Controllers\CustomerStageHistoryController;
 
 // Guest only
 Route::middleware('guest')->group(function () {
@@ -142,7 +143,15 @@ Route::middleware('auth')->group(function () {
         ->middleware('permission:manage pipelines')
         ->name('pipeline-stages.destroy');
 
-    Route::get('/assigned',[CRMController::class, 'assigned_index']);
-    Route::get('/stages',[CRMController::class, 'stages_index']);
-    Route::get('/stages-single',[CRMController::class, 'stages_single_index']);
+    Route::get('/assigned', [CRMController::class, 'assigned_index']);
+    Route::get('/stages', [CRMController::class, 'stages_index']);
+    Route::get('/stages-single', [CRMController::class, 'stages_single_index']);
+
+    Route::get('/stages', [CustomerStageHistoryController::class, 'index'])
+        ->middleware('permission:view customers')
+        ->name('stages.index');
+
+    Route::get('/stages/{customer}', [CustomerStageHistoryController::class, 'show'])
+        ->middleware('permission:view customers')
+        ->name('stages.show');
 });

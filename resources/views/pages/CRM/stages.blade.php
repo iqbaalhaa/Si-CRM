@@ -203,7 +203,7 @@
 
 @push('styles')
     <link rel="stylesheet"
-          href="{{ asset('admindash/assets/extensions/datatables.net-bs5/css/dataTables.bootstrap5.css') }}">
+        href="{{ asset('admindash/assets/extensions/datatables.net-bs5/css/dataTables.bootstrap5.css') }}">
 @endpush
 
 @push('scripts')
