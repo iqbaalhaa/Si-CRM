@@ -88,70 +88,67 @@
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title mb-3">Daftar Pipeline</h5>
-
-                            <div class="table-responsive">
-                                <table class="table table-striped" id="table-pipeline-stages">
-                                    <thead>
-                                        <tr class="text-center">
-                                            <th>No</th>
-                                            <th>Nama Stage</th>
-                                            <th>Tipe</th>
-                                            <th>Urutan</th>
-                                            <th>Default</th>
-                                            <th>Perusahaan</th>
-                                            <th>Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @forelse($stages as $stage)
-                                            <tr data-id="{{ $stage->id }}">
-                                                <td>{{ $loop->iteration }}</td>
-                                                <td>{{ $stage->name }}</td>
-                                                <td>{{ $stage->type ?? '-' }}</td>
-
-                                                {{-- Kolom Urutan bisa diedit --}}
-                                                <td style="width: 100px;">
-                                                    <input type="number" class="form-control form-control-sm sort-input"
-                                                        name="sort_order" value="{{ $stage->sort_order ?? 0 }}"
-                                                        min="0">
-                                                </td>
-
-                                                <td>
-                                                    @if ($stage->is_default)
-                                                        <span class="badge bg-success">Ya</span>
-                                                    @else
-                                                        <span class="badge bg-secondary">Tidak</span>
-                                                    @endif
-                                                </td>
-                                                <td>{{ optional($stage->company)->name ?? '-' }}</td>
-                                                <td class="text-nowrap">
-                                                    {{-- Tombol SIMPAN (inline) --}}
-                                                    <button type="button" class="btn btn-sm btn-primary btn-save-sort">
-                                                        <i class="bi bi-save"></i>
-                                                    </button>
-
-                                                    {{-- Delete tetap sama --}}
-                                                    <form action="{{ route('pipeline-stages.destroy', $stage->id) }}"
-                                                        method="POST" class="d-inline"
-                                                        onsubmit="return confirm('Hapus stage ini?');">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button class="btn btn-sm btn-danger">
-                                                            <i class="bi bi-trash"></i>
+                        
+                            @if($stages->isEmpty())
+                                <div class="alert alert-info mb-0">
+                                    Belum ada data pipeline stage. Silakan tambahkan stage di form sebelah kiri.
+                                </div>
+                            @else
+                                <div class="table-responsive">
+                                    <table class="table table-striped" id="table-pipeline-stages">
+                                        <thead>
+                                            <tr class="text-center">
+                                                <th>No</th>
+                                                <th>Nama Stage</th>
+                                                <th>Tipe</th>
+                                                <th>Urutan</th>
+                                                <th>Default</th>
+                                                <th>Perusahaan</th>
+                                                <th>Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($stages as $stage)
+                                                <tr data-id="{{ $stage->id }}">
+                                                    <td>{{ $loop->iteration }}</td>
+                                                    <td>{{ $stage->name }}</td>
+                                                    <td>{{ $stage->type ?? '-' }}</td>
+                                                    <td style="width: 100px;">
+                                                        <input type="number" class="form-control form-control-sm sort-input"
+                                                            name="sort_order" value="{{ $stage->sort_order ?? 0 }}"
+                                                            min="0">
+                                                    </td>
+                                                    <td>
+                                                        @if ($stage->is_default)
+                                                            <span class="badge bg-success">Ya</span>
+                                                        @else
+                                                            <span class="badge bg-secondary">Tidak</span>
+                                                        @endif
+                                                    </td>
+                                                    <td>{{ optional($stage->company)->name ?? '-' }}</td>
+                                                    <td class="text-nowrap">
+                                                        <button type="button" class="btn btn-sm btn-primary btn-save-sort">
+                                                            <i class="bi bi-save"></i>
                                                         </button>
-                                                    </form>
-                                                </td>
-                                            </tr>
-                                        @empty
-                                            <tr>
-                                                <td colspan="7" class="text-center">Belum ada data pipeline stage</td>
-                                            </tr>
-                                        @endforelse
-                                    </tbody>
-                                </table>
-                            </div>
+                        
+                                                        <form action="{{ route('pipeline-stages.destroy', $stage->id) }}"
+                                                            method="POST" class="d-inline"
+                                                            onsubmit="return confirm('Hapus stage ini?');">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button class="btn btn-sm btn-danger">
+                                                                <i class="bi bi-trash"></i>
+                                                            </button>
+                                                        </form>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @endif
                         </div>
-
+                        
                     </div>
                 </div>
             </div>
