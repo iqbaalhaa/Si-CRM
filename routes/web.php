@@ -74,6 +74,14 @@ Route::middleware('auth')->group(function () {
         ->middleware('role:admin')
         ->name('teamrole.store');
 
+    Route::put('/tim-dan-role/{user}', [\App\Http\Controllers\TeamRoleController::class, 'update'])
+        ->middleware('role:admin')
+        ->name('teamrole.update');
+
+    Route::delete('/tim-dan-role/{user}', [\App\Http\Controllers\TeamRoleController::class, 'destroy'])
+        ->middleware('role:admin')
+        ->name('teamrole.destroy');
+
     // Manage Admin Perusahaan (Super Admin)
     Route::get('/manage-admin-perusahaan', [\App\Http\Controllers\Superadmin\ManageAdminController::class, 'index'])
         ->middleware('role:super-admin')
