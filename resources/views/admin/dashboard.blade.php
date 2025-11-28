@@ -9,7 +9,7 @@
         $customersCount = \App\Models\Customer::where('company_id', $companyId)->count();
         $teamCount = \App\Models\User::where('company_id', $companyId)->whereHas('roles', function($q){ $q->whereIn('name', ['marketing','cs']); })->count();
         $stagesCount = \App\Models\PipelineStage::where('company_id', $companyId)->count();
-        $estimatedSum = \App\Models\Customer::where('company_id', $companyId)->sum('estimated_value');
+        
         $recentCustomers = \App\Models\Customer::where('company_id', $companyId)->latest()->take(5)->get(['name','email','source','created_at']);
         $daily = \App\Models\Customer::where('company_id', $companyId)
             ->where('created_at', '>=', now()->subDays(7))
@@ -68,19 +68,6 @@
                                         <div class="h4 mb-0">{{ number_format($stagesCount) }}</div>
                                     </div>
                                     <div class="stats-icon green"><i class="bi bi-kanban"></i></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-md-6 col-lg-3">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <div class="text-muted">Est. Value</div>
-                                        <div class="h4 mb-0">{{ number_format($estimatedSum, 0) }}</div>
-                                    </div>
-                                    <div class="stats-icon orange"><i class="bi bi-currency-dollar"></i></div>
                                 </div>
                             </div>
                         </div>
