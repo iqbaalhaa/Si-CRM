@@ -113,16 +113,10 @@
                         <span>Tim & Role</span>
                     </a>
                 </li>
-                <li class="sidebar-item {{ request()->is('tim-dan-role*') ? 'active' : '' }}">
-                    <a href="{{ url('/tim-dan-role') }}" class="sidebar-link">
+                <li class="sidebar-item {{ request()->is('assign.*') ? 'active' : '' }}">
+                    <a href="{{ url('/assign') }}" class="sidebar-link">
                         <i class="bi bi-gear-fill"></i>
                         <span>Tim & Role</span>
-                    </a>
-                </li>
-                <li class="sidebar-item ">
-                    <a href="/assigned" class="sidebar-link">
-                        <i class="bi bi-file-earmark-person-fill"></i>
-                        <span>Assign To</span>
                     </a>
                 </li>
             @endrole

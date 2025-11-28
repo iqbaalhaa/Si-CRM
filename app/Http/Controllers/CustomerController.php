@@ -4,8 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Customer;
 use App\Models\CustomerStageHistory;
+use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 
 
@@ -95,20 +96,105 @@ class CustomerController extends Controller
         return redirect()->route('customers.index')->with('success', 'Customer berhasil dihapus.');
     }
 
-    public function viewAssignation(Request $request, Customer $customer, CustomerStageHistory $customerStageHistory)
+
+
+
+
+
+    public function assign(Request $request)
     {
         $user = $request->user();
 
-        // opsional: kalau user belum terhubung ke company, tolak akses
+        // Kalau user belum punya company_id, tolak akses
         if (!$user->company_id) {
             abort(403, 'User belum terhubung ke perusahaan mana pun.');
         }
 
+        // Customer hanya yang 1 company dengan user
         $customers = Customer::with(['company', 'assignedTo', 'stage', 'creator'])
-            ->where('company_id', $user->company_id) // hanya customer di company user
+            ->where('company_id', $user->company_id)
             ->latest()
             ->get();
 
-        return view('pages.assign.index', compact('customers'));
+        // CS / Marketing juga difilter berdasarkan company yang sama
+        $assignableUsers = User::where('company_id', $user->company_id)
+            ->role(['cs', 'marketing'])
+            ->orderBy('name')
+            ->get();
+
+        return view('pages.assign.index', compact('customers', 'assignableUsers'));
+    }
+
+    public function assignTo(Request $request, Customer $customer)
+    {
+        $user = $request->user();
+
+        // Pastikan customer masih di company yang sama dengan user
+        if ($customer->company_id !== $user->company_id) {
+            abort(403, 'Anda tidak berhak mengubah customer ini.');
+        }
+
+
+        $request->validate([
+            'assigned_to_id' => 'nullable|exists:users,id',
+            'note'           => 'nullable|string|max:500', // kalau mau kasih catatan tambahan
+        ]);
+
+        // Kalau diisi, pastikan user yang dipilih juga 1 company & punya role cs/marketing
+        $assignedUser = null;
+        if ($request->filled('assigned_to_id')) {
+            $assignedUser = User::where('company_id', $user->company_id)
+                ->role(['cs', 'marketing'])
+                ->findOrFail($request->assigned_to_id);
+        }
+
+        DB::transaction(function () use ($customer, $user, $assignedUser, $request) {
+
+            // === HANDLE DEFAULT STAGE ===
+            // kalau customer belum punya stage, set default ke 1
+            if (is_null($customer->current_stage_id)) {
+                $customer->current_stage_id = 1; // default stage id
+            }
+
+            $oldAssigned      = $customer->assignedTo;          // sebelum diubah
+            $oldStageId       = $customer->current_stage_id;    // stage sekarang (sudah pasti >= 1)
+            $oldAssignedName  = $oldAssigned?->name;
+            $newAssignedName  = $assignedUser?->name;
+
+            // 1) UPDATE customer (bukan insert)
+            $customer->assigned_to_id = $assignedUser?->id;
+            $customer->save();
+
+            // 2) INSERT history baru ke customer_stage_histories
+            $noteParts = [];
+
+            if (!$oldAssignedName && $newAssignedName) {
+                $noteParts[] = "Assign ke {$newAssignedName}";
+            } elseif ($oldAssignedName && !$newAssignedName) {
+                $noteParts[] = "Unassign dari {$oldAssignedName}";
+            } elseif ($oldAssignedName !== $newAssignedName) {
+                $noteParts[] = "Pindah assign dari {$oldAssignedName} ke {$newAssignedName}";
+            } else {
+                $noteParts[] = "Update assign (PIC tidak berubah)";
+            }
+
+            if ($request->filled('note')) {
+                $noteParts[] = $request->note;
+            }
+
+            CustomerStageHistory::create([
+                'customer_id'   => $customer->id,
+                'company_id'    => $customer->company_id,
+                'from_stage_id' => $oldStageId,
+                'to_stage_id'   => $customer->current_stage_id, // sekarang udah pasti 1 kalau awalnya null
+                'changed_by'    => $user->id,
+                'note'          => implode(' | ', $noteParts),
+            ]);
+        });
+
+
+        return redirect()
+            ->route('assign.index')
+            ->with('success', 'Customer berhasil di-assign ke tim & history tercatat.');
     }
 }

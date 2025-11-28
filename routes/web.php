@@ -4,7 +4,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\PipelineStageController;
-use App\Http\Controllers\CRMController;
 use App\Http\Controllers\CustomerStageHistoryController;
 
 // Guest only
@@ -153,11 +152,10 @@ Route::middleware('auth')->group(function () {
         ->middleware('permission:view customers')
         ->name('stages.show');
 
-    Route::get('/assign', [CustomerController::class, 'index'])
-        ->middleware('permission:edit customers')
-        ->name('stages.index');
+    Route::get('/assign', [CustomerController::class, 'assign'])
+        ->middleware('permission:update customers')
+        ->name('assign.index');
 
-    Route::get('/assign', [CustomerController::class, 'index'])
-        ->middleware('permission:edit customers')
-        ->name('stages.index');
+    Route::post('/assign-to/{customer}', [CustomerController::class, 'assignto'])
+        ->name('assign.store');
 });
