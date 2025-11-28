@@ -50,6 +50,6 @@ class CustomerStageHistoryController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
-        return view('pages.stages.show', compact('customer', 'histories'));
+        return view('pages.crm.show', compact('customer', 'histories'));
     }
 }

@@ -146,7 +146,8 @@
 
                         <div class="mt-3">
                             <small class="text-muted">
-                                * Footer catatan: bisa diisi info SLA follow-up, definisi tiap stage, atau ringkasan pipeline.
+                                * Footer catatan: bisa diisi info SLA follow-up, definisi tiap stage, atau ringkasan
+                                pipeline.
                             </small>
                         </div>
 
