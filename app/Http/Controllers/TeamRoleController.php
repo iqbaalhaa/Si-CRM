@@ -64,7 +64,7 @@ class TeamRoleController extends Controller
         if (array_key_exists('email', $data)) {
             $user->email = $data['email'];
         }
-        if (!empty($data['password'])) {
+        if (! empty($data['password'])) {
             $user->password = $data['password'];
         }
         $user->save();

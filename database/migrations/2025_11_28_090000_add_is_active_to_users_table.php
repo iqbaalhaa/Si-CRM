@@ -12,18 +12,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->foreignId('company_id')
-                ->nullable()
-                ->constrained('perusahaan')
-                ->nullOnDelete();
+            $table->boolean('is_active')->default(true);
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropForeign(['company_id']);
-            $table->dropColumn('company_id');
+            $table->dropColumn('is_active');
         });
     }
 };

@@ -6,7 +6,10 @@
         <h3>Report Karyawan</h3>
         <div class="text-muted">{{ $company->name ?? 'Perusahaan' }}</div>
     </div>
-    <a href="{{ route('reports.employees.download') }}" class="btn btn-primary"><i class="bi bi-download me-1"></i> Download Report</a>
+    <div class="d-flex gap-2">
+        <a href="{{ route('reports.employees.download') }}" class="btn btn-primary"><i class="bi bi-download me-1"></i> Download HTML</a>
+        <a href="{{ route('reports.employees.pdf') }}" class="btn btn-outline-primary"><i class="bi bi-filetype-pdf me-1"></i> Download PDF</a>
+    </div>
 </div>
 
 <div class="page-content">
