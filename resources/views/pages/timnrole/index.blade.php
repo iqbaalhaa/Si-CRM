@@ -8,6 +8,7 @@
 <div class="page-content">
     <div class="row">
         <div class="col-12">
+            
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0">Daftar Akun Tim Perusahaan</h5>
@@ -145,43 +146,91 @@
 @endpush
 
 @push('scripts')
-<div class="modal fade" id="modal-team" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
+<div class="modal fade" id="modal-team" tabindex="-1" aria-labelledby="modalTeamLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg">
             <form action="{{ route('teamrole.store') }}" method="POST">
                 @csrf
-                <div class="modal-header">
-                    <h5 class="modal-title">Tambah Akun Tim</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-header bg-primary text-white">
+                    <div>
+                        <h5 class="modal-title d-flex align-items-center gap-2" id="modalTeamLabel">
+                            <i class="bi bi-people-fill"></i>
+                            <span>Tambah Akun Tim</span>
+                        </h5>
+                        <small class="d-block fw-normal text-white-50">
+                            Buat akun untuk Marketing / CS pada perusahaan ini.
+                        </small>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
                 </div>
+
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="name" class="form-label">Nama</label>
-                        <input type="text" name="name" id="name" class="form-control" required>
+                    <div class="row g-3">
+                        {{-- Kolom kiri: identitas --}}
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Nama Lengkap</label>
+                                <input type="text" name="name" id="name" class="form-control"
+                                       placeholder="Misal: Rina Putri" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email Kerja</label>
+                                <input type="email" name="email" id="email" class="form-control"
+                                       placeholder="nama@perusahaan.com" required>
+                            </div>
+                        </div>
+
+                        {{-- Kolom kanan: password & role --}}
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <label for="password" class="form-label mb-0">Password</label>
+                                    <small class="text-muted">Min. 8 karakter</small>
+                                </div>
+                                <input type="password" name="password" id="password" class="form-control"
+                                       minlength="8" placeholder="••••••••">
+                            </div>
+
+                            <div class="mb-2">
+                                <label for="role" class="form-label">Role</label>
+                                <select name="role" id="role" class="form-select" required>
+                                    <option value="" disabled selected>Pilih Role</option>
+                                    <option value="marketing">Marketing</option>
+                                    <option value="cs">CS</option>
+                                </select>
+                            </div>
+
+                            <div class="small text-muted mt-1">
+                                <i class="bi bi-info-circle me-1"></i>
+                                <strong>Marketing</strong> fokus ke pencarian & pengelolaan lead,
+                                <strong>CS</strong> fokus ke follow up & pelayanan.
+                            </div>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" name="email" id="email" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" name="password" id="password" class="form-control" minlength="8">
-                    </div>
-                    <div class="mb-3">
-                        <label for="role" class="form-label">Role</label>
-                        <select name="role" id="role" class="form-select" required>
-                            <option value="" disabled selected>Pilih Role</option>
-                            <option value="marketing">Marketing</option>
-                            <option value="cs">CS</option>
-                        </select>
+
+                    <hr class="my-3">
+
+                    <div class="d-flex align-items-center gap-2 small text-muted">
+                        <i class="bi bi-shield-lock"></i>
+                        <span>
+                            Data akun ini akan digunakan untuk login ke sistem CRM.
+                            Pastikan email aktif dan password disimpan dengan aman.
+                        </span>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary">Simpan</button>
+
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        Batal
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save me-1"></i> Simpan
+                    </button>
                 </div>
             </form>
         </div>
     </div>
-    </div>
+</div>
 @endpush
+
