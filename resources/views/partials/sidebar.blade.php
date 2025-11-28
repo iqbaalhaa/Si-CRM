@@ -113,6 +113,12 @@
                         <span>Tim & Role</span>
                     </a>
                 </li>
+                <li class="sidebar-item {{ request()->is('assign.*') ? 'active' : '' }}">
+                    <a href="{{ url('/assign') }}" class="sidebar-link">
+                        <i class="bi bi-gear-fill"></i>
+                        <span>Tim & Role</span>
+                    </a>
+                </li>
             @endrole
 
             @role('marketing')
@@ -141,12 +147,7 @@
             @endrole
             <li class="sidebar-title">CRM</li>
 
-            <li class="sidebar-item ">
-                <a href="/assigned" class="sidebar-link">
-                    <i class="bi bi-file-earmark-person-fill"></i>
-                    <span>Assign To</span>
-                </a>
-            </li>
+
             <li class="sidebar-item ">
                 <a href="/stages" class="sidebar-link">
                     <i class="bi bi-graph-up-arrow"></i>

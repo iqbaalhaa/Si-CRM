@@ -3,8 +3,16 @@
 @section('title', 'Assign To')
 
 @section('content')
-    <div class="page-heading mb-3">
-        <h3>Assign Customer ke CS / FO</h3>
+    <div class="page-heading mb-3 d-flex justify-content-between align-items-center">
+        <div>
+            <h3>Assign Customer ke CS / FO</h3>
+            <p class="text-muted mb-0">Atur penugasan customer ke tim CS / FO kamu.</p>
+        </div>
+        @if (session('success'))
+            <span class="badge bg-success px-3 py-2">
+                <i class="bi bi-check-circle me-1"></i>{{ session('success') }}
+            </span>
+        @endif
     </div>
 
     <div class="page-content">
@@ -27,9 +35,13 @@
                                 <h5 class="mb-0">Daftar Customer</h5>
                                 <small class="text-muted">Prototype halaman assign customer ke tim</small>
                             </div>
-                            <div class="d-flex flex-wrap gap-2">
-                                <span class="badge bg-secondary">Belum di-assign</span>
-                                <span class="badge bg-success">Sudah di-assign</span>
+                            <div class="d-flex flex-wrap gap-2 align-items-center">
+                                <span class="badge bg-secondary">
+                                    <i class="bi bi-circle me-1"></i>Belum di-assign
+                                </span>
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle me-1"></i>Sudah di-assign
+                                </span>
                             </div>
                         </div>
 
@@ -47,83 +59,68 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {{-- Contoh row 1 - belum di-assign --}}
-                                    <tr>
-                                        <td class="text-center">1</td>
-                                        <td>Andi Pratama</td>
-                                        <td>PT Contoh Jaya</td>
-                                        <td>0812-3456-7890</td>
-                                        <td><span class="badge bg-warning text-dark">Prospecting</span></td>
-                                        <td>
-                                            <div class="d-flex gap-2">
-                                                <select class="form-select form-select-sm">
-                                                    <option value="">-- Pilih CS / FO --</option>
-                                                    <option>Rina (CS)</option>
-                                                    <option>Dwi (FO)</option>
-                                                    <option>Budi (CS)</option>
-                                                </select>
-                                                <button type="button" class="btn btn-sm btn-primary">
-                                                    <i class="bi bi-save"></i>
-                                                    <span class="d-none d-xl-inline">Simpan</span>
-                                                </button>
-                                            </div>
-                                        </td>
-                                        <td class="text-center">
-                                            <span class="badge bg-secondary">Belum di-assign</span>
-                                        </td>
-                                    </tr>
-
-                                    {{-- Contoh row 2 - sudah di-assign --}}
-                                    <tr>
-                                        <td class="text-center">2</td>
-                                        <td>Siti Rahma</td>
-                                        <td>CV Digital Maju</td>
-                                        <td>0852-1111-2222</td>
-                                        <td><span class="badge bg-info text-dark">Follow Up</span></td>
-                                        <td>
-                                            <div class="d-flex gap-2">
-                                                <select class="form-select form-select-sm">
-                                                    <option value="">-- Pilih CS / FO --</option>
-                                                    <option selected>Rina (CS)</option>
-                                                    <option>Dwi (FO)</option>
-                                                    <option>Budi (CS)</option>
-                                                </select>
-                                                <button type="button" class="btn btn-sm btn-primary">
-                                                    <i class="bi bi-save"></i>
-                                                    <span class="d-none d-xl-inline">Simpan</span>
-                                                </button>
-                                            </div>
-                                        </td>
-                                        <td class="text-center">
-                                            <span class="badge bg-success">Rina (CS)</span>
-                                        </td>
-                                    </tr>
-
-                                    {{-- Contoh row 3 --}}
-                                    <tr>
-                                        <td class="text-center">3</td>
-                                        <td>Joko Santoso</td>
-                                        <td>-</td>
-                                        <td>0878-9999-0000</td>
-                                        <td><span class="badge bg-secondary">New Lead</span></td>
-                                        <td>
-                                            <div class="d-flex gap-2">
-                                                <select class="form-select form-select-sm">
-                                                    <option value="">-- Pilih CS / FO --</option>
-                                                    <option>Rina (CS)</option>
-                                                    <option selected>Dwi (FO)</option>
-                                                    <option>Budi (CS)</option>
-                                                </select>
-                                                <button type="button" class="btn btn-sm btn-primary">
-                                                    <i class="bi bi-save"></i>
-                                                    <span class="d-none d-xl-inline">Simpan</span>
-                                                </button>
-                                            </div>
-                                        </td>
-                                        <td class="text-center">
-                                            <span class="badge bg-success">Dwi (FO)</span>
-                                        </td>
-                                    </tr>
+                                    @forelse ($customers as $customer)
+                                        @php
+                                            $isAssigned = !is_null($customer->assigned_to_id);
+                                        @endphp
+                                        <tr class="{{ $isAssigned ? '' : 'table-warning' }}">
+                                            <td class="text-center">{{ $loop->iteration }}</td>
+                                            <td>{{ $customer->name }}</td>
+                                            <td>{{ $customer->company->name ?? '-' }}</td>
+                                            <td>{{ $customer->phone ?? '-' }}</td>
+                                            <td class="text-center">
+                                                @if ($customer->stage)
+                                                    <span class="badge bg-info text-dark">
+                                                        {{ $customer->stage->name }}
+                                                    </span>
+                                                @else
+                                                    <span class="badge bg-secondary">-</span>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                <form action="{{ route('assign.store', $customer) }}" method="POST">
+                                                    @csrf
+                                                    <div class="d-flex gap-2">
+                                                        <select name="assigned_to_id"
+                                                            class="form-select form-select-sm @error('assigned_to_id') is-invalid @enderror">
+                                                            <option value="">-- Pilih CS / FO --</option>
+                                                            @foreach ($assignableUsers as $user)
+                                                                <option value="{{ $user->id }}"
+                                                                    @selected($customer->assigned_to_id == $user->id)>
+                                                                    {{ $user->name }}
+                                                                    @php
+                                                                        $roles = $user->getRoleNames()->toArray();
+                                                                    @endphp
+                                                                    @if (count($roles))
+                                                                        ({{ implode(', ', $roles) }})
+                                                                    @endif
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                        <button type="submit" class="btn btn-sm btn-primary">
+                                                            <i class="bi bi-save"></i>
+                                                            <span class="d-none d-xl-inline"> Simpan</span>
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </td>
+                                            <td class="text-center">
+                                                @if ($customer->assignedTo)
+                                                    <span class="badge bg-success">
+                                                        {{ $customer->assignedTo->name }}
+                                                    </span>
+                                                @else
+                                                    <span class="badge bg-secondary">Belum di-assign</span>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="7" class="text-center text-muted">
+                                                Belum ada data customer.
+                                            </td>
+                                        </tr>
+                                    @endforelse
                                 </tbody>
                             </table>
                         </div>
@@ -152,7 +149,11 @@
                 lengthMenu: [10, 25, 50, 100],
                 order: [
                     [0, 'asc']
-                ]
+                ],
+                columnDefs: [{
+                    targets: [0, 4, 6],
+                    className: 'text-center'
+                }]
             });
         });
     </script>
