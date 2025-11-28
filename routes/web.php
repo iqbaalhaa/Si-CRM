@@ -152,4 +152,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/stages/{customer}', [CustomerStageHistoryController::class, 'show'])
         ->middleware('permission:view customers')
         ->name('stages.show');
+
+    Route::get('/assign', [CustomerController::class, 'index'])
+        ->middleware('permission:edit customers')
+        ->name('stages.index');
+
+    Route::get('/assign', [CustomerController::class, 'index'])
+        ->middleware('permission:edit customers')
+        ->name('stages.index');
 });

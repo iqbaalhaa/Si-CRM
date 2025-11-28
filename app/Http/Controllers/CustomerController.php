@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
+use App\Models\CustomerStageHistory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -92,5 +93,22 @@ class CustomerController extends Controller
         $customer->delete();
 
         return redirect()->route('customers.index')->with('success', 'Customer berhasil dihapus.');
+    }
+
+    public function viewAssignation(Request $request, Customer $customer, CustomerStageHistory $customerStageHistory)
+    {
+        $user = $request->user();
+
+        // opsional: kalau user belum terhubung ke company, tolak akses
+        if (!$user->company_id) {
+            abort(403, 'User belum terhubung ke perusahaan mana pun.');
+        }
+
+        $customers = Customer::with(['company', 'assignedTo', 'stage', 'creator'])
+            ->where('company_id', $user->company_id) // hanya customer di company user
+            ->latest()
+            ->get();
+
+        return view('pages.assign.index', compact('customers'));
     }
 }
