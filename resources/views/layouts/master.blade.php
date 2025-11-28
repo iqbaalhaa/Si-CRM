@@ -9,9 +9,8 @@
     <title>@yield('title', 'Dashboard')</title>
 
 
-    {{-- Favicon --}}
-    <link rel="shortcut icon" href="{{ asset('admindash/assets/compiled/svg/favicon.svg') }}" type="image/x-icon">
-    <link rel="shortcut icon" href="data:image/png;base64,iVBORw0K..." type="image/png">
+    <link rel="icon" href="{{ asset('crmlogo.ico') }}" type="image/x-icon">
+    <link rel="shortcut icon" href="{{ asset('crmlogo.ico') }}" type="image/x-icon">
 
     {{-- CSS --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
