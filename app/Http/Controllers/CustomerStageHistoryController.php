@@ -35,7 +35,7 @@ class CustomerStageHistoryController extends Controller
             'Close'     => $customers->filter(fn ($c) => optional($c->stage)->name === 'Close')->count(),
         ];
 
-        return view('pages.stages.index', compact('customers', 'stageCounts'));
+        return view('pages.crm.stages', compact('customers', 'stageCounts'));
     }
 
     /**
@@ -50,6 +50,6 @@ class CustomerStageHistoryController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
-        return view('pages.stages.show', compact('customer', 'histories'));
+        return view('pages.crm.show', compact('customer', 'histories'));
     }
 }
