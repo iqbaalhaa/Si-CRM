@@ -172,9 +172,13 @@ Route::middleware('auth')->group(function () {
         ->middleware('permission:view customers')
         ->name('stages.index');
 
-    Route::get('/stages/{customer}', [CustomerStageHistoryController::class, 'show'])
-        ->middleware('permission:view customers')
-        ->name('stages.show');
+
+    Route::get('/crm/customers/{customer}', [CustomerController::class, 'show'])
+        ->name('crm.show');
+
+    // Update stage dari modal
+    Route::put('/crm/customers/{customer}/stage', [CustomerController::class, 'updateStage'])
+        ->name('customers.update-stage');
 
     Route::get('/assign', [CustomerController::class, 'assign'])
         ->middleware('permission:update customers')

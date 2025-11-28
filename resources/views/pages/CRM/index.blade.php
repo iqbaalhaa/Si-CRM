@@ -129,7 +129,7 @@
                                                 {{ optional($customer->updated_at)->format('d M Y H:i') }}
                                             </td>
                                             <td class="text-center">
-                                                <a href="{{ route('stages.show', $customer) }}"
+                                                <a href="{{ route('crm.show', $customer) }}"
                                                     class="btn btn-sm btn-outline-primary">
                                                     <i class="bi bi-graph-up-arrow me-1"></i>Detail
                                                 </a>

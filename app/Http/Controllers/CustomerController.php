@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Customer;
 use App\Models\CustomerStageHistory;
+use App\Models\PipelineStage;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -57,11 +58,6 @@ class CustomerController extends Controller
     }
 
 
-    public function show(Customer $customer)
-    {
-        return $customer->load(['company', 'assignedTo', 'stage', 'creator']);
-    }
-
     public function update(Request $request, Customer $customer)
     {
         $data = $request->validate([
@@ -96,6 +92,64 @@ class CustomerController extends Controller
         return redirect()->route('customers.index')->with('success', 'Customer berhasil dihapus.');
     }
 
+    public function show(Request $request, Customer $customer)
+    {
+        $user = $request->user();
+
+        if ($customer->company_id !== $user->company_id) {
+            abort(403, 'Anda tidak berhak melihat customer ini.');
+        }
+
+        $histories = CustomerStageHistory::with(['fromStage', 'toStage', 'changer'])
+            ->where('customer_id', $customer->id)
+            ->where('company_id', $customer->company_id)
+            ->orderByDesc('created_at')
+            ->get();
+
+        $stages = PipelineStage::where('company_id', $customer->company_id)
+            ->orderBy('id')
+            ->get();
+
+        return view('pages.crm.show', compact('customer', 'histories', 'stages'));
+    }
+
+    // Update stage + simpan history
+    public function updateStage(Request $request, Customer $customer)
+    {
+        $user = $request->user();
+
+        if ($customer->company_id !== $user->company_id) {
+            abort(403, 'Anda tidak berhak mengubah customer ini.');
+        }
+
+        $validated = $request->validate([
+            'to_stage_id' => 'required|exists:pipeline_stages,id',
+            'note'        => 'nullable|string|max:500',
+        ]);
+
+        DB::transaction(function () use ($customer, $user, $validated) {
+            // kalau belum ada stage sebelumnya, pakai default 1
+            $fromStageId = $customer->current_stage_id ?? 1;
+
+            // update customer
+            $customer->current_stage_id = $validated['to_stage_id'];
+            $customer->save();
+
+            // insert history
+            CustomerStageHistory::create([
+                'customer_id'   => $customer->id,
+                'company_id'    => $customer->company_id,
+                'from_stage_id' => $fromStageId,
+                'to_stage_id'   => $validated['to_stage_id'],
+                'changed_by'    => $user->id,
+                'note'          => $validated['note'] ?? 'Update stage via detail progression.',
+            ]);
+        });
+
+        return redirect()
+            ->route('crm.show', $customer) // ⬅️ ganti ini
+            ->with('success', 'Stage customer berhasil diperbarui.');
+    }
 
 
 
