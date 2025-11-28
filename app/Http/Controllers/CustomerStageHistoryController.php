@@ -35,7 +35,7 @@ class CustomerStageHistoryController extends Controller
             'Close'     => $customers->filter(fn ($c) => optional($c->stage)->name === 'Close')->count(),
         ];
 
-        return view('pages.crm.stages', compact('customers', 'stageCounts'));
+        return view('pages.crm.index', compact('customers', 'stageCounts'));
     }
 
     /**
