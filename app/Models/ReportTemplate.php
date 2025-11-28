@@ -12,6 +12,12 @@ class ReportTemplate extends Model
     protected $fillable = [
         'company_id',
         'template_name',
+        'type',
         'content',
     ];
+
+    public function company()
+    {
+        return $this->belongsTo(Perusahaan::class, 'company_id');
+    }
 }

@@ -6,23 +6,21 @@
         <h3>Report Karyawan</h3>
         <div class="text-muted">{{ $company->name ?? 'Perusahaan' }}</div>
     </div>
-    <div class="d-flex gap-2">
-        <a href="{{ route('reports.employees.download') }}" class="btn btn-primary"><i class="bi bi-download me-1"></i> Download HTML</a>
-        <a href="{{ route('reports.employees.pdf') }}" class="btn btn-outline-primary"><i class="bi bi-filetype-pdf me-1"></i> Download PDF</a>
-    </div>
+    {{-- tombol download all dihapus, karena sekarang per-user --}}
 </div>
 
 <div class="page-content">
     <div class="card">
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-striped">
+                <table class="table table-striped align-middle">
                     <thead>
                         <tr>
                             <th>Nama</th>
                             <th>Email</th>
                             <th>Role</th>
                             <th>Tanggal</th>
+                            <th class="text-center">Aksi</th> {{-- kolom baru --}}
                         </tr>
                     </thead>
                     <tbody>
@@ -32,6 +30,21 @@
                             <td>{{ $u->email }}</td>
                             <td>{{ $u->getRoleNames()->first() }}</td>
                             <td>{{ $u->created_at?->format('d M Y') }}</td>
+                            <td class="text-center text-nowrap">
+                                {{-- Download HTML per karyawan --}}
+                                <a href="{{ route('reports.employees.download', $u->id) }}"
+                                   class="btn btn-sm btn-light"
+                                   title="Download Report HTML">
+                                    <i class="bi bi-download"></i>
+                                </a>
+
+                                {{-- Download PDF per karyawan --}}
+                                <a href="{{ route('reports.employees.pdf', $u->id) }}"
+                                   class="btn btn-sm btn-outline-danger"
+                                   title="Download Report PDF">
+                                    <i class="bi bi-filetype-pdf"></i>
+                                </a>
+                            </td>
                         </tr>
                         @endforeach
                     </tbody>

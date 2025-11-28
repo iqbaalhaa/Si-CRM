@@ -6,5 +6,10 @@
     <div class="error-code">404</div>
     <div class="error-message">Halaman tidak ditemukan.</div>
 
-    <a href="{{ auth()->user()->dashboardRoute() }}">Go to Dashboard</a>
+    @php
+        $user = auth()->user();
+        $dashboardUrl = $user ? $user->dashboardRoute() : route('login');
+    @endphp
+
+    <a href="{{ $dashboardUrl }}">Go to Dashboard</a>
 @endsection
