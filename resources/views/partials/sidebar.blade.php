@@ -161,13 +161,19 @@
                 </a>
             </li>
 
-            <li class="sidebar-title">Akun</li>
+            <li class="sidebar-title">Report</li>
 
-            {{-- Profil --}}
+            {{-- Report --}}
             <li class="sidebar-item {{ request()->is('profil*') ? 'active' : '' }}">
                 <a href="{{ url('/profil') }}" class="sidebar-link">
-                    <i class="bi bi-person-fill"></i>
-                    <span>Profil</span>
+                    <i class="bi bi-clipboard-data-fill"></i>
+                    <span>Report Customers</span>
+                </a>
+            </li>
+            <li class="sidebar-item {{ request()->is('profil*') ? 'active' : '' }}">
+                <a href="{{ url('/profil') }}" class="sidebar-link">
+                    <i class="bi bi-clipboard2-pulse-fill"></i>
+                    <span>Report Karyawan</span>
                 </a>
             </li>
 
