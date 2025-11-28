@@ -66,6 +66,30 @@ Route::middleware('auth')->group(function () {
         ->middleware('role:super-admin')
         ->name('perusahaan.destroy');
 
+    // Reports (TinyMCE editor)
+    Route::get('/report-customers', [\App\Http\Controllers\ReportController::class, 'customers'])
+        ->middleware('permission:manage reports')
+        ->name('reports.customers');
+
+    Route::get('/report-karyawan', [\App\Http\Controllers\ReportController::class, 'employees'])
+        ->middleware('permission:manage reports')
+        ->name('reports.employees');
+
+    Route::get('/report-customers/download', [\App\Http\Controllers\ReportController::class, 'customersDownload'])
+        ->middleware('permission:manage reports')
+        ->name('reports.customers.download');
+
+    Route::get('/report-karyawan/download', [\App\Http\Controllers\ReportController::class, 'employeesDownload'])
+        ->middleware('permission:manage reports')
+        ->name('reports.employees.download');
+
+    Route::get('/report-settings', [\App\Http\Controllers\ReportController::class, 'settings'])
+        ->middleware('permission:manage reports')
+        ->name('reports.settings');
+    Route::post('/report-settings', [\App\Http\Controllers\ReportController::class, 'settingsSave'])
+        ->middleware('permission:manage reports')
+        ->name('reports.settings.save');
+
     // Tim & Role (Admin perusahaan)
     Route::get('/tim-dan-role', [\App\Http\Controllers\TeamRoleController::class, 'index'])
         ->middleware('role:admin')

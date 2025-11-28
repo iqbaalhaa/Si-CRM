@@ -154,19 +154,25 @@
                 </a>
             </li>
 
+            {{-- Report --}}
             <li class="sidebar-title">Report</li>
 
-            {{-- Report --}}
-            <li class="sidebar-item {{ request()->is('profil*') ? 'active' : '' }}">
-                <a href="{{ url('/profil') }}" class="sidebar-link">
+            <li class="sidebar-item {{ request()->is('report-customers*') ? 'active' : '' }}">
+                <a href="{{ url('/report-customers') }}" class="sidebar-link">
                     <i class="bi bi-clipboard-data-fill"></i>
                     <span>Report Customers</span>
                 </a>
             </li>
-            <li class="sidebar-item {{ request()->is('profil*') ? 'active' : '' }}">
-                <a href="{{ url('/profil') }}" class="sidebar-link">
+            <li class="sidebar-item {{ request()->is('report-karyawan*') ? 'active' : '' }}">
+                <a href="{{ url('/report-karyawan') }}" class="sidebar-link">
                     <i class="bi bi-clipboard2-pulse-fill"></i>
                     <span>Report Karyawan</span>
+                </a>
+            </li>
+            <li class="sidebar-item {{ request()->is('report-settings*') ? 'active' : '' }}">
+                <a href="{{ url('/report-settings') }}" class="sidebar-link">
+                    <i class="bi bi-clipboard2-pulse-fill"></i>
+                    <span>Report Settings</span>
                 </a>
             </li>
 
