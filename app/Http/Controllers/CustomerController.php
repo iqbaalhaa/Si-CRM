@@ -36,8 +36,6 @@ class CustomerController extends Controller
         return view('pages.customers.create');
     }
 
-
-
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -52,10 +50,23 @@ class CustomerController extends Controller
         $data['company_id'] = auth()->user()->company_id;
         $data['created_by'] = auth()->id();
 
-        Customer::create($data);
+        // simpan dan ambil model customer-nya
+        $customer = Customer::create($data);
+
+        // cari semua admin dalam company yang sama
+        $pics = User::where('company_id', auth()->user()->company_id)
+            ->role(['admin', 'marketing', 'cs'])
+            ->get();
+
+
+        // kirim notif ke semua admin
+        foreach ($pics as $pic) {
+            $pic->notify(new \App\Notifications\NewCustomerNotification($customer));
+        }
 
         return redirect()->route('customers.index')->with('success', 'Customer berhasil dibuat.');
     }
+
 
 
     public function update(Request $request, Customer $customer)
