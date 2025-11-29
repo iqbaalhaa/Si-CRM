@@ -5,17 +5,15 @@ namespace App\Notifications;
 use App\Models\Customer;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class LeadAssigned extends Notification
 {
-
-
     use Queueable;
 
     public Customer $customer;
+
     public ?User $assigner;
 
     /**
@@ -26,7 +24,6 @@ class LeadAssigned extends Notification
         $this->customer = $customer;
         $this->assigner = $assigner;
     }
-
 
     /**
      * Get the notification's delivery channels.
@@ -59,14 +56,14 @@ class LeadAssigned extends Notification
         $assignerName = $this->assigner?->name ?? 'System';
 
         return [
-            'title'        => 'Lead baru ditugaskan ke Anda',
-            'message'      => "Customer {$this->customer->name} telah ditugaskan ke Anda oleh {$assignerName}.",
-            'customer_id'  => $this->customer->id,
+            'title' => 'Lead baru ditugaskan ke Anda',
+            'message' => "Customer {$this->customer->name} telah ditugaskan ke Anda oleh {$assignerName}.",
+            'customer_id' => $this->customer->id,
             'customer_name' => $this->customer->name,
-            'assigner_id'  => $this->assigner?->id,
+            'assigner_id' => $this->assigner?->id,
             'assigner_name' => $assignerName,
-            'assigned_at'  => now()->toDateTimeString(),
-            'url'          => route('assign.index'),
+            'assigned_at' => now()->toDateTimeString(),
+            'url' => route('assign.index'),
         ];
     }
 }

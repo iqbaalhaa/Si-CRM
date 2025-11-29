@@ -49,8 +49,8 @@ class NewCustomerNotification extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            'title'       => 'Customer baru terdaftar. Silahkan diassign',
-            'message'     => 'Ada customer baru: ' . $this->customer->name,
+            'title' => 'Customer baru terdaftar. Silahkan diassign',
+            'message' => 'Ada customer baru: '.$this->customer->name,
             'customer_id' => $this->customer->id,
             'url' => route('customers.index'),
         ];
