@@ -12,13 +12,14 @@
         </div>
         <div class="d-flex align-items-center gap-3">
             <div class="dropdown">
-                <button class="btn btn-light position-relative" data-bs-toggle="dropdown">
-                    <i class="bi bi-bell fs-5"></i>
+                @php
+                    $unread = auth()->user()->unreadNotifications;
+                    $count = $unread->count();
+                @endphp
 
-                    @php
-                        $unread = auth()->user()->unreadNotifications;
-                        $count = $unread->count();
-                    @endphp
+                <button type="button" class="position-relative border-0 bg-transparent p-0" data-bs-toggle="dropdown"
+                    aria-expanded="false" style="box-shadow: none;">
+                    <i class="bi {{ $count > 0 ? 'bi-bell-fill' : 'bi-bell' }} fs-5"></i>
 
                     @if ($count > 0)
                         <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
@@ -26,6 +27,7 @@
                         </span>
                     @endif
                 </button>
+
 
                 <ul class="dropdown-menu dropdown-menu-end shadow" style="width: 330px;">
 

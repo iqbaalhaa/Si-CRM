@@ -6,6 +6,7 @@ use App\Models\Customer;
 use App\Models\CustomerStageHistory;
 use App\Models\PipelineStage;
 use App\Models\User;
+use App\Notifications\LeadAssigned;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -192,29 +193,31 @@ class CustomerController extends Controller
             abort(403, 'Anda tidak berhak mengubah customer ini.');
         }
 
-        $request->validate([
+        $validated = $request->validate([
             'assigned_to_id' => 'nullable|exists:users,id',
-            'note' => 'nullable|string|max:500', // kalau mau kasih catatan tambahan
+            'note'           => 'nullable|string|max:500',
         ]);
+
+        // Simpan dulu assign lama buat cek perubahan & notif
+        $oldAssigned     = $customer->assignedTo;
+        $oldAssignedId   = $oldAssigned?->id;
 
         // Kalau diisi, pastikan user yang dipilih juga 1 company & punya role cs/marketing
         $assignedUser = null;
-        if ($request->filled('assigned_to_id')) {
+        if (!empty($validated['assigned_to_id'])) {
             $assignedUser = User::where('company_id', $user->company_id)
                 ->role(['cs', 'marketing'])
-                ->findOrFail($request->assigned_to_id);
+                ->findOrFail($validated['assigned_to_id']);
         }
 
         DB::transaction(function () use ($customer, $user, $assignedUser, $request) {
-
             // === HANDLE DEFAULT STAGE ===
-            // kalau customer belum punya stage, set default ke 1
             if (is_null($customer->current_stage_id)) {
-                $customer->current_stage_id = 1; // default stage id
+                $customer->current_stage_id = 1; // TODO: kalau nanti ada "default stage" per company, ganti ke query
             }
 
-            $oldAssigned = $customer->assignedTo;          // sebelum diubah
-            $oldStageId = $customer->current_stage_id;    // stage sekarang (sudah pasti >= 1)
+            $oldAssigned     = $customer->assignedTo;       // sebelum diubah
+            $oldStageId      = $customer->current_stage_id; // stage sekarang
             $oldAssignedName = $oldAssigned?->name;
             $newAssignedName = $assignedUser?->name;
 
@@ -240,17 +243,21 @@ class CustomerController extends Controller
             }
 
             CustomerStageHistory::create([
-                'customer_id' => $customer->id,
-                'company_id' => $customer->company_id,
+                'customer_id'   => $customer->id,
+                'company_id'    => $customer->company_id,
                 'from_stage_id' => $oldStageId,
-                'to_stage_id' => $customer->current_stage_id, // sekarang udah pasti 1 kalau awalnya null
-                'changed_by' => $user->id,
-                'note' => implode(' | ', $noteParts),
+                'to_stage_id'   => $customer->current_stage_id,
+                'changed_by'    => $user->id,
+                'note'          => implode(' | ', $noteParts),
             ]);
         });
 
+        if ($assignedUser && $assignedUser->id !== $oldAssignedId) {
+            $assignedUser->notify(new LeadAssigned($customer->fresh(), $user));
+        }
+
         return redirect()
-            ->route('assign.index')
-            ->with('success', 'Customer berhasil di-assign ke tim & history tercatat.');
+            ->route('assigned.index')
+            ->with('success', 'Customer berhasil di-assign ke tim, history tercatat, dan notifikasi dikirim.');
     }
 }

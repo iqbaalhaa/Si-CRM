@@ -2,22 +2,31 @@
 
 namespace App\Notifications;
 
+use App\Models\Customer;
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class NewCustomerNotification extends Notification
+class LeadAssigned extends Notification
 {
+
+
     use Queueable;
-    public $customer;
+
+    public Customer $customer;
+    public ?User $assigner;
+
     /**
      * Create a new notification instance.
      */
-    public function __construct($customer)
+    public function __construct(Customer $customer, ?User $assigner = null)
     {
         $this->customer = $customer;
+        $this->assigner = $assigner;
     }
+
 
     /**
      * Get the notification's delivery channels.
@@ -47,11 +56,17 @@ class NewCustomerNotification extends Notification
      */
     public function toArray(object $notifiable): array
     {
+        $assignerName = $this->assigner?->name ?? 'System';
+
         return [
-            'title'       => 'Customer baru terdaftar. Silahkan diassign',
-            'message'     => 'Ada customer baru: ' . $this->customer->name,
-            'customer_id' => $this->customer->id,
-            'url'         => route('customers.index'),
+            'title'        => 'Lead baru ditugaskan ke Anda',
+            'message'      => "Customer {$this->customer->name} telah ditugaskan ke Anda oleh {$assignerName}.",
+            'customer_id'  => $this->customer->id,
+            'customer_name' => $this->customer->name,
+            'assigner_id'  => $this->assigner?->id,
+            'assigner_name' => $assignerName,
+            'assigned_at'  => now()->toDateTimeString(),
+            'url'          => route('assign.index'),
         ];
     }
 }
