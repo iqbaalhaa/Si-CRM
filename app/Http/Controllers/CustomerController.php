@@ -118,7 +118,7 @@ class CustomerController extends Controller
 
         $validated = $request->validate([
             'to_stage_id' => 'required|exists:pipeline_stages,id',
-            'note'        => 'nullable|string|max:500',
+            'note' => 'nullable|string|max:500',
         ]);
 
         DB::transaction(function () use ($customer, $user, $validated) {
@@ -131,12 +131,12 @@ class CustomerController extends Controller
 
             // insert history
             CustomerStageHistory::create([
-                'customer_id'   => $customer->id,
-                'company_id'    => $customer->company_id,
+                'customer_id' => $customer->id,
+                'company_id' => $customer->company_id,
                 'from_stage_id' => $fromStageId,
-                'to_stage_id'   => $validated['to_stage_id'],
-                'changed_by'    => $user->id,
-                'note'          => $validated['note'] ?? 'Update stage via detail progression.',
+                'to_stage_id' => $validated['to_stage_id'],
+                'changed_by' => $user->id,
+                'note' => $validated['note'] ?? 'Update stage via detail progression.',
             ]);
         });
 
@@ -144,10 +144,6 @@ class CustomerController extends Controller
             ->route('crm.show', $customer) // ⬅️ ganti ini
             ->with('success', 'Stage customer berhasil diperbarui.');
     }
-
-
-
-
 
     public function assign(Request $request)
     {

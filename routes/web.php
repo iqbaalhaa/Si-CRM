@@ -73,19 +73,19 @@ Route::middleware('auth')->group(function () {
         ->middleware('permission:manage reports')
         ->name('reports.employees');
 
-    Route::get('/report-customers/download/{user}', [\App\Http\Controllers\ReportController::class, 'customersDownload'])
+    Route::get('/report-customers/download', [\App\Http\Controllers\ReportController::class, 'customersDownload'])
         ->middleware('permission:manage reports')
         ->name('reports.customers.download');
 
-    Route::get('/report-customers/pdf/{user}', [\App\Http\Controllers\ReportController::class, 'customersPdf'])
+    Route::get('/report-customers/pdf', [\App\Http\Controllers\ReportController::class, 'customersPdf'])
         ->middleware('permission:manage reports')
         ->name('reports.customers.pdf');
 
-    Route::get('/report-karyawan/download/{user}', [\App\Http\Controllers\ReportController::class, 'employeesDownload'])
+    Route::get('/report-karyawan/download', [\App\Http\Controllers\ReportController::class, 'employeesDownload'])
         ->middleware('permission:manage reports')
         ->name('reports.employees.download');
 
-    Route::get('/report-karyawan/pdf/{user}', [\App\Http\Controllers\ReportController::class, 'employeesPdf'])
+    Route::get('/report-karyawan/pdf', [\App\Http\Controllers\ReportController::class, 'employeesPdf'])
         ->middleware('permission:manage reports')
         ->name('reports.employees.pdf');
 
@@ -187,7 +187,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/stages', [CustomerStageHistoryController::class, 'index'])
         ->middleware('permission:view customers')
         ->name('stages.index');
-
 
     Route::get('/crm/customers/{customer}', [CustomerController::class, 'show'])
         ->name('crm.show');
