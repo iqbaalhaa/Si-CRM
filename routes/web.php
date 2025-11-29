@@ -3,8 +3,8 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerStageHistoryController;
-use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\PipelineStageController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 // Guest only
@@ -203,11 +203,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/assign-to/{customer}', [CustomerController::class, 'assignto'])
         ->name('assign.store');
 
-
-
     // notif gweh
     Route::post('/notifications/read-all', function () {
         auth()->user()->unreadNotifications->markAsRead();
+
         return back();
     })->name('notifications.readAll');
 
