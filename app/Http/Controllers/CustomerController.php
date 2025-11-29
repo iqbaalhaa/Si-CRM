@@ -17,7 +17,7 @@ class CustomerController extends Controller
         $user = $request->user();
 
         // opsional: kalau user belum terhubung ke company, tolak akses
-        if (! $user->company_id) {
+        if (!$user->company_id) {
             abort(403, 'User belum terhubung ke perusahaan mana pun.');
         }
 
@@ -162,7 +162,7 @@ class CustomerController extends Controller
         $user = $request->user();
 
         // Kalau user belum punya company_id, tolak akses
-        if (! $user->company_id) {
+        if (!$user->company_id) {
             abort(403, 'User belum terhubung ke perusahaan mana pun.');
         }
 
@@ -225,9 +225,9 @@ class CustomerController extends Controller
             // 2) INSERT history baru ke customer_stage_histories
             $noteParts = [];
 
-            if (! $oldAssignedName && $newAssignedName) {
+            if (!$oldAssignedName && $newAssignedName) {
                 $noteParts[] = "Assign ke {$newAssignedName}";
-            } elseif ($oldAssignedName && ! $newAssignedName) {
+            } elseif ($oldAssignedName && !$newAssignedName) {
                 $noteParts[] = "Unassign dari {$oldAssignedName}";
             } elseif ($oldAssignedName !== $newAssignedName) {
                 $noteParts[] = "Pindah assign dari {$oldAssignedName} ke {$newAssignedName}";
@@ -254,7 +254,7 @@ class CustomerController extends Controller
         }
 
         return redirect()
-            ->route('assigned.index')
+            ->route('assign.index')
             ->with('success', 'Customer berhasil di-assign ke tim, history tercatat, dan notifikasi dikirim.');
     }
 }

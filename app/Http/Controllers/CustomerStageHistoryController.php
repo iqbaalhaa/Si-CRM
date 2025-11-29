@@ -15,28 +15,34 @@ class CustomerStageHistoryController extends Controller
     {
         $user = $request->user();
 
-        if (! $user->company_id) {
+        if (!$user->company_id) {
             abort(403, 'User belum terhubung ke perusahaan.');
         }
 
-        // Ambil semua customer milik company user + current stage
-        $customers = Customer::with(['company', 'stage'])
-            ->where('company_id', $user->company_id)
-            ->latest()
-            ->get();
+        // Base query: semua customer milik company user
+        $query = Customer::with(['company', 'stage', 'assignedTo'])
+            ->where('company_id', $user->company_id);
 
-        // Hitung jumlah per stage (berdasarkan nama stage)
+        // Kalau role marketing / cs → hanya lihat customer yang di-assign ke dia
+        if ($user->hasRole(['marketing', 'cs'])) {
+            $query->where('assigned_to_id', $user->id);
+        }
+
+        $customers = $query->latest()->get();
+
+        // Hitung jumlah per stage (berdasarkan nama stage) dari hasil query di atas
         $stageCounts = [
-            'New' => $customers->filter(fn ($c) => optional($c->stage)->name === 'New')->count(),
-            'Contact' => $customers->filter(fn ($c) => optional($c->stage)->name === 'Contact')->count(),
-            'Hold' => $customers->filter(fn ($c) => optional($c->stage)->name === 'Hold')->count(),
+            'New'       => $customers->filter(fn ($c) => optional($c->stage)->name === 'New')->count(),
+            'Contact'   => $customers->filter(fn ($c) => optional($c->stage)->name === 'Contact')->count(),
+            'Hold'      => $customers->filter(fn ($c) => optional($c->stage)->name === 'Hold')->count(),
             'No Respon' => $customers->filter(fn ($c) => optional($c->stage)->name === 'No Respon')->count(),
-            'Loss' => $customers->filter(fn ($c) => optional($c->stage)->name === 'Loss')->count(),
-            'Close' => $customers->filter(fn ($c) => optional($c->stage)->name === 'Close')->count(),
+            'Loss'      => $customers->filter(fn ($c) => optional($c->stage)->name === 'Loss')->count(),
+            'Close'     => $customers->filter(fn ($c) => optional($c->stage)->name === 'Close')->count(),
         ];
 
         return view('pages.crm.index', compact('customers', 'stageCounts'));
     }
+
 
     /**
      * Detail progres 1 customer (timeline history).

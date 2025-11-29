@@ -91,7 +91,8 @@ Route::middleware('auth')->group(function () {
     // -------------------------
     // Reports (TinyMCE editor)
     // -------------------------
-    Route::middleware('permission:manage reports')->group(function () {
+    // READ reports
+    Route::middleware('permission:read reports')->group(function () {
         Route::get('/report-customers', [\App\Http\Controllers\ReportController::class, 'customers'])
             ->name('reports.customers');
 
@@ -112,10 +113,12 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/report-settings', [\App\Http\Controllers\ReportController::class, 'settings'])
             ->name('reports.settings');
-
-        Route::post('/report-settings', [\App\Http\Controllers\ReportController::class, 'settingsSave'])
-            ->name('reports.settings.save');
     });
+
+    // UPDATE reports (save pengaturan)
+    Route::post('/report-settings', [\App\Http\Controllers\ReportController::class, 'settingsSave'])
+        ->middleware('permission:update reports')
+        ->name('reports.settings.save');
 
     // -------------------------
     // Tim & Role (Admin perusahaan)
@@ -137,7 +140,7 @@ Route::middleware('auth')->group(function () {
     // -------------------------
     // Customers
     // -------------------------
-    Route::middleware('permission:view customers')->group(function () {
+    Route::middleware('permission:read customers')->group(function () {
         Route::get('/customers', [CustomerController::class, 'index'])
             ->name('customers.index');
     });
@@ -164,33 +167,42 @@ Route::middleware('auth')->group(function () {
     });
 
     // -------------------------
-    // Pipeline Stages
+    // Pipeline Stages (CRUD per permission)
     // -------------------------
-    Route::middleware('permission:manage pipelines')->group(function () {
-        Route::get('/pipeline-stages', [PipelineStageController::class, 'index'])
-            ->name('pipeline-stages.index');
 
-        Route::get('/pipeline-stages/create', [PipelineStageController::class, 'create'])
-            ->name('pipeline-stages.create');
+    // READ
+    Route::get('/pipeline-stages', [PipelineStageController::class, 'index'])
+        ->middleware('permission:read pipelines')
+        ->name('pipeline-stages.index');
 
-        Route::post('/pipeline-stages', [PipelineStageController::class, 'store'])
-            ->name('pipeline-stages.store');
+    // CREATE
+    Route::get('/pipeline-stages/create', [PipelineStageController::class, 'create'])
+        ->middleware('permission:create pipelines')
+        ->name('pipeline-stages.create');
 
-        Route::get('/pipeline-stages/{pipelineStage}/edit', [PipelineStageController::class, 'edit'])
-            ->name('pipeline-stages.edit');
+    Route::post('/pipeline-stages', [PipelineStageController::class, 'store'])
+        ->middleware('permission:create pipelines')
+        ->name('pipeline-stages.store');
 
-        Route::put('/pipeline-stages/{pipelineStage}', [PipelineStageController::class, 'update'])
-            ->name('pipeline-stages.update');
+    // UPDATE
+    Route::get('/pipeline-stages/{pipelineStage}/edit', [PipelineStageController::class, 'edit'])
+        ->middleware('permission:update pipelines')
+        ->name('pipeline-stages.edit');
 
-        Route::delete('/pipeline-stages/{pipelineStage}', [PipelineStageController::class, 'destroy'])
-            ->name('pipeline-stages.destroy');
-    });
+    Route::put('/pipeline-stages/{pipelineStage}', [PipelineStageController::class, 'update'])
+        ->middleware('permission:update pipelines')
+        ->name('pipeline-stages.update');
+
+    // DELETE
+    Route::delete('/pipeline-stages/{pipelineStage}', [PipelineStageController::class, 'destroy'])
+        ->middleware('permission:delete pipelines')
+        ->name('pipeline-stages.destroy');
 
     // -------------------------
     // Stages (History)
     // -------------------------
     Route::get('/stages', [CustomerStageHistoryController::class, 'index'])
-        ->middleware('permission:view customers')
+        ->middleware('permission:read customers')
         ->name('stages.index');
 
     // CRM Show & Update Stage
@@ -204,10 +216,11 @@ Route::middleware('auth')->group(function () {
     // Assign
     // -------------------------
     Route::get('/assign', [CustomerController::class, 'assign'])
-        ->middleware('permission:update customers')
+        ->middleware('permission:read customers')
         ->name('assign.index');
 
-    Route::post('/assign-to/{customer}', [CustomerController::class, 'assignto'])
+    Route::post('/assign-to/{customer}', [CustomerController::class, 'assignTo'])
+        ->middleware('permission:update customers')
         ->name('assign.store');
 
     // -------------------------

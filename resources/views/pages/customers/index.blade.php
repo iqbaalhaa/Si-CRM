@@ -15,7 +15,7 @@
 
                             @can('create customers')
                                 <a href="{{ route('customers.create') }}"
-                                   class="btn btn-primary btn-sm d-flex align-items-center gap-1">
+                                    class="btn btn-primary btn-sm d-flex align-items-center gap-1">
                                     <i class="bi bi-plus-circle"></i>
                                     <span>Tambah Customer</span>
                                 </a>
@@ -23,7 +23,10 @@
                         </div>
 
                         @php
-                            $canUpdate = auth()->user()->can('update customers');
+                            $user = auth()->user();
+                            $canUpdate = $user->can('update customers');
+                            $canDelete = $user->can('delete customers');
+                            $showAction = $canUpdate || $canDelete;
                         @endphp
 
                         <div class="table-responsive">
@@ -37,13 +40,13 @@
                                         <th>Telepon</th>
                                         <th>Email</th>
                                         <th>Stage</th>
-                                        @if ($canUpdate)
+                                        @if ($showAction)
                                             <th>Aksi</th>
                                         @endif
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach($customers as $c)
+                                    @forelse($customers as $c)
                                         <tr>
                                             <td>{{ $loop->iteration }}</td>
                                             <td>{{ $c->name }}</td>
@@ -53,35 +56,39 @@
                                             <td>{{ $c->email }}</td>
                                             <td>{{ optional($c->stage)->name ?? '-' }}</td>
 
-                                            @if ($canUpdate)
+                                            @if ($showAction)
                                                 <td class="text-center">
-                                                    <a href="{{ route('customers.edit', $c->id) }}"
-                                                       class="btn btn-sm btn-secondary">
-                                                        <i class="bi bi-pencil-square"></i>
-                                                    </a>
-                                                    <form action="{{ route('customers.destroy', $c->id) }}"
-                                                          method="POST"
-                                                          class="d-inline"
-                                                          onsubmit="return confirm('Hapus customer ini?');">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button class="btn btn-sm btn-danger">
-                                                            <i class="bi bi-trash"></i>
-                                                        </button>
-                                                    </form>
+                                                    @if ($canUpdate)
+                                                        <a href="{{ route('customers.edit', $c->id) }}"
+                                                            class="btn btn-sm btn-secondary">
+                                                            <i class="bi bi-pencil-square"></i>
+                                                        </a>
+                                                    @endif
+
+                                                    @if ($canDelete)
+                                                        <form action="{{ route('customers.destroy', $c->id) }}"
+                                                            method="POST" class="d-inline"
+                                                            onsubmit="return confirm('Hapus customer ini?');">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button class="btn btn-sm btn-danger">
+                                                                <i class="bi bi-trash"></i>
+                                                            </button>
+                                                        </form>
+                                                    @endif
                                                 </td>
                                             @endif
                                         </tr>
-                                    @endforeach
+                                    @empty
+                                        <tr>
+                                            <td colspan="{{ $showAction ? 8 : 7 }}" class="text-center text-muted">
+                                                Belum ada data customer
+                                            </td>
+                                        </tr>
+                                    @endforelse
                                 </tbody>
                             </table>
                         </div>
-
-                        @if($customers->isEmpty())
-                            <div class="text-center text-muted py-3">
-                                Belum ada data customer
-                            </div>
-                        @endif
 
                     </div>
                 </div>
@@ -92,7 +99,7 @@
 
 @push('styles')
     <link rel="stylesheet"
-          href="{{ asset('admindash/assets/extensions/datatables.net-bs5/css/dataTables.bootstrap5.css') }}">
+        href="{{ asset('admindash/assets/extensions/datatables.net-bs5/css/dataTables.bootstrap5.css') }}">
 @endpush
 
 @push('scripts')
@@ -104,7 +111,9 @@
             $('#table-customers').DataTable({
                 pageLength: 10,
                 lengthMenu: [10, 25, 50, 100],
-                order: [[0, 'asc']]
+                order: [
+                    [0, 'asc']
+                ]
             });
         });
     </script>

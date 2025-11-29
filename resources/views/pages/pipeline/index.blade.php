@@ -8,90 +8,95 @@
     <div class="page-content">
         <div class="row">
             <div class="row g-3">
-                {{-- Kolom kiri (5/12 di layar besar) --}}
-                <div class="col-12 col-lg-5">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <h5 class="card-title mb-3">Buat Pipeline Stage</h5>
 
-                            <form action="{{ route('pipeline-stages.store') }}" method="POST">
-                                @csrf
+                @php
+                    $user = auth()->user();
+                    $canCreatePipeline = $user->can('create pipelines');
+                    $canUpdatePipeline = $user->can('update pipelines');
+                    $canDeletePipeline = $user->can('delete pipelines');
+                    $isMarketingOrCs = $user->hasRole(['marketing', 'cs']);
+                    $showActionColumn = ($canUpdatePipeline || $canDeletePipeline) && !$isMarketingOrCs;
+                @endphp
 
-                                {{-- Nama Stage --}}
-                                <div class="mb-3">
-                                    <label for="name" class="form-label">Nama Stage<span
-                                            class="text-danger">*</span></label>
-                                    <input type="text" id="name" name="name"
-                                        class="form-control @error('name') is-invalid @enderror" value="{{ old('name') }}"
-                                        required>
-                                    @error('name')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
+                {{-- Kolom kiri (5/12 di layar besar) - hanya kalau boleh CREATE --}}
+                @if ($canCreatePipeline && !$isMarketingOrCs)
+                    <div class="col-12 col-lg-5">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title mb-3">Buat Pipeline Stage</h5>
 
-                                {{-- Tipe Stage --}}
-                                <div class="mb-3">
-                                    <label for="type" class="form-label">Tipe Stage</label>
-                                    <select id="type" name="type"
-                                        class="form-select @error('type') is-invalid @enderror">
-                                        <option value="">Pilih tipe (opsional)</option>
-                                        <option value="lead" {{ old('type') === 'lead' ? 'selected' : '' }}>Lead</option>
-                                        <option value="prospect" {{ old('type') === 'prospect' ? 'selected' : '' }}>Prospect
-                                        </option>
-                                        <option value="negotiation" {{ old('type') === 'negotiation' ? 'selected' : '' }}>
-                                            Negotiation</option>
-                                        <option value="won" {{ old('type') === 'won' ? 'selected' : '' }}>Won</option>
-                                        <option value="lost" {{ old('type') === 'lost' ? 'selected' : '' }}>Lost</option>
-                                    </select>
-                                    @error('type')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
+                                <form action="{{ route('pipeline-stages.store') }}" method="POST">
+                                    @csrf
 
-                                {{-- Urutan --}}
-                                <div class="mb-3">
-                                    <label for="sort_order" class="form-label">Urutan</label>
-                                    <input type="number" id="sort_order" name="sort_order"
-                                        class="form-control @error('sort_order') is-invalid @enderror"
-                                        value="{{ old('sort_order') }}" min="0">
-                                    <small class="text-muted">Semakin kecil angka, semakin atas posisinya.</small>
-                                    @error('sort_order')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
+                                    {{-- Nama Stage --}}
+                                    <div class="mb-3">
+                                        <label for="name" class="form-label">Nama Stage
+                                            <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="text" id="name" name="name"
+                                            class="form-control @error('name') is-invalid @enderror"
+                                            value="{{ old('name') }}" required>
+                                        @error('name')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
 
-                                {{-- Default --}}
-                                {{-- <div class="mb-3 form-check">
-                                    <input class="form-check-input" type="checkbox" value="1" id="is_default"
-                                        name="is_default" {{ old('is_default') ? 'checked' : '' }}>
-                                    <label class="form-check-label" for="is_default">
-                                        Jadikan sebagai stage default
-                                    </label>
-                                    @error('is_default')
-                                        <div class="text-danger small">{{ $message }}</div>
-                                    @enderror
-                                </div> --}}
+                                    {{-- Tipe Stage --}}
+                                    <div class="mb-3">
+                                        <label for="type" class="form-label">Tipe Stage</label>
+                                        <select id="type" name="type"
+                                            class="form-select @error('type') is-invalid @enderror">
+                                            <option value="">Pilih tipe (opsional)</option>
+                                            <option value="lead" {{ old('type') === 'lead' ? 'selected' : '' }}>Lead
+                                            </option>
+                                            <option value="prospect" {{ old('type') === 'prospect' ? 'selected' : '' }}>
+                                                Prospect</option>
+                                            <option value="negotiation"
+                                                {{ old('type') === 'negotiation' ? 'selected' : '' }}>Negotiation</option>
+                                            <option value="won" {{ old('type') === 'won' ? 'selected' : '' }}>Won
+                                            </option>
+                                            <option value="lost" {{ old('type') === 'lost' ? 'selected' : '' }}>Lost
+                                            </option>
+                                        </select>
+                                        @error('type')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
 
-                                <div class="d-flex justify-content-end">
-                                    <button type="submit" class="btn btn-primary btn-sm">
-                                        <i class="bi bi-plus-circle me-1"></i> Simpan Stage
-                                    </button>
-                                </div>
-                            </form>
+                                    {{-- Urutan --}}
+                                    <div class="mb-3">
+                                        <label for="sort_order" class="form-label">Urutan</label>
+                                        <input type="number" id="sort_order" name="sort_order"
+                                            class="form-control @error('sort_order') is-invalid @enderror"
+                                            value="{{ old('sort_order') }}" min="0">
+                                        <small class="text-muted">Semakin kecil angka, semakin atas posisinya.</small>
+                                        @error('sort_order')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="d-flex justify-content-end">
+                                        <button type="submit" class="btn btn-primary btn-sm">
+                                            <i class="bi bi-plus-circle me-1"></i> Simpan Stage
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                     </div>
-                </div>
-
+                @endif
 
                 {{-- Kolom kanan (7/12 di layar besar) --}}
-                <div class="col-12 col-lg-7">
+                <div class="col-12 {{ $canCreatePipeline && !$isMarketingOrCs ? 'col-lg-7' : 'col-lg-12' }}">
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title mb-3">Daftar Pipeline</h5>
-                        
-                            @if($stages->isEmpty())
+
+                            @if ($stages->isEmpty())
                                 <div class="alert alert-info mb-0">
-                                    Belum ada data pipeline stage. Silakan tambahkan stage di form sebelah kiri.
+                                    Belum ada data pipeline stage. @if ($canCreatePipeline && !$isMarketingOrCs)
+                                        Silakan tambahkan stage di form sebelah kiri.
+                                    @endif
                                 </div>
                             @else
                                 <div class="table-responsive">
@@ -104,20 +109,30 @@
                                                 <th>Urutan</th>
                                                 <th>Default</th>
                                                 <th>Perusahaan</th>
-                                                <th>Aksi</th>
+                                                @if ($showActionColumn)
+                                                    <th>Aksi</th>
+                                                @endif
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @foreach($stages as $stage)
+                                            @foreach ($stages as $stage)
                                                 <tr data-id="{{ $stage->id }}">
                                                     <td>{{ $loop->iteration }}</td>
                                                     <td>{{ $stage->name }}</td>
                                                     <td>{{ $stage->type ?? '-' }}</td>
+
+                                                    {{-- Urutan: editable hanya jika boleh UPDATE dan bukan marketing/cs --}}
                                                     <td style="width: 100px;">
-                                                        <input type="number" class="form-control form-control-sm sort-input"
-                                                            name="sort_order" value="{{ $stage->sort_order ?? 0 }}"
-                                                            min="0">
+                                                        @if ($canUpdatePipeline && !$isMarketingOrCs)
+                                                            <input type="number"
+                                                                class="form-control form-control-sm sort-input"
+                                                                name="sort_order" value="{{ $stage->sort_order ?? 0 }}"
+                                                                min="0">
+                                                        @else
+                                                            {{ $stage->sort_order ?? '-' }}
+                                                        @endif
                                                     </td>
+
                                                     <td>
                                                         @if ($stage->is_default)
                                                             <span class="badge bg-success">Ya</span>
@@ -126,20 +141,29 @@
                                                         @endif
                                                     </td>
                                                     <td>{{ optional($stage->company)->name ?? '-' }}</td>
-                                                    <td class="text-nowrap">
-                                                        <button type="button" class="btn btn-sm btn-primary btn-save-sort">
-                                                            <i class="bi bi-save"></i>
-                                                        </button>
-                        
-                                                        <form action="{{ route('pipeline-stages.destroy', $stage->id) }}"
-                                                            method="POST" class="d-inline pipeline-delete-form">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button class="btn btn-sm btn-danger">
-                                                                <i class="bi bi-trash"></i>
-                                                            </button>
-                                                        </form>
-                                                    </td>
+
+                                                    @if ($showActionColumn)
+                                                        <td class="text-nowrap">
+                                                            @if ($canUpdatePipeline)
+                                                                <button type="button"
+                                                                    class="btn btn-sm btn-primary btn-save-sort">
+                                                                    <i class="bi bi-save"></i>
+                                                                </button>
+                                                            @endif
+
+                                                            @if ($canDeletePipeline)
+                                                                <form
+                                                                    action="{{ route('pipeline-stages.destroy', $stage->id) }}"
+                                                                    method="POST" class="d-inline pipeline-delete-form">
+                                                                    @csrf
+                                                                    @method('DELETE')
+                                                                    <button class="btn btn-sm btn-danger">
+                                                                        <i class="bi bi-trash"></i>
+                                                                    </button>
+                                                                </form>
+                                                            @endif
+                                                        </td>
+                                                    @endif
                                                 </tr>
                                             @endforeach
                                         </tbody>
@@ -147,7 +171,7 @@
                                 </div>
                             @endif
                         </div>
-                        
+
                     </div>
                 </div>
             </div>
@@ -166,7 +190,7 @@
     <script src="{{ asset('admindash/assets/extensions/datatables.net-bs5/js/dataTables.bootstrap5.min.js') }}"></script>
     <script>
         $(function() {
-            // DataTables
+            // DataTables tetap jalan untuk semua yang bisa read pipelines
             $('#table-pipeline-stages').DataTable({
                 pageLength: 10,
                 lengthMenu: [10, 25, 50, 100],
@@ -175,56 +199,67 @@
                 ]
             });
 
-            // Ambil CSRF dari meta (pastikan di <head> layout sudah ada)
-            const csrfToken = $('meta[name="csrf-token"]').attr('content') || $('input[name="_token"]').first().val();
+            @if ($showActionColumn)
+                const csrfToken = $('meta[name="csrf-token"]').attr('content') || $('input[name="_token"]').first()
+                    .val();
 
-            // Click handler untuk tombol Simpan di setiap baris
-            $('#table-pipeline-stages').on('click', '.btn-save-sort', function() {
-                const $row = $(this).closest('tr');
-                const id = $row.data('id');
-                const sort = $row.find('.sort-input').val();
+                // Click handler untuk tombol Simpan di setiap baris
+                $('#table-pipeline-stages').on('click', '.btn-save-sort', function() {
+                    const $row = $(this).closest('tr');
+                    const id = $row.data('id');
+                    const sort = $row.find('.sort-input').val();
 
-                Swal.fire({
-                    icon: 'question',
-                    title: 'Simpan perubahan urutan?',
-                    showCancelButton: true,
-                    confirmButtonText: 'Simpan',
-                    cancelButtonText: 'Batal'
-                }).then((result) => {
-                    if (!result.isConfirmed) return;
+                    Swal.fire({
+                        icon: 'question',
+                        title: 'Simpan perubahan urutan?',
+                        showCancelButton: true,
+                        confirmButtonText: 'Simpan',
+                        cancelButtonText: 'Batal'
+                    }).then((result) => {
+                        if (!result.isConfirmed) return;
 
-                    $.ajax({
-                        url: '{{ url('/pipeline-stages') }}/' + id,
-                        method: 'PUT',
-                        data: {
-                            _token: csrfToken,
-                            sort_order: sort
-                        },
-                        success: function() {
-                            Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Urutan diperbarui' });
-                        },
-                        error: function() {
-                            Swal.fire({ icon: 'error', title: 'Gagal', text: 'Tidak dapat menyimpan perubahan' });
-                        }
+                        $.ajax({
+                            url: '{{ url('/pipeline-stages') }}/' + id,
+                            method: 'PUT',
+                            data: {
+                                _token: csrfToken,
+                                sort_order: sort
+                            },
+                            success: function() {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil',
+                                    text: 'Urutan diperbarui'
+                                });
+                            },
+                            error: function() {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    text: 'Tidak dapat menyimpan perubahan'
+                                });
+                            }
+                        });
                     });
                 });
-            });
 
-            $('#table-pipeline-stages').on('submit', '.pipeline-delete-form', function(e) {
-                e.preventDefault();
-                const form = this;
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Hapus stage?',
-                    text: 'Tindakan tidak dapat dibatalkan',
-                    showCancelButton: true,
-                    confirmButtonText: 'Hapus',
-                    cancelButtonText: 'Batal',
-                    confirmButtonColor: '#d33'
-                }).then((result) => {
-                    if (result.isConfirmed) form.submit();
+                // Konfirmasi delete
+                $('#table-pipeline-stages').on('submit', '.pipeline-delete-form', function(e) {
+                    e.preventDefault();
+                    const form = this;
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Hapus stage?',
+                        text: 'Tindakan tidak dapat dibatalkan',
+                        showCancelButton: true,
+                        confirmButtonText: 'Hapus',
+                        cancelButtonText: 'Batal',
+                        confirmButtonColor: '#d33'
+                    }).then((result) => {
+                        if (result.isConfirmed) form.submit();
+                    });
                 });
-            });
+            @endif
         });
     </script>
 @endpush

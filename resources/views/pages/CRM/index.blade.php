@@ -94,6 +94,7 @@
                                         <th>Nama Customer</th>
                                         <th>Perusahaan</th>
                                         <th>Telepon</th>
+                                        <th>PIC / Assigned To</th>
                                         <th>Stage Sekarang</th>
                                         <th>Update Terakhir</th>
                                         <th style="width: 140px;">Aksi</th>
@@ -118,6 +119,7 @@
                                             <td>{{ $customer->name }}</td>
                                             <td>{{ optional($customer->company)->name ?? '-' }}</td>
                                             <td>{{ $customer->phone ?? '-' }}</td>
+                                            <td>{{ optional($customer->assignedTo)->name ?? '-' }}</td>
                                             <td>
                                                 @if ($stageName)
                                                     <span class="badge {{ $badgeClass }}">{{ $stageName }}</span>
@@ -137,7 +139,7 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="7" class="text-center">Belum ada customer</td>
+                                            <td colspan="8" class="text-center">Belum ada customer</td>
                                         </tr>
                                     @endforelse
                                 </tbody>
