@@ -43,49 +43,54 @@
             </div>
         </div>
     </div>
-
     <div class="sidebar-menu">
         <ul class="menu">
             <li class="sidebar-title">Menu</li>
 
             {{-- Dashboard --}}
             @php
-                $dashboardHref = route('dashboard');
+                $dashboardRouteName = 'dashboard';
+
                 if (Auth::check() && method_exists(Auth::user(), 'hasRole')) {
-                    if (Auth::user()->hasRole('super-admin')) {
-                        $dashboardHref = route('dashboard.superadmin');
-                    } elseif (Auth::user()->hasRole('admin')) {
-                        $dashboardHref = route('dashboard.admin');
-                    } elseif (Auth::user()->hasRole('marketing')) {
-                        $dashboardHref = route('dashboard.marketing');
-                    } elseif (Auth::user()->hasRole('cs')) {
-                        $dashboardHref = route('dashboard.cs');
+                    $user = Auth::user();
+
+                    if ($user->hasRole('super-admin')) {
+                        $dashboardRouteName = 'dashboard.superadmin';
+                    } elseif ($user->hasRole('admin')) {
+                        $dashboardRouteName = 'dashboard.admin';
+                    } elseif ($user->hasRole('marketing')) {
+                        $dashboardRouteName = 'dashboard.marketing';
+                    } elseif ($user->hasRole('cs')) {
+                        $dashboardRouteName = 'dashboard.cs';
                     }
                 }
             @endphp
+
             <li class="sidebar-item {{ request()->is('dashboard*') ? 'active' : '' }}">
-                <a href="{{ $dashboardHref }}" class="sidebar-link">
+                <a href="{{ route($dashboardRouteName) }}" class="sidebar-link">
                     <i class="bi bi-grid-fill"></i>
                     <span>Dashboard</span>
                 </a>
             </li>
 
+            {{-- SUPER ADMIN ONLY --}}
             @role('super-admin')
                 <li class="sidebar-item {{ request()->is('perusahaan*') ? 'active' : '' }}">
-                    <a href="{{ url('/perusahaan') }}" class="sidebar-link">
+                    <a href="{{ route('perusahaan.index') }}" class="sidebar-link">
                         <i class="bi bi-building-fill"></i>
                         <span>Perusahaan</span>
                     </a>
                 </li>
 
                 <li class="sidebar-item {{ request()->is('manage-admin-perusahaan*') ? 'active' : '' }}">
-                    <a href="{{ url('/manage-admin-perusahaan') }}" class="sidebar-link">
+                    <a href="{{ route('manageadmin.index') }}" class="sidebar-link">
                         <i class="bi bi-person-fill-gear"></i>
                         <span>Manage Admin Perusahaan</span>
                     </a>
                 </li>
 
                 <li class="sidebar-item {{ request()->is('setting-menu*') ? 'active' : '' }}">
+                    {{-- asumsi belum ada named route untuk setting-menu --}}
                     <a href="{{ url('/setting-menu') }}" class="sidebar-link">
                         <i class="bi bi-gear-fill"></i>
                         <span>Setting Menu</span>
@@ -94,72 +99,60 @@
             @endrole
 
             @hasanyrole('admin|marketing|cs')
+                {{-- Pipeline --}}
                 <li class="sidebar-item {{ request()->is('pipeline-stages*') ? 'active' : '' }}">
                     <a href="{{ route('pipeline-stages.index') }}" class="sidebar-link">
                         <i class="bi bi-diagram-3"></i>
                         <span>Pipeline</span>
                     </a>
                 </li>
-            @endhasanyrole
 
-            @role('admin')
-
+                {{-- Customers (LIST) --}}
                 <li class="sidebar-item {{ request()->is('customers*') ? 'active' : '' }}">
-                    <a href="{{ url('/customers') }}" class="sidebar-link">
+                    <a href="{{ route('customers.index') }}" class="sidebar-link">
                         <i class="bi bi-people-fill"></i>
                         <span>Customers</span>
                     </a>
                 </li>
+            @endhasanyrole
+
+            {{-- CRM --}}
+            <li class="sidebar-title">CRM</li>
+
+            @hasanyrole('admin|marketing|cs')
+                {{-- Assign To --}}
+                <li class="sidebar-item {{ request()->is('assign*') ? 'active' : '' }}">
+                    <a href="{{ route('assign.index') }}" class="sidebar-link">
+                        <i class="bi bi-hand-index-fill"></i>
+                        <span>Assign To</span>
+                    </a>
+                </li>
+
+                {{-- Stage / Progression --}}
+                <li class="sidebar-item {{ request()->is('stages*') ? 'active' : '' }}">
+                    <a href="{{ route('stages.index') }}" class="sidebar-link">
+                        <i class="bi bi-graph-up-arrow"></i>
+                        <span>Stage / Progression</span>
+                    </a>
+                </li>
+            @endhasanyrole
+
+            {{-- Tim & Role (tetap khusus admin perusahaan) --}}
+            @role('admin')
                 <li class="sidebar-item {{ request()->is('tim-dan-role*') ? 'active' : '' }}">
-                    <a href="{{ url('/tim-dan-role') }}" class="sidebar-link">
+                    <a href="{{ route('teamrole.index') }}" class="sidebar-link">
                         <i class="bi bi-gear-fill"></i>
                         <span>Tim & Role</span>
                     </a>
                 </li>
-                
             @endrole
-
-            @role('marketing')
-                <li class="sidebar-item {{ request()->is('customers/create') ? 'active' : '' }}">
-                    <a href="{{ url('/customers/create') }}" class="sidebar-link">
-                        <i class="bi bi-person-plus"></i>
-                        <span>Tambah Customers</span>
-                    </a>
-                </li>
-            @endrole
-
-            @role('cs')
-                <li class="sidebar-item {{ request()->is('customers*') ? 'active' : '' }}">
-                    <a href="{{ url('/customers') }}" class="sidebar-link">
-                        <i class="bi bi-people-fill"></i>
-                        <span>Customers</span>
-                    </a>
-                </li>
-            @endrole
-            <li class="sidebar-title">CRM</li>
-
-            @role('admin')
-                <li class="sidebar-item {{ request()->is('assign.*') ? 'active' : '' }}">
-                        <a href="{{ url('/assign') }}" class="sidebar-link">
-                            <i class="bi bi-hand-index-fill"></i>
-                            <span>Assign to</span>
-                        </a>
-                    </li>
-            @endrole
-
-            <li class="sidebar-item ">
-                <a href="/stages" class="sidebar-link">
-                    <i class="bi bi-graph-up-arrow"></i>
-                    <span>Stage / Progression</span>
-                </a>
-            </li>
 
             {{-- Report --}}
             <li class="sidebar-title">Report</li>
 
             @hasanyrole('admin|marketing|cs')
                 <li class="sidebar-item {{ request()->is('report-customers*') ? 'active' : '' }}">
-                    <a href="{{ url('/report-customers') }}" class="sidebar-link">
+                    <a href="{{ route('reports.customers') }}" class="sidebar-link">
                         <i class="bi bi-clipboard-data-fill"></i>
                         <span>Report Customers</span>
                     </a>
@@ -168,19 +161,21 @@
 
             @role('admin')
                 <li class="sidebar-item {{ request()->is('report-karyawan*') ? 'active' : '' }}">
-                    <a href="{{ url('/report-karyawan') }}" class="sidebar-link">
+                    <a href="{{ route('reports.employees') }}" class="sidebar-link">
                         <i class="bi bi-clipboard2-pulse-fill"></i>
                         <span>Report Karyawan</span>
                     </a>
                 </li>
+
                 <li class="sidebar-item {{ request()->is('report-settings*') ? 'active' : '' }}">
-                    <a href="{{ url('/report-settings') }}" class="sidebar-link">
+                    <a href="{{ route('reports.settings') }}" class="sidebar-link">
                         <i class="bi bi-clipboard2-pulse-fill"></i>
                         <span>Report Settings</span>
                     </a>
                 </li>
             @endrole
 
+            {{-- Logout --}}
             <li class="sidebar-item">
                 <form action="{{ route('logout') }}" method="POST">
                     @csrf
@@ -192,4 +187,6 @@
             </li>
         </ul>
     </div>
+
+
 </div>

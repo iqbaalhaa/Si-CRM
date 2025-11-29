@@ -3,11 +3,13 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerStageHistoryController;
-use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\PipelineStageController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
+// =========================
 // Guest only
+// =========================
 Route::middleware('guest')->group(function () {
     Route::get('/', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/', [AuthController::class, 'login'])->name('login.post');
@@ -16,8 +18,14 @@ Route::middleware('guest')->group(function () {
     Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 });
 
+// =========================
 // Auth only
+// =========================
 Route::middleware('auth')->group(function () {
+
+    // -------------------------
+    // Auth / Dashboard
+    // -------------------------
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     Route::get('/dashboard', function () {
@@ -40,162 +48,161 @@ Route::middleware('auth')->group(function () {
         return view('cs.dashboard');
     })->middleware('role:cs')->name('dashboard.cs');
 
-    // Perusahaan
-    Route::get('/perusahaan', [\App\Http\Controllers\Superadmin\PerusahaanController::class, 'index'])
-        ->middleware('role:super-admin')
-        ->name('perusahaan.index');
+    // -------------------------
+    // SUPER ADMIN: Perusahaan & Manage Admin Perusahaan
+    // -------------------------
+    Route::middleware('role:super-admin')->group(function () {
+        // Perusahaan
+        Route::get('/perusahaan', [\App\Http\Controllers\Superadmin\PerusahaanController::class, 'index'])
+            ->name('perusahaan.index');
 
-    Route::get('/perusahaan/create', [\App\Http\Controllers\Superadmin\PerusahaanController::class, 'create'])
-        ->middleware('role:super-admin')
-        ->name('perusahaan.create');
+        Route::get('/perusahaan/create', [\App\Http\Controllers\Superadmin\PerusahaanController::class, 'create'])
+            ->name('perusahaan.create');
 
-    Route::post('/perusahaan', [\App\Http\Controllers\Superadmin\PerusahaanController::class, 'store'])
-        ->middleware('role:super-admin')
-        ->name('perusahaan.store');
+        Route::post('/perusahaan', [\App\Http\Controllers\Superadmin\PerusahaanController::class, 'store'])
+            ->name('perusahaan.store');
 
-    Route::get('/perusahaan/{perusahaan}/edit', [\App\Http\Controllers\Superadmin\PerusahaanController::class, 'edit'])
-        ->middleware('role:super-admin')
-        ->name('perusahaan.edit');
+        Route::get('/perusahaan/{perusahaan}/edit', [\App\Http\Controllers\Superadmin\PerusahaanController::class, 'edit'])
+            ->name('perusahaan.edit');
 
-    Route::put('/perusahaan/{perusahaan}', [\App\Http\Controllers\Superadmin\PerusahaanController::class, 'update'])
-        ->middleware('role:super-admin')
-        ->name('perusahaan.update');
+        Route::put('/perusahaan/{perusahaan}', [\App\Http\Controllers\Superadmin\PerusahaanController::class, 'update'])
+            ->name('perusahaan.update');
 
-    Route::delete('/perusahaan/{perusahaan}', [\App\Http\Controllers\Superadmin\PerusahaanController::class, 'destroy'])
-        ->middleware('role:super-admin')
-        ->name('perusahaan.destroy');
+        Route::delete('/perusahaan/{perusahaan}', [\App\Http\Controllers\Superadmin\PerusahaanController::class, 'destroy'])
+            ->name('perusahaan.destroy');
 
+        // Manage Admin Perusahaan
+        Route::get('/manage-admin-perusahaan', [\App\Http\Controllers\Superadmin\ManageAdminController::class, 'index'])
+            ->name('manageadmin.index');
+
+        Route::post('/manage-admin-perusahaan', [\App\Http\Controllers\Superadmin\ManageAdminController::class, 'store'])
+            ->name('manageadmin.store');
+
+        Route::put('/manage-admin-perusahaan/{user}', [\App\Http\Controllers\Superadmin\ManageAdminController::class, 'update'])
+            ->name('manageadmin.update');
+
+        Route::delete('/manage-admin-perusahaan/{user}', [\App\Http\Controllers\Superadmin\ManageAdminController::class, 'destroy'])
+            ->name('manageadmin.destroy');
+
+        Route::put('/manage-admin-perusahaan/{user}/active', [\App\Http\Controllers\Superadmin\ManageAdminController::class, 'updateActive'])
+            ->name('manageadmin.active');
+    });
+
+    // -------------------------
     // Reports (TinyMCE editor)
-    Route::get('/report-customers', [\App\Http\Controllers\ReportController::class, 'customers'])
-        ->middleware('permission:manage reports')
-        ->name('reports.customers');
+    // -------------------------
+    Route::middleware('permission:manage reports')->group(function () {
+        Route::get('/report-customers', [\App\Http\Controllers\ReportController::class, 'customers'])
+            ->name('reports.customers');
 
-    Route::get('/report-karyawan', [\App\Http\Controllers\ReportController::class, 'employees'])
-        ->middleware('permission:manage reports')
-        ->name('reports.employees');
+        Route::get('/report-karyawan', [\App\Http\Controllers\ReportController::class, 'employees'])
+            ->name('reports.employees');
 
-    Route::get('/report-customers/download', [\App\Http\Controllers\ReportController::class, 'customersDownload'])
-        ->middleware('permission:manage reports')
-        ->name('reports.customers.download');
+        Route::get('/report-customers/download', [\App\Http\Controllers\ReportController::class, 'customersDownload'])
+            ->name('reports.customers.download');
 
-    Route::get('/report-customers/pdf', [\App\Http\Controllers\ReportController::class, 'customersPdf'])
-        ->middleware('permission:manage reports')
-        ->name('reports.customers.pdf');
+        Route::get('/report-customers/pdf', [\App\Http\Controllers\ReportController::class, 'customersPdf'])
+            ->name('reports.customers.pdf');
 
-    Route::get('/report-karyawan/download', [\App\Http\Controllers\ReportController::class, 'employeesDownload'])
-        ->middleware('permission:manage reports')
-        ->name('reports.employees.download');
+        Route::get('/report-karyawan/download', [\App\Http\Controllers\ReportController::class, 'employeesDownload'])
+            ->name('reports.employees.download');
 
-    Route::get('/report-karyawan/pdf', [\App\Http\Controllers\ReportController::class, 'employeesPdf'])
-        ->middleware('permission:manage reports')
-        ->name('reports.employees.pdf');
+        Route::get('/report-karyawan/pdf', [\App\Http\Controllers\ReportController::class, 'employeesPdf'])
+            ->name('reports.employees.pdf');
 
-    Route::get('/report-settings', [\App\Http\Controllers\ReportController::class, 'settings'])
-        ->middleware('permission:manage reports')
-        ->name('reports.settings');
-    Route::post('/report-settings', [\App\Http\Controllers\ReportController::class, 'settingsSave'])
-        ->middleware('permission:manage reports')
-        ->name('reports.settings.save');
+        Route::get('/report-settings', [\App\Http\Controllers\ReportController::class, 'settings'])
+            ->name('reports.settings');
 
+        Route::post('/report-settings', [\App\Http\Controllers\ReportController::class, 'settingsSave'])
+            ->name('reports.settings.save');
+    });
+
+    // -------------------------
     // Tim & Role (Admin perusahaan)
-    Route::get('/tim-dan-role', [\App\Http\Controllers\TeamRoleController::class, 'index'])
-        ->middleware('role:admin')
-        ->name('teamrole.index');
+    // -------------------------
+    Route::middleware('role:admin')->group(function () {
+        Route::get('/tim-dan-role', [\App\Http\Controllers\TeamRoleController::class, 'index'])
+            ->name('teamrole.index');
 
-    Route::post('/tim-dan-role', [\App\Http\Controllers\TeamRoleController::class, 'store'])
-        ->middleware('role:admin')
-        ->name('teamrole.store');
+        Route::post('/tim-dan-role', [\App\Http\Controllers\TeamRoleController::class, 'store'])
+            ->name('teamrole.store');
 
-    Route::put('/tim-dan-role/{user}', [\App\Http\Controllers\TeamRoleController::class, 'update'])
-        ->middleware('role:admin')
-        ->name('teamrole.update');
+        Route::put('/tim-dan-role/{user}', [\App\Http\Controllers\TeamRoleController::class, 'update'])
+            ->name('teamrole.update');
 
-    Route::delete('/tim-dan-role/{user}', [\App\Http\Controllers\TeamRoleController::class, 'destroy'])
-        ->middleware('role:admin')
-        ->name('teamrole.destroy');
+        Route::delete('/tim-dan-role/{user}', [\App\Http\Controllers\TeamRoleController::class, 'destroy'])
+            ->name('teamrole.destroy');
+    });
 
-    // Manage Admin Perusahaan (Super Admin)
-    Route::get('/manage-admin-perusahaan', [\App\Http\Controllers\Superadmin\ManageAdminController::class, 'index'])
-        ->middleware('role:super-admin')
-        ->name('manageadmin.index');
-
-    Route::post('/manage-admin-perusahaan', [\App\Http\Controllers\Superadmin\ManageAdminController::class, 'store'])
-        ->middleware('role:super-admin')
-        ->name('manageadmin.store');
-
-    Route::put('/manage-admin-perusahaan/{user}', [\App\Http\Controllers\Superadmin\ManageAdminController::class, 'update'])
-        ->middleware('role:super-admin')
-        ->name('manageadmin.update');
-
-    Route::delete('/manage-admin-perusahaan/{user}', [\App\Http\Controllers\Superadmin\ManageAdminController::class, 'destroy'])
-        ->middleware('role:super-admin')
-        ->name('manageadmin.destroy');
-
-    Route::put('/manage-admin-perusahaan/{user}/active', [\App\Http\Controllers\Superadmin\ManageAdminController::class, 'updateActive'])
-        ->middleware('role:super-admin')
-        ->name('manageadmin.active');
-
+    // -------------------------
     // Customers
-    Route::get('/customers', [CustomerController::class, 'index'])
-        ->middleware('permission:view customers')
-        ->name('customers.index');
+    // -------------------------
+    Route::middleware('permission:view customers')->group(function () {
+        Route::get('/customers', [CustomerController::class, 'index'])
+            ->name('customers.index');
+    });
 
-    Route::get('/customers/create', [CustomerController::class, 'create'])
-        ->middleware('permission:create customers')
-        ->name('customers.create');
+    Route::middleware('permission:create customers')->group(function () {
+        Route::get('/customers/create', [CustomerController::class, 'create'])
+            ->name('customers.create');
 
-    Route::post('/customers', [CustomerController::class, 'store'])
-        ->middleware('permission:create customers')
-        ->name('customers.store');
+        Route::post('/customers', [CustomerController::class, 'store'])
+            ->name('customers.store');
+    });
 
-    Route::get('/customers/{customer}/edit', [CustomerController::class, 'edit'])
-        ->middleware('permission:update customers')
-        ->name('customers.edit');
+    Route::middleware('permission:update customers')->group(function () {
+        Route::get('/customers/{customer}/edit', [CustomerController::class, 'edit'])
+            ->name('customers.edit');
 
-    Route::put('/customers/{customer}', [CustomerController::class, 'update'])
-        ->middleware('permission:update customers')
-        ->name('customers.update');
+        Route::put('/customers/{customer}', [CustomerController::class, 'update'])
+            ->name('customers.update');
+    });
 
-    Route::delete('/customers/{customer}', [CustomerController::class, 'destroy'])
-        ->middleware('permission:delete customers')
-        ->name('customers.destroy');
+    Route::middleware('permission:delete customers')->group(function () {
+        Route::delete('/customers/{customer}', [CustomerController::class, 'destroy'])
+            ->name('customers.destroy');
+    });
 
+    // -------------------------
     // Pipeline Stages
-    Route::get('/pipeline-stages', [PipelineStageController::class, 'index'])
-        ->middleware('permission:manage pipelines')
-        ->name('pipeline-stages.index');
+    // -------------------------
+    Route::middleware('permission:manage pipelines')->group(function () {
+        Route::get('/pipeline-stages', [PipelineStageController::class, 'index'])
+            ->name('pipeline-stages.index');
 
-    Route::get('/pipeline-stages/create', [PipelineStageController::class, 'create'])
-        ->middleware('permission:manage pipelines')
-        ->name('pipeline-stages.create');
+        Route::get('/pipeline-stages/create', [PipelineStageController::class, 'create'])
+            ->name('pipeline-stages.create');
 
-    Route::post('/pipeline-stages', [PipelineStageController::class, 'store'])
-        ->middleware('permission:manage pipelines')
-        ->name('pipeline-stages.store');
+        Route::post('/pipeline-stages', [PipelineStageController::class, 'store'])
+            ->name('pipeline-stages.store');
 
-    Route::get('/pipeline-stages/{pipelineStage}/edit', [PipelineStageController::class, 'edit'])
-        ->middleware('permission:manage pipelines')
-        ->name('pipeline-stages.edit');
+        Route::get('/pipeline-stages/{pipelineStage}/edit', [PipelineStageController::class, 'edit'])
+            ->name('pipeline-stages.edit');
 
-    Route::put('/pipeline-stages/{pipelineStage}', [PipelineStageController::class, 'update'])
-        ->middleware('permission:manage pipelines')
-        ->name('pipeline-stages.update');
+        Route::put('/pipeline-stages/{pipelineStage}', [PipelineStageController::class, 'update'])
+            ->name('pipeline-stages.update');
 
-    Route::delete('/pipeline-stages/{pipelineStage}', [PipelineStageController::class, 'destroy'])
-        ->middleware('permission:manage pipelines')
-        ->name('pipeline-stages.destroy');
+        Route::delete('/pipeline-stages/{pipelineStage}', [PipelineStageController::class, 'destroy'])
+            ->name('pipeline-stages.destroy');
+    });
 
+    // -------------------------
+    // Stages (History)
+    // -------------------------
     Route::get('/stages', [CustomerStageHistoryController::class, 'index'])
         ->middleware('permission:view customers')
         ->name('stages.index');
 
+    // CRM Show & Update Stage
     Route::get('/crm/customers/{customer}', [CustomerController::class, 'show'])
         ->name('crm.show');
 
-    // Update stage dari modal
     Route::put('/crm/customers/{customer}/stage', [CustomerController::class, 'updateStage'])
         ->name('customers.update-stage');
 
+    // -------------------------
+    // Assign
+    // -------------------------
     Route::get('/assign', [CustomerController::class, 'assign'])
         ->middleware('permission:update customers')
         ->name('assign.index');
@@ -203,20 +210,19 @@ Route::middleware('auth')->group(function () {
     Route::post('/assign-to/{customer}', [CustomerController::class, 'assignto'])
         ->name('assign.store');
 
-
-
-    // notif gweh
+    // -------------------------
+    // Notifications
+    // -------------------------
     Route::post('/notifications/read-all', function () {
         auth()->user()->unreadNotifications->markAsRead();
         return back();
     })->name('notifications.readAll');
 
     Route::get('/notifications/read/{id}', function ($id) {
-        /** @var User $user */
+        /** @var \App\Models\User $user */
         $user = Auth::user();
 
         $notif = $user->notifications()->findOrFail($id);
-
         $notif->markAsRead();
 
         return redirect($notif->data['url'] ?? '/');
