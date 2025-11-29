@@ -51,6 +51,7 @@ class AuthController extends Controller
         }
 
         $request->session()->regenerate();
+        $request->session()->flash('force_dark', true);
 
         return redirect()->intended($this->redirectPath());
     }

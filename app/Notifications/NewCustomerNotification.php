@@ -3,14 +3,15 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class NewCustomerNotification extends Notification
 {
     use Queueable;
+
     public $customer;
+
     /**
      * Create a new notification instance.
      */
@@ -51,7 +52,7 @@ class NewCustomerNotification extends Notification
             'title'       => 'Customer baru terdaftar. Silahkan diassign',
             'message'     => 'Ada customer baru: ' . $this->customer->name,
             'customer_id' => $this->customer->id,
-            'url'         => route('customers.index'),
+            'url' => route('customers.index'),
         ];
     }
 }
