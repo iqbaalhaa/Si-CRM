@@ -29,7 +29,22 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     Route::get('/dashboard', function () {
-        return view('dashboard');
+        $user = Auth::user();
+        if ($user && method_exists($user, 'hasRole')) {
+            if ($user->hasRole('super-admin')) {
+                return redirect()->route('dashboard.superadmin');
+            }
+            if ($user->hasRole('admin')) {
+                return redirect()->route('dashboard.admin');
+            }
+            if ($user->hasRole('marketing')) {
+                return redirect()->route('dashboard.marketing');
+            }
+            if ($user->hasRole('cs')) {
+                return redirect()->route('dashboard.cs');
+            }
+        }
+        return redirect()->route('dashboard.admin');
     })->name('dashboard');
 
     Route::get('/dashboard/superadmin', function () {

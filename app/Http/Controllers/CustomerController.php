@@ -192,16 +192,16 @@ class CustomerController extends Controller
 
         $validated = $request->validate([
             'assigned_to_id' => 'nullable|exists:users,id',
-            'note'           => 'nullable|string|max:500',
+            'note' => 'nullable|string|max:500',
         ]);
 
         // Simpan dulu assign lama buat cek perubahan & notif
-        $oldAssigned     = $customer->assignedTo;
-        $oldAssignedId   = $oldAssigned?->id;
+        $oldAssigned = $customer->assignedTo;
+        $oldAssignedId = $oldAssigned?->id;
 
         // Kalau diisi, pastikan user yang dipilih juga 1 company & punya role cs/marketing
         $assignedUser = null;
-        if (!empty($validated['assigned_to_id'])) {
+        if (! empty($validated['assigned_to_id'])) {
             $assignedUser = User::where('company_id', $user->company_id)
                 ->role(['cs', 'marketing'])
                 ->findOrFail($validated['assigned_to_id']);
@@ -213,8 +213,8 @@ class CustomerController extends Controller
                 $customer->current_stage_id = 1; // TODO: kalau nanti ada "default stage" per company, ganti ke query
             }
 
-            $oldAssigned     = $customer->assignedTo;       // sebelum diubah
-            $oldStageId      = $customer->current_stage_id; // stage sekarang
+            $oldAssigned = $customer->assignedTo;       // sebelum diubah
+            $oldStageId = $customer->current_stage_id; // stage sekarang
             $oldAssignedName = $oldAssigned?->name;
             $newAssignedName = $assignedUser?->name;
 
@@ -240,12 +240,12 @@ class CustomerController extends Controller
             }
 
             CustomerStageHistory::create([
-                'customer_id'   => $customer->id,
-                'company_id'    => $customer->company_id,
+                'customer_id' => $customer->id,
+                'company_id' => $customer->company_id,
                 'from_stage_id' => $oldStageId,
-                'to_stage_id'   => $customer->current_stage_id,
-                'changed_by'    => $user->id,
-                'note'          => implode(' | ', $noteParts),
+                'to_stage_id' => $customer->current_stage_id,
+                'changed_by' => $user->id,
+                'note' => implode(' | ', $noteParts),
             ]);
         });
 
