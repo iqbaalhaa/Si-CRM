@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
-
 class PipelineStageController extends Controller
 {
     /**
@@ -40,8 +39,8 @@ class PipelineStageController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'       => 'required|string',
-            'type'       => 'nullable|string',
+            'name' => 'required|string',
+            'type' => 'nullable|string',
             'sort_order' => 'nullable|integer',
             'is_default' => 'boolean',
         ]);
@@ -100,17 +99,17 @@ class PipelineStageController extends Controller
             ]);
 
             return response()->json([
-                'status'  => 'success',
+                'status' => 'success',
                 'message' => 'Sort order updated.',
             ]);
         } catch (Throwable $e) {
             Log::error('Gagal update sort_order pipeline stage', [
-                'id'    => $pipelineStage->id,
+                'id' => $pipelineStage->id,
                 'error' => $e->getMessage(),
             ]);
 
             return response()->json([
-                'status'  => 'error',
+                'status' => 'error',
                 'message' => 'Gagal mengupdate urutan.',
             ], 500);
         }

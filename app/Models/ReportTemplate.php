@@ -4,18 +4,16 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
-class PipelineStage extends Model
+class ReportTemplate extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     protected $fillable = [
         'company_id',
-        'name',
+        'template_name',
         'type',
-        'sort_order',
-        'is_default',
+        'content',
     ];
 
     public function company()

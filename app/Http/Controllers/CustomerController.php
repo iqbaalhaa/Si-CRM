@@ -9,8 +9,6 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-
-
 class CustomerController extends Controller
 {
     public function index(Request $request)
@@ -30,7 +28,6 @@ class CustomerController extends Controller
         return view('pages.customers.index', compact('customers'));
     }
 
-
     public function create()
     {
         return view('pages.customers.create');
@@ -39,12 +36,12 @@ class CustomerController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name'   => 'required|string',
-            'phone'  => 'nullable|string|max:30',
-            'email'  => 'nullable|email',
+            'name' => 'required|string',
+            'phone' => 'nullable|string|max:30',
+            'email' => 'nullable|email',
             'source' => 'nullable|string',
-            'tag'    => 'nullable|string',
-            'notes'  => 'nullable|string',
+            'tag' => 'nullable|string',
+            'notes' => 'nullable|string',
         ]);
 
         $data['company_id'] = auth()->user()->company_id;
@@ -72,18 +69,18 @@ class CustomerController extends Controller
     public function update(Request $request, Customer $customer)
     {
         $data = $request->validate([
-            'company_id'        => 'nullable|exists:perusahaan,id',
-            'name'              => 'nullable|string',
-            'phone'             => 'nullable|string|max:30',
-            'email'             => 'nullable|email',
-            'source'            => 'nullable|string',
-            'tag'               => 'nullable|string',
-            'assigned_to_id'    => 'nullable|exists:users,id',
-            'current_stage_id'  => 'nullable|exists:pipeline_stages,id',
-            'created_by'        => 'nullable|exists:users,id',
-            'notes'             => 'nullable|string',
-            'estimated_value'   => 'nullable|numeric',
-            'last_contact_at'   => 'nullable|date',
+            'company_id' => 'nullable|exists:perusahaan,id',
+            'name' => 'nullable|string',
+            'phone' => 'nullable|string|max:30',
+            'email' => 'nullable|email',
+            'source' => 'nullable|string',
+            'tag' => 'nullable|string',
+            'assigned_to_id' => 'nullable|exists:users,id',
+            'current_stage_id' => 'nullable|exists:pipeline_stages,id',
+            'created_by' => 'nullable|exists:users,id',
+            'notes' => 'nullable|string',
+            'estimated_value' => 'nullable|numeric',
+            'last_contact_at' => 'nullable|date',
         ]);
 
         $customer->update($data);
@@ -135,7 +132,7 @@ class CustomerController extends Controller
 
         $validated = $request->validate([
             'to_stage_id' => 'required|exists:pipeline_stages,id',
-            'note'        => 'nullable|string|max:500',
+            'note' => 'nullable|string|max:500',
         ]);
 
         DB::transaction(function () use ($customer, $user, $validated) {
@@ -148,12 +145,12 @@ class CustomerController extends Controller
 
             // insert history
             CustomerStageHistory::create([
-                'customer_id'   => $customer->id,
-                'company_id'    => $customer->company_id,
+                'customer_id' => $customer->id,
+                'company_id' => $customer->company_id,
                 'from_stage_id' => $fromStageId,
-                'to_stage_id'   => $validated['to_stage_id'],
-                'changed_by'    => $user->id,
-                'note'          => $validated['note'] ?? 'Update stage via detail progression.',
+                'to_stage_id' => $validated['to_stage_id'],
+                'changed_by' => $user->id,
+                'note' => $validated['note'] ?? 'Update stage via detail progression.',
             ]);
         });
 
@@ -161,10 +158,6 @@ class CustomerController extends Controller
             ->route('crm.show', $customer) // ⬅️ ganti ini
             ->with('success', 'Stage customer berhasil diperbarui.');
     }
-
-
-
-
 
     public function assign(Request $request)
     {
@@ -199,10 +192,9 @@ class CustomerController extends Controller
             abort(403, 'Anda tidak berhak mengubah customer ini.');
         }
 
-
         $request->validate([
             'assigned_to_id' => 'nullable|exists:users,id',
-            'note'           => 'nullable|string|max:500', // kalau mau kasih catatan tambahan
+            'note' => 'nullable|string|max:500', // kalau mau kasih catatan tambahan
         ]);
 
         // Kalau diisi, pastikan user yang dipilih juga 1 company & punya role cs/marketing
@@ -221,10 +213,10 @@ class CustomerController extends Controller
                 $customer->current_stage_id = 1; // default stage id
             }
 
-            $oldAssigned      = $customer->assignedTo;          // sebelum diubah
-            $oldStageId       = $customer->current_stage_id;    // stage sekarang (sudah pasti >= 1)
-            $oldAssignedName  = $oldAssigned?->name;
-            $newAssignedName  = $assignedUser?->name;
+            $oldAssigned = $customer->assignedTo;          // sebelum diubah
+            $oldStageId = $customer->current_stage_id;    // stage sekarang (sudah pasti >= 1)
+            $oldAssignedName = $oldAssigned?->name;
+            $newAssignedName = $assignedUser?->name;
 
             // 1) UPDATE customer (bukan insert)
             $customer->assigned_to_id = $assignedUser?->id;
@@ -240,7 +232,7 @@ class CustomerController extends Controller
             } elseif ($oldAssignedName !== $newAssignedName) {
                 $noteParts[] = "Pindah assign dari {$oldAssignedName} ke {$newAssignedName}";
             } else {
-                $noteParts[] = "Update assign (PIC tidak berubah)";
+                $noteParts[] = 'Update assign (PIC tidak berubah)';
             }
 
             if ($request->filled('note')) {
@@ -248,15 +240,14 @@ class CustomerController extends Controller
             }
 
             CustomerStageHistory::create([
-                'customer_id'   => $customer->id,
-                'company_id'    => $customer->company_id,
+                'customer_id' => $customer->id,
+                'company_id' => $customer->company_id,
                 'from_stage_id' => $oldStageId,
-                'to_stage_id'   => $customer->current_stage_id, // sekarang udah pasti 1 kalau awalnya null
-                'changed_by'    => $user->id,
-                'note'          => implode(' | ', $noteParts),
+                'to_stage_id' => $customer->current_stage_id, // sekarang udah pasti 1 kalau awalnya null
+                'changed_by' => $user->id,
+                'note' => implode(' | ', $noteParts),
             ]);
         });
-
 
         return redirect()
             ->route('assign.index')

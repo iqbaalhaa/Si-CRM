@@ -15,7 +15,7 @@ class CustomerStageHistoryController extends Controller
     {
         $user = $request->user();
 
-        if (!$user->company_id) {
+        if (! $user->company_id) {
             abort(403, 'User belum terhubung ke perusahaan.');
         }
 
@@ -27,12 +27,12 @@ class CustomerStageHistoryController extends Controller
 
         // Hitung jumlah per stage (berdasarkan nama stage)
         $stageCounts = [
-            'New'       => $customers->filter(fn ($c) => optional($c->stage)->name === 'New')->count(),
-            'Contact'   => $customers->filter(fn ($c) => optional($c->stage)->name === 'Contact')->count(),
-            'Hold'      => $customers->filter(fn ($c) => optional($c->stage)->name === 'Hold')->count(),
+            'New' => $customers->filter(fn ($c) => optional($c->stage)->name === 'New')->count(),
+            'Contact' => $customers->filter(fn ($c) => optional($c->stage)->name === 'Contact')->count(),
+            'Hold' => $customers->filter(fn ($c) => optional($c->stage)->name === 'Hold')->count(),
             'No Respon' => $customers->filter(fn ($c) => optional($c->stage)->name === 'No Respon')->count(),
-            'Loss'      => $customers->filter(fn ($c) => optional($c->stage)->name === 'Loss')->count(),
-            'Close'     => $customers->filter(fn ($c) => optional($c->stage)->name === 'Close')->count(),
+            'Loss' => $customers->filter(fn ($c) => optional($c->stage)->name === 'Loss')->count(),
+            'Close' => $customers->filter(fn ($c) => optional($c->stage)->name === 'Close')->count(),
         ];
 
         return view('pages.crm.index', compact('customers', 'stageCounts'));

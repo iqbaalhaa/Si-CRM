@@ -8,25 +8,22 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('pipeline_stages', function (Blueprint $table) {
+        Schema::create('report_templates', function (Blueprint $table) {
             $table->id();
-
             $table->foreignId('company_id')
                 ->constrained('perusahaan')
+                ->cascadeOnUpdate()
                 ->cascadeOnDelete();
-
-            $table->string('name');
-            $table->string('type')->nullable();      // lead, deal, etc.
-            $table->integer('sort_order')->default(0);
-            $table->boolean('is_default')->default(false);
-
+            $table->string('template_name', 150);
+            $table->longText('content');
             $table->timestamps();
-            $table->softDeletes();
+
+            $table->unique(['company_id', 'template_name']);
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('pipeline_stages');
+        Schema::dropIfExists('report_templates');
     }
 };

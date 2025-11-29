@@ -1,11 +1,11 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CustomerController;
-use App\Http\Controllers\PipelineStageController;
 use App\Http\Controllers\CustomerStageHistoryController;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\PipelineStageController;
+use Illuminate\Support\Facades\Route;
 
 // Guest only
 Route::middleware('guest')->group(function () {
@@ -39,7 +39,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard/cs', function () {
         return view('cs.dashboard');
     })->middleware('role:cs')->name('dashboard.cs');
-
 
     // Perusahaan
     Route::get('/perusahaan', [\App\Http\Controllers\Superadmin\PerusahaanController::class, 'index'])
@@ -79,9 +78,17 @@ Route::middleware('auth')->group(function () {
         ->middleware('permission:manage reports')
         ->name('reports.customers.download');
 
+    Route::get('/report-customers/pdf', [\App\Http\Controllers\ReportController::class, 'customersPdf'])
+        ->middleware('permission:manage reports')
+        ->name('reports.customers.pdf');
+
     Route::get('/report-karyawan/download', [\App\Http\Controllers\ReportController::class, 'employeesDownload'])
         ->middleware('permission:manage reports')
         ->name('reports.employees.download');
+
+    Route::get('/report-karyawan/pdf', [\App\Http\Controllers\ReportController::class, 'employeesPdf'])
+        ->middleware('permission:manage reports')
+        ->name('reports.employees.pdf');
 
     Route::get('/report-settings', [\App\Http\Controllers\ReportController::class, 'settings'])
         ->middleware('permission:manage reports')
@@ -116,6 +123,17 @@ Route::middleware('auth')->group(function () {
         ->middleware('role:super-admin')
         ->name('manageadmin.store');
 
+    Route::put('/manage-admin-perusahaan/{user}', [\App\Http\Controllers\Superadmin\ManageAdminController::class, 'update'])
+        ->middleware('role:super-admin')
+        ->name('manageadmin.update');
+
+    Route::delete('/manage-admin-perusahaan/{user}', [\App\Http\Controllers\Superadmin\ManageAdminController::class, 'destroy'])
+        ->middleware('role:super-admin')
+        ->name('manageadmin.destroy');
+
+    Route::put('/manage-admin-perusahaan/{user}/active', [\App\Http\Controllers\Superadmin\ManageAdminController::class, 'updateActive'])
+        ->middleware('role:super-admin')
+        ->name('manageadmin.active');
 
     // Customers
     Route::get('/customers', [CustomerController::class, 'index'])
@@ -167,12 +185,9 @@ Route::middleware('auth')->group(function () {
         ->middleware('permission:manage pipelines')
         ->name('pipeline-stages.destroy');
 
-
-
     Route::get('/stages', [CustomerStageHistoryController::class, 'index'])
         ->middleware('permission:view customers')
         ->name('stages.index');
-
 
     Route::get('/crm/customers/{customer}', [CustomerController::class, 'show'])
         ->name('crm.show');

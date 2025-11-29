@@ -19,7 +19,7 @@ class UserSeeder extends Seeder
         $superAdmin = User::firstOrCreate(
             ['email' => 'superadmin@example.com'],
             [
-                'name'     => 'Super Admin',
+                'name' => 'Super Admin',
                 'password' => bcrypt('password'),
                 'company_id' => 1,
             ]
@@ -30,7 +30,7 @@ class UserSeeder extends Seeder
         $admin = User::firstOrCreate(
             ['email' => 'admin@example.com'],
             [
-                'name'     => 'Admin Utama',
+                'name' => 'Admin Utama',
                 'password' => bcrypt('password'),
                 'company_id' => 1,
             ]
@@ -41,7 +41,7 @@ class UserSeeder extends Seeder
         $marketing = User::firstOrCreate(
             ['email' => 'marketing@example.com'],
             [
-                'name'     => 'Marketing Depati',
+                'name' => 'Marketing Depati',
                 'password' => bcrypt('password'),
                 'company_id' => 1,
             ]
@@ -52,7 +52,7 @@ class UserSeeder extends Seeder
         $cs = User::firstOrCreate(
             ['email' => 'cs@example.com'],
             [
-                'name'     => 'Customer Service',
+                'name' => 'Customer Service',
                 'password' => bcrypt('password'),
                 'company_id' => 1,
             ]

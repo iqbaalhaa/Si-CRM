@@ -11,7 +11,7 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, HasRoles, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -44,6 +44,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
         ];
     }
 
@@ -51,9 +52,9 @@ class User extends Authenticatable
     {
         $map = [
             'superadmin' => 'dashboard.superadmin',
-            'admin'      => 'dashboard.admin',
-            'marketing'  => 'dashboard.marketing',
-            'cs'         => 'dashboard.cs',
+            'admin' => 'dashboard.admin',
+            'marketing' => 'dashboard.marketing',
+            'cs' => 'dashboard.cs',
         ];
 
         foreach ($map as $role => $route) {

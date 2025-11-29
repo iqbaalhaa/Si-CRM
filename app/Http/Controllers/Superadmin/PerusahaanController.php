@@ -11,6 +11,7 @@ class PerusahaanController extends Controller
     public function index()
     {
         $perusahaans = Perusahaan::query()->latest()->get();
+
         return view('superadmin.perusahaan.index', compact('perusahaans'));
     }
 
@@ -59,6 +60,7 @@ class PerusahaanController extends Controller
     public function destroy(Perusahaan $perusahaan)
     {
         $perusahaan->delete();
+
         return redirect()->route('perusahaan.index')->with('success', 'Perusahaan berhasil dihapus');
     }
 }
