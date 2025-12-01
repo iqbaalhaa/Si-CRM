@@ -2,73 +2,60 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Customer;
 use App\Models\CustomerStageHistory;
 use Illuminate\Http\Request;
 
 class CustomerStageHistoryController extends Controller
 {
-    public function index()
+    /**
+     * Halaman index: ringkasan stage + daftar customer dan stage sekarang.
+     */
+    public function index(Request $request)
     {
-        $histories = CustomerStageHistory::with([
-            'customer',
-            'company',
-            'fromStage',
-            'toStage',
-            'changer'
-        ])->latest()->get();
+        $user = $request->user();
 
-        return response()->json($histories);
+        if (!$user->company_id) {
+            abort(403, 'User belum terhubung ke perusahaan.');
+        }
+
+        // Base query: semua customer milik company user
+        $query = Customer::with(['company', 'stage', 'assignedTo'])
+            ->where('company_id', $user->company_id);
+
+        // Kalau role marketing / cs → hanya lihat customer yang di-assign ke dia
+        if ($user->hasRole(['marketing', 'cs'])) {
+            $query->where('assigned_to_id', $user->id);
+        }
+
+        $customers = $query->latest()->get();
+
+        // Hitung jumlah per stage (berdasarkan nama stage) dari hasil query di atas
+        $stageCounts = [
+            'New'       => $customers->filter(fn ($c) => optional($c->stage)->name === 'New')->count(),
+            'Contact'   => $customers->filter(fn ($c) => optional($c->stage)->name === 'Contact')->count(),
+            'Hold'      => $customers->filter(fn ($c) => optional($c->stage)->name === 'Hold')->count(),
+            'No Respon' => $customers->filter(fn ($c) => optional($c->stage)->name === 'No Respon')->count(),
+            'Loss'      => $customers->filter(fn ($c) => optional($c->stage)->name === 'Loss')->count(),
+            'Close'     => $customers->filter(fn ($c) => optional($c->stage)->name === 'Close')->count(),
+        ];
+
+        return view('pages.crm.index', compact('customers', 'stageCounts'));
     }
 
-    public function store(Request $request)
+
+    /**
+     * Detail progres 1 customer (timeline history).
+     */
+    public function show(Customer $customer)
     {
-        $data = $request->validate([
-            'customer_id'     => 'required|exists:customers,id',
-            'company_id'      => 'required|exists:perusahaans,id',
-            'from_stage_id'   => 'nullable|exists:pipeline_stages,id',
-            'to_stage_id'     => 'required|exists:pipeline_stages,id',
-            'changed_by'      => 'required|exists:users,id',
-            'note'            => 'nullable|string',
-        ]);
+        $customer->load(['company', 'stage']);
 
-        $history = CustomerStageHistory::create($data);
+        $histories = CustomerStageHistory::with(['fromStage', 'toStage', 'changer'])
+            ->where('customer_id', $customer->id)
+            ->orderByDesc('created_at')
+            ->get();
 
-        return response()->json($history, 201);
-    }
-
-    public function show($id)
-    {
-        $history = CustomerStageHistory::with([
-            'customer',
-            'company',
-            'fromStage',
-            'toStage',
-            'changer'
-        ])->findOrFail($id);
-
-        return response()->json($history);
-    }
-
-    public function update(Request $request, $id)
-    {
-        $history = CustomerStageHistory::findOrFail($id);
-
-        $data = $request->validate([
-            'from_stage_id' => 'nullable|exists:pipeline_stages,id',
-            'to_stage_id'   => 'nullable|exists:pipeline_stages,id',
-            'note'          => 'nullable|string',
-        ]);
-
-        $history->update($data);
-
-        return response()->json($history);
-    }
-
-    public function destroy($id)
-    {
-        $history = CustomerStageHistory::findOrFail($id);
-        $history->delete();
-
-        return response()->json(['message' => 'deleted']);
+        return view('pages.crm.show', compact('customer', 'histories'));
     }
 }

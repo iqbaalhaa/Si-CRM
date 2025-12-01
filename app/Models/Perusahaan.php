@@ -20,4 +20,3 @@ class Perusahaan extends Model
         'status',
     ];
 }
-

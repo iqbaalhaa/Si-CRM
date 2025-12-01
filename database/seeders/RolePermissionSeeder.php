@@ -2,10 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class RolePermissionSeeder extends Seeder
 {
@@ -22,23 +21,44 @@ class RolePermissionSeeder extends Seeder
         // ==========================
 
         $permissions = [
-            // Roles & companies
-            'manage roles',          // CRUD role
-            'manage companies',      // CRUD company
+            // ROLES (CRUD)
+            'create roles',
+            'read roles',
+            'update roles',
+            'delete roles',
 
-            // Team & pipeline
-            'manage team accounts',  // CRUD akun team (user dalam 1 company)
-            'manage pipelines',      // CRUD pipeline
+            // COMPANIES (CRUD)
+            'create companies',
+            'read companies',
+            'update companies',
+            'delete companies',
 
-            // Customers (lebih detail CRU+D)
-            'view customers',
+            // TEAM ACCOUNTS (CRUD)
+            'create team accounts',
+            'read team accounts',
+            'update team accounts',
+            'delete team accounts',
+
+            // PIPELINES (CRUD)
+            'create pipelines',
+            'read pipelines',
+            'update pipelines',
+            'delete pipelines',
+
+            // CUSTOMERS (CRUD)
+            'read customers',
             'create customers',
             'update customers',
             'delete customers',
 
-            // CRM & reports
-            'view crm',              // akses dashboard & halaman utama CRM
-            'manage reports',        // CRUD report
+            // CRM (READ ONLY)
+            'read crm',
+
+            // REPORTS (CRUD)
+            'read reports',
+            'create reports',
+            'update reports',
+            'delete reports',
         ];
 
         foreach ($permissions as $perm) {
@@ -62,45 +82,75 @@ class RolePermissionSeeder extends Seeder
         $superAdmin->syncPermissions(Permission::all());
 
         // ADMIN:
-        // - CRUD akun team
-        // - CRUD pipeline
-        // - CRU customer
-        // - read CRM
-        // - CRUD report
         $admin->syncPermissions([
-            'manage team accounts',
-            'manage pipelines',
+            // companies → admin bisa baca data company sendiri (opsional)
+            'read companies',
+            'update companies',
 
-            'view customers',
+            // team accounts CRUD (kelola tim dalam 1 perusahaan)
+            'create team accounts',
+            'read team accounts',
+            'update team accounts',
+            'delete team accounts',
+
+            // pipelines CRUD
+            'create pipelines',
+            'read pipelines',
+            'update pipelines',
+            'delete pipelines',
+
+            // customers CRUD
+            'read customers',
             'create customers',
             'update customers',
-            // (hapus 'delete customers' kalau admin tidak boleh hapus)
+            'delete customers',
 
-            'view crm',
-            'manage reports',
+            // crm
+            'read crm',
+
+            // reports CRUD
+            'read reports',
+            'create reports',
+            'update reports',
+            'delete reports',
         ]);
 
         // MARKETING:
-        // - CRU customer
-        // - read CRM
-        // - CRUD report
         $marketing->syncPermissions([
-            'view customers',
+            'read pipelines',
+            // customers
+            'read customers',
             'create customers',
             'update customers',
 
-            'view crm',
-            'manage reports',
+            // crm
+            'read crm',
+
+            // reports CRUD (kalau mau marketing bisa generate & edit laporan)
+            'read reports',
+            'create reports',
+            'update reports',
+            'delete reports',
         ]);
 
         // CS:
-        // - read CRM
-        // - CRUD report
-        // (bisa juga dikasih view customers kalau mau)
         $cs->syncPermissions([
-            'view customers',
-            'view crm',
-            'manage reports',
+
+            //
+            'read pipelines',
+            // customers
+            'read customers',
+            'update customers',
+
+            // crm
+            'read crm',
+
+
+            // reports CRUD
+            'read reports',
+            'create reports',
+            'update reports',
+            'delete reports',
         ]);
     }
 }

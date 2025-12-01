@@ -1,10 +1,12 @@
 <!doctype html>
 <html lang="en">
 
-<head>
+  <head>
     <meta charset="utf-8" />
     <title>@yield('page_title', 'Depati CRM — Auth')</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="{{ asset('crmlogo.ico') }}" type="image/x-icon">
+    <link rel="shortcut icon" href="{{ asset('crmlogo.ico') }}" type="image/x-icon">
 
     <!-- Font & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;700&display=swap" rel="stylesheet">
