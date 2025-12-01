@@ -14,12 +14,12 @@
                     $canCreatePipeline = $user->can('create pipelines');
                     $canUpdatePipeline = $user->can('update pipelines');
                     $canDeletePipeline = $user->can('delete pipelines');
-                    $isMarketingOrCs = $user->hasRole(['marketing', 'cs']);
-                    $showActionColumn = ($canUpdatePipeline || $canDeletePipeline) && !$isMarketingOrCs;
+                    $isLeadOperations = $user->hasRole(['lead-operations']);
+                    $showActionColumn = ($canUpdatePipeline || $canDeletePipeline) && !$isLeadOperations;
                 @endphp
 
                 {{-- Kolom kiri (5/12 di layar besar) - hanya kalau boleh CREATE --}}
-                @if ($canCreatePipeline && !$isMarketingOrCs)
+                @if ($canCreatePipeline && !$isLeadOperations)
                     <div class="col-12 col-lg-5">
                         <div class="card h-100">
                             <div class="card-body">
@@ -87,14 +87,14 @@
                 @endif
 
                 {{-- Kolom kanan (7/12 di layar besar) --}}
-                <div class="col-12 {{ $canCreatePipeline && !$isMarketingOrCs ? 'col-lg-7' : 'col-lg-12' }}">
+                <div class="col-12 {{ $canCreatePipeline && !$isLeadOperations ? 'col-lg-7' : 'col-lg-12' }}">
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title mb-3">Daftar Pipeline</h5>
 
                             @if ($stages->isEmpty())
                                 <div class="alert alert-info mb-0">
-                                    Belum ada data pipeline stage. @if ($canCreatePipeline && !$isMarketingOrCs)
+                                    Belum ada data pipeline stage. @if ($canCreatePipeline && !$isLeadOperations)
                                         Silakan tambahkan stage di form sebelah kiri.
                                     @endif
                                 </div>
@@ -123,7 +123,7 @@
 
                                                     {{-- Urutan: editable hanya jika boleh UPDATE dan bukan marketing/cs --}}
                                                     <td style="width: 100px;">
-                                                        @if ($canUpdatePipeline && !$isMarketingOrCs)
+                                                        @if ($canUpdatePipeline && !$isLeadOperations)
                                                             <input type="number"
                                                                 class="form-control form-control-sm sort-input"
                                                                 name="sort_order" value="{{ $stage->sort_order ?? 0 }}"

@@ -58,10 +58,8 @@
                         $dashboardRouteName = 'dashboard.superadmin';
                     } elseif ($user->hasRole('admin')) {
                         $dashboardRouteName = 'dashboard.admin';
-                    } elseif ($user->hasRole('marketing')) {
-                        $dashboardRouteName = 'dashboard.marketing';
-                    } elseif ($user->hasRole('cs')) {
-                        $dashboardRouteName = 'dashboard.cs';
+                    } elseif ($user->hasRole('lead-operations')) {
+                        $dashboardRouteName = 'dashboard.lead_operations';
                     }
                 }
             @endphp
