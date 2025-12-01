@@ -256,4 +256,12 @@ Route::middleware('auth')->group(function () {
 
         return redirect($notif->data['url'] ?? '/');
     })->name('notifications.read');
+
+    Route::middleware('role:admin')->group(function () {
+        Route::get('/contact', [\App\Http\Controllers\ContactController::class, 'create'])
+            ->name('contact.index');
+
+        Route::post('/contact', [\App\Http\Controllers\ContactController::class, 'store'])
+            ->name('contact.store');
+    });
 });
