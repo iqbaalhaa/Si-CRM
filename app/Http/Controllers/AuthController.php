@@ -29,7 +29,7 @@ class AuthController extends Controller
 
         $remember = $request->boolean('remember');
 
-        if (! Auth::attempt($credentials, $remember)) {
+        if (!Auth::attempt($credentials, $remember)) {
             return back()
                 ->withErrors([
                     'email' => 'Email atau password salah.',
@@ -38,7 +38,7 @@ class AuthController extends Controller
         }
 
         $user = Auth::user();
-        if ($user && (! $user->is_active)) {
+        if ($user && (!$user->is_active)) {
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
@@ -117,7 +117,7 @@ class AuthController extends Controller
     {
         $user = Auth::user();
 
-        if (! $user) {
+        if (!$user) {
             return route('login');
         }
 
@@ -128,11 +128,8 @@ class AuthController extends Controller
             if ($user->hasRole('admin')) {
                 return route('dashboard.admin');
             }
-            if ($user->hasRole('marketing')) {
-                return route('dashboard.marketing');
-            }
-            if ($user->hasRole('cs')) {
-                return route('dashboard.cs');
+            if ($user->hasRole('lead-operations')) {
+                return route('dashboard.lead-operations');
             }
         }
 

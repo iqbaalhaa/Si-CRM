@@ -71,8 +71,8 @@ class RolePermissionSeeder extends Seeder
 
         $superAdmin = Role::firstOrCreate(['name' => 'super-admin']);
         $admin      = Role::firstOrCreate(['name' => 'admin']);
-        $marketing  = Role::firstOrCreate(['name' => 'marketing']);
-        $cs         = Role::firstOrCreate(['name' => 'cs']);
+        $leadOperations  = Role::firstOrCreate(['name' => 'lead-operations']);
+
 
         // ==========================
         // 3. Assign Permissions per Role
@@ -116,7 +116,7 @@ class RolePermissionSeeder extends Seeder
         ]);
 
         // MARKETING:
-        $marketing->syncPermissions([
+        $leadOperations->syncPermissions([
             'read pipelines',
             // customers
             'read customers',
@@ -127,26 +127,6 @@ class RolePermissionSeeder extends Seeder
             'read crm',
 
             // reports CRUD (kalau mau marketing bisa generate & edit laporan)
-            'read reports',
-            'create reports',
-            'update reports',
-            'delete reports',
-        ]);
-
-        // CS:
-        $cs->syncPermissions([
-
-            //
-            'read pipelines',
-            // customers
-            'read customers',
-            'update customers',
-
-            // crm
-            'read crm',
-
-
-            // reports CRUD
             'read reports',
             'create reports',
             'update reports',

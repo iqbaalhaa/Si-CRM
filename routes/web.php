@@ -30,7 +30,18 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/dashboard', function () {
         $user = Auth::user();
-        if ($user && method_exists($user, 'hasRole')) {
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        // Kalau punya helper dashboardRoute di model User, pakai itu saja
+        if (method_exists($user, 'dashboardRoute')) {
+            return redirect($user->dashboardRoute());
+        }
+
+        // Fallback kalau helper belum ada / belum dipakai
+        if (method_exists($user, 'hasRole')) {
             if ($user->hasRole('super-admin')) {
                 return redirect()->route('dashboard.superadmin');
             }
@@ -44,6 +55,8 @@ Route::middleware('auth')->group(function () {
                 return redirect()->route('dashboard.cs');
             }
         }
+
+        // Fallback terakhir
         return redirect()->route('dashboard.admin');
     })->name('dashboard');
 
@@ -256,12 +269,4 @@ Route::middleware('auth')->group(function () {
 
         return redirect($notif->data['url'] ?? '/');
     })->name('notifications.read');
-
-    Route::middleware('role:admin')->group(function () {
-        Route::get('/contact', [\App\Http\Controllers\ContactController::class, 'create'])
-            ->name('contact.index');
-
-        Route::post('/contact', [\App\Http\Controllers\ContactController::class, 'store'])
-            ->name('contact.store');
-    });
 });
