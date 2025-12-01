@@ -163,6 +163,13 @@ Route::middleware('auth')->group(function () {
 
         Route::delete('/tim-dan-role/{user}', [\App\Http\Controllers\TeamRoleController::class, 'destroy'])
             ->name('teamrole.destroy');
+
+        // Contact
+        Route::get('/contact', [\App\Http\Controllers\ContactController::class, 'create'])
+            ->name('contact.index');
+
+        Route::post('/contact', [\App\Http\Controllers\ContactController::class, 'store'])
+            ->name('contact.store');
     });
 
     // -------------------------
