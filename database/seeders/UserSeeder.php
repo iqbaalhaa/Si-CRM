@@ -3,6 +3,9 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Models\Profile;
+use App\Models\Company;
+use App\Models\Perusahaan;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 
@@ -10,53 +13,87 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        // Ensure required roles exist for guard 'web'
-        foreach (['super-admin', 'admin', 'marketing', 'cs'] as $roleName) {
+        // Pastikan role yang dibutuhkan ada
+        foreach (['super-admin', 'admin', 'lead-operations'] as $roleName) {
             Role::findOrCreate($roleName, 'web');
         }
 
+        // Pastikan ada 1 perusahaan default
+        $company = Perusahaan::firstOrCreate(
+            ['code' => 'MAIN'], // key unik
+            [
+                'name'    => 'Perusahaan Utama',
+                'address' => 'Alamat default',
+                'phone'   => '080000000000',
+                'email'   => 'info@example.com',
+                'status'  => 'active',
+            ]
+        );
+
+        // ======================
         // SUPER ADMIN
+        // ======================
         $superAdmin = User::firstOrCreate(
             ['email' => 'superadmin@example.com'],
             [
-                'name' => 'Super Admin',
+                'name'     => 'Super Admin',
                 'password' => bcrypt('password'),
-                'company_id' => 1,
             ]
         );
         $superAdmin->assignRole('super-admin');
 
+        // Profile untuk super admin
+        Profile::firstOrCreate(
+            ['user_id' => $superAdmin->id],
+            [
+                'company_id' => $company->id,
+                'job_title'  => 'Super Admin',
+                'photo'      => null,
+            ]
+        );
+
+        // ======================
         // ADMIN
+        // ======================
         $admin = User::firstOrCreate(
             ['email' => 'admin@example.com'],
             [
-                'name' => 'Admin Utama',
+                'name'     => 'Admin Utama',
                 'password' => bcrypt('password'),
-                'company_id' => 1,
             ]
         );
         $admin->assignRole('admin');
 
-        // MARKETING
-        $marketing = User::firstOrCreate(
-            ['email' => 'marketing@example.com'],
+        // Profile untuk admin
+        Profile::firstOrCreate(
+            ['user_id' => $admin->id],
             [
-                'name' => 'Marketing Depati',
-                'password' => bcrypt('password'),
-                'company_id' => 1,
+                'company_id' => $company->id,
+                'job_title'  => 'Admin Utama',
+                'photo'      => null,
             ]
         );
-        $marketing->assignRole('marketing');
 
-        // CS
-        $cs = User::firstOrCreate(
-            ['email' => 'cs@example.com'],
+        // ======================
+        // LEAD OPERATIONS
+        // ======================
+        $leadOperations = User::firstOrCreate(
+            ['email' => 'lead-operations@example.com'],
             [
-                'name' => 'Customer Service',
+                'name'     => 'Lead Operations Depati',
                 'password' => bcrypt('password'),
-                'company_id' => 1,
             ]
         );
-        $cs->assignRole('cs');
+        $leadOperations->assignRole('lead-operations');
+
+        // Profile untuk lead-operations
+        Profile::firstOrCreate(
+            ['user_id' => $leadOperations->id],
+            [
+                'company_id' => $company->id,
+                'job_title'  => 'Lead Operations',
+                'photo'      => null,
+            ]
+        );
     }
 }

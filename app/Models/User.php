@@ -48,13 +48,44 @@ class User extends Authenticatable
         ];
     }
 
+    /**
+     * Relasi: satu user punya satu profile.
+     */
+    public function profile()
+    {
+        return $this->hasOne(Profile::class);
+    }
+
+    /**
+     * Relasi: company melalui profile (opsional, kalau mau pakai).
+     */
+    public function company()
+    {
+        return $this->hasOneThrough(
+            Perusahaan::class, // model tujuan
+            Profile::class, // model perantara
+            'user_id',      // foreign key di profiles
+            'id',           // primary key di companies
+            'id',           // local key di users
+            'company_id'    // foreign key di profiles ke companies
+        );
+    }
+
+    /**
+     * Helper: akses company_id seolah masih ada di users.
+     * Berguna kalau masih ada kode lama yang panggil $user->company_id.
+     */
+    public function getCompanyIdAttribute(): ?int
+    {
+        return $this->profile->company_id ?? null;
+    }
+
     public function dashboardRoute()
     {
         $map = [
-            'superadmin' => 'dashboard.superadmin',
-            'admin' => 'dashboard.admin',
-            'marketing' => 'dashboard.marketing',
-            'cs' => 'dashboard.cs',
+            'superadmin'      => 'dashboard.superadmin',
+            'admin'           => 'dashboard.admin',
+            'lead-operations' => 'dashboard.lead_operations',
         ];
 
         foreach ($map as $role => $route) {

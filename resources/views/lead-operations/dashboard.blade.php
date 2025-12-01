@@ -50,7 +50,7 @@
 
     <div class="page-heading d-flex justify-content-between align-items-center">
         <div>
-            <h3>Dashboard Customer Service</h3>
+            <h3>Dashboard Marketing</h3>
             <div class="text-muted">{{ Auth::user()->name }}</div>
         </div>
         <div class="text-muted">{{ now()->format('d M Y') }}</div>

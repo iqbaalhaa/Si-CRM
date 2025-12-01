@@ -105,6 +105,12 @@
     </style>
 
     @stack('styles')
+    @if(session('force_dark'))
+    <script>
+        localStorage.setItem('theme', 'dark');
+        document.documentElement.setAttribute('data-bs-theme', 'dark');
+    </script>
+    @endif
 </head>
 
 <body>

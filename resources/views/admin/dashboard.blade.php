@@ -1,5 +1,25 @@
 @extends('layouts.master')
 
+@push('styles')
+<style>
+    :root { --primary-500:#4f46e5; --secondary-500:#0ea5e9; --surface:#ffffff; --text-muted:#6b7280; --border:#e5e7eb; }
+    .page-heading h3{font-weight:700;letter-spacing:.2px}
+    .card{border-radius:16px;border:1px solid var(--border);box-shadow:0 10px 25px rgba(15,23,42,.04)}
+    .card-header{border-bottom:1px solid var(--border);font-weight:600;font-size:.9rem;padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between}
+    .card-body{padding:.95rem 1rem}
+    .table thead th{background:#f9fafb;border-bottom-color:var(--border);font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:#6b7280}
+    .table tbody td{vertical-align:middle;font-size:.84rem}
+    .table tbody tr:hover{background:#f3f4f6}
+    .badge{border-radius:999px}
+    .stat-label{font-size:.8rem;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.15rem}
+    .stat-value{font-size:1.55rem;font-weight:700;line-height:1.1}
+    .stats-icon{width:42px;height:42px;border-radius:14px;display:inline-flex;align-items:center;justify-content:center;background:#fff;border:1px solid rgba(148,163,184,.45)}
+    .stats-icon i{background:linear-gradient(135deg,var(--primary-500),var(--secondary-500));-webkit-background-clip:text;background-clip:text;color:transparent;font-size:1.3rem}
+    .chart-card .card-body{height:clamp(280px,34vh,480px)}
+    .chart-container{width:100%;height:100%;min-height:280px}
+</style>
+@endpush
+
 @section('title', 'Dashboard')
 
 @section('content')
@@ -76,10 +96,10 @@
             </div>
 
             <div class="col-12 col-lg-8">
-                <div class="card">
+                <div class="card chart-card">
                     <div class="card-header">Leads 7 Hari</div>
                     <div class="card-body">
-                        <div id="chart-leads" style="height:260px;"></div>
+                        <div id="chart-leads" class="chart-container"></div>
                     </div>
                 </div>
             </div>
@@ -125,7 +145,7 @@
     <script>
         (function(){
             var options = {
-                chart: { type: 'area', height: 260, toolbar: { show: false } },
+                chart: { type: 'area', height: '100%', parentHeightOffset: 0, toolbar: { show: false }, fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' },
                 dataLabels: { enabled: false },
                 stroke: { curve: 'smooth', width: 2 },
                 series: [{ name: 'Leads', data: @json($chartSeries) }],
