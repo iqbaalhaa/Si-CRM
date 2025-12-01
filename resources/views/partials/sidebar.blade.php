@@ -179,6 +179,29 @@
                 </li>
             @endrole
 
+            {{-- ///////////////////////////////////////////////////////////////////////////// --}}
+            {{-- campaign --}}
+            <li class="sidebar-title">Campaign</li>
+            <li class="sidebar-item {{ request()->is('Campaign Create*') ? 'active' : '' }}">
+                <a href="{{ url('/campaigns/create') }}" class="sidebar-link">
+                    <i class="bi bi-clipboard2-pulse-fill"></i>
+                    <span>Campaign Create</span>
+                </a>
+            </li>
+            <li class="sidebar-item {{ request()->is('Campaign Active*') ? 'active' : '' }}">
+                <a href="{{ url('/campaigns/active') }}" class="sidebar-link">
+                    <i class="bi bi-clipboard2-pulse-fill"></i>
+                    <span>Campaign Active</span>
+                </a>
+            </li>
+            <li class="sidebar-item {{ request()->is('History Campaign*') ? 'active' : '' }}">
+                <a href="{{ url('/campaigns/history') }}" class="sidebar-link">
+                    <i class="bi bi-clipboard2-pulse-fill"></i>
+                    <span>History Campaign</span>
+                </a>
+            </li>
+            {{-- ///////////////////////////////////////////////////////////////////////////// --}}
+
 
         </ul>
     </div>
