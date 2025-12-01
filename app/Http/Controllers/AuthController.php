@@ -129,7 +129,7 @@ class AuthController extends Controller
                 return route('dashboard.admin');
             }
             if ($user->hasRole('lead-operations')) {
-                return route('dashboard.lead-operations');
+                return route('dashboard.lead_operations');
             }
         }
 

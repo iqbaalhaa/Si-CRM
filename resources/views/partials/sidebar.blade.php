@@ -90,7 +90,7 @@
                 </li>
             @endrole
 
-            @hasanyrole('admin|marketing|cs')
+            @hasanyrole('admin|lead-operations')
                 {{-- Pipeline --}}
                 <li class="sidebar-item {{ request()->is('pipeline-stages*') ? 'active' : '' }}">
                     <a href="{{ route('pipeline-stages.index') }}" class="sidebar-link">
@@ -117,7 +117,7 @@
                 </li>
             @endrole
 
-            @hasanyrole('admin|marketing|cs')
+            @hasanyrole('admin|lead-operations')
                 {{-- CRM --}}
                 <li class="sidebar-title">CRM</li>
                 {{-- Assign To --}}
@@ -141,7 +141,7 @@
 
 
 
-            @hasanyrole('admin|marketing|cs')
+            @hasanyrole('admin|lead-operations')
                 {{-- Report --}}
                 <li class="sidebar-title">Report</li>
                 <li class="sidebar-item {{ request()->is('report-customers*') ? 'active' : '' }}">

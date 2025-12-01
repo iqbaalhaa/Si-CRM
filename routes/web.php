@@ -48,11 +48,8 @@ Route::middleware('auth')->group(function () {
             if ($user->hasRole('admin')) {
                 return redirect()->route('dashboard.admin');
             }
-            if ($user->hasRole('marketing')) {
-                return redirect()->route('dashboard.marketing');
-            }
-            if ($user->hasRole('cs')) {
-                return redirect()->route('dashboard.cs');
+            if ($user->hasRole('lead-operations')) {
+                return redirect()->route('dashboard.lead_operations');
             }
         }
 
@@ -68,13 +65,10 @@ Route::middleware('auth')->group(function () {
         return view('admin.dashboard');
     })->middleware('role:admin')->name('dashboard.admin');
 
-    Route::get('/dashboard/marketing', function () {
-        return view('marketing.dashboard');
-    })->middleware('role:marketing')->name('dashboard.marketing');
+    Route::get('/dashboard/lead-operations', function () {
+        return view('lead-operations.dashboard');
+    })->middleware('role:lead-operations')->name('dashboard.lead_operations');
 
-    Route::get('/dashboard/cs', function () {
-        return view('cs.dashboard');
-    })->middleware('role:cs')->name('dashboard.cs');
 
     // -------------------------
     // SUPER ADMIN: Perusahaan & Manage Admin Perusahaan

@@ -85,7 +85,7 @@ class User extends Authenticatable
         $map = [
             'superadmin'      => 'dashboard.superadmin',
             'admin'           => 'dashboard.admin',
-            'lead-operations' => 'dashboard.lead-operations',
+            'lead-operations' => 'dashboard.lead_operations',
         ];
 
         foreach ($map as $role => $route) {
