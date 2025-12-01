@@ -115,6 +115,12 @@
                         <span>Tim & Role</span>
                     </a>
                 </li>
+                <li class="sidebar-item {{ request()->is('contact') ? 'active' : '' }}">
+                    <a href="{{ route('contact.index') }}" class="sidebar-link">
+                        <i class="bi bi-database-fill"></i>
+                        <span>Contact</span>
+                    </a>
+                </li>
             @endrole
 
             @hasanyrole('admin|lead-operations')
