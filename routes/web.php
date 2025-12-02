@@ -5,6 +5,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerStageHistoryController;
 use App\Http\Controllers\PipelineStageController;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\CampaignController;
 use Illuminate\Support\Facades\Route;
 
 // =========================
@@ -280,6 +281,21 @@ Route::middleware('auth')->group(function () {
     Route::post('/assign-to/{customer}', [CustomerController::class, 'assignTo'])
         ->middleware('permission:update customers')
         ->name('assign.store');
+
+    // /////////////////////////////////////////////////////////////////////////////
+    // Campaign
+    Route::get('/campaigns/create', [CampaignController::class, 'create'])
+        ->name('campaign.create');
+    
+    Route::get('/campaigns/active', [CampaignController::class, 'active'])
+        ->name('campaign.active');
+    
+    Route::get('/campaigns/history', [CampaignController::class, 'history'])
+        ->name('campaign.history');
+        
+    Route::get('/campaigns/{id}', [CampaignController::class, 'show'])
+        ->name('campaign.show');
+    // /////////////////////////////////////////////////////////////////////////////
 
     // -------------------------
     // Notifications
