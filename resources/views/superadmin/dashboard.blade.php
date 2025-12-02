@@ -196,7 +196,7 @@
     }
 
     .table thead th {
-        background: #f9fafb;
+        background: transparent;
         border-bottom-color: var(--border);
         font-size: .78rem;
         text-transform: uppercase;
@@ -210,7 +210,7 @@
     }
 
     .table tbody tr:hover {
-        background: #f3f4f6;
+        background: rgba(148,163,184,.08);
     }
 
     .badge {

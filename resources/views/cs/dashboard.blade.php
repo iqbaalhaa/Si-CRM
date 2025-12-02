@@ -7,9 +7,9 @@
     .card{border-radius:16px;border:1px solid var(--border);box-shadow:0 10px 25px rgba(15,23,42,.04)}
     .card-header{border-bottom:1px solid var(--border);font-weight:600;font-size:.9rem;padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between}
     .card-body{padding:.95rem 1rem}
-    .table thead th{background:#f9fafb;border-bottom-color:var(--border);font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:#6b7280}
+    .table thead th{background:transparent;border-bottom-color:var(--border);font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:#6b7280}
     .table tbody td{vertical-align:middle;font-size:.84rem}
-    .table tbody tr:hover{background:#f3f4f6}
+    .table tbody tr:hover{background:rgba(148,163,184,.08)}
     .badge{border-radius:999px}
     .stat-label{font-size:.8rem;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.15rem}
     .stat-value{font-size:1.55rem;font-weight:700;line-height:1.1}

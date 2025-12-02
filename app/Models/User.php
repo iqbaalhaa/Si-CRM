@@ -77,7 +77,11 @@ class User extends Authenticatable
      */
     public function getCompanyIdAttribute(): ?int
     {
-        return $this->profile->company_id ?? null;
+        // Prioritaskan company_id dari profile jika ada, jika tidak fallback ke kolom users.company_id
+        if ($this->relationLoaded('profile') && $this->profile) {
+            return $this->profile->company_id ?? ($this->attributes['company_id'] ?? null);
+        }
+        return $this->attributes['company_id'] ?? null;
     }
 
     public function dashboardRoute()

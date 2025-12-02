@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             PipelineStageSeeder::class,
             CustomerSeeder::class,
             CustomerStageHistorySeeder::class,
+            ContactSeeder::class,
         ]);
     }
 }
