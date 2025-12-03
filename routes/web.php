@@ -13,12 +13,16 @@ use App\Http\Controllers\ProductController;
 // Guest only
 // =========================
 Route::middleware('guest')->group(function () {
-    Route::get('/', [AuthController::class, 'showLoginForm'])->name('login');
-    Route::post('/', [AuthController::class, 'login'])->name('login.post');
-
     Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
     Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 });
+
+// Login routes (accessible even if already authenticated)
+Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+
+// Redirect root to login explicitly
+Route::get('/', function () { return redirect()->route('login'); });
 
 // =========================
 // Auth only
@@ -160,13 +164,38 @@ Route::middleware('auth')->group(function () {
         Route::delete('/tim-dan-role/{user}', [\App\Http\Controllers\TeamRoleController::class, 'destroy'])
             ->name('teamrole.destroy');
 
-        // Contact
+        // Contact (legacy routes, akan diganti dengan RESTful di bawah)
         Route::get('/contact', [\App\Http\Controllers\ContactController::class, 'create'])
             ->name('contact.index');
 
         Route::post('/contact', [\App\Http\Controllers\ContactController::class, 'store'])
             ->name('contact.store');
     });
+
+    // Contacts (RESTful)
+    Route::get('/contacts', [\App\Http\Controllers\ContactController::class, 'index'])
+        ->name('contacts.index');
+    Route::get('/contacts/create', [\App\Http\Controllers\ContactController::class, 'create'])
+        ->name('contacts.create');
+    Route::post('/contacts', [\App\Http\Controllers\ContactController::class, 'store'])
+        ->name('contacts.store');
+    Route::get('/contacts/{contact}', [\App\Http\Controllers\ContactController::class, 'show'])
+        ->whereNumber('contact')
+        ->name('contacts.show');
+    Route::get('/contacts/{contact}/edit', [\App\Http\Controllers\ContactController::class, 'edit'])
+        ->whereNumber('contact')
+        ->name('contacts.edit');
+    Route::put('/contacts/{contact}', [\App\Http\Controllers\ContactController::class, 'update'])
+        ->whereNumber('contact')
+        ->name('contacts.update');
+    Route::delete('/contacts/{contact}', [\App\Http\Controllers\ContactController::class, 'destroy'])
+        ->whereNumber('contact')
+        ->name('contacts.destroy');
+    Route::get('contacts/advanced', [\App\Http\Controllers\ContactController::class, 'advancedIndex'])
+    ->name('contacts.advanced');
+    Route::get('contacts/export', [\App\Http\Controllers\ContactController::class, 'export'])
+    ->name('contacts.export');
+
 
     // -------------------------
     // Customers

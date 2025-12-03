@@ -102,9 +102,37 @@
             background-color: var(--bs-primary) !important;
             border-color: var(--bs-primary) !important;
         }
+
+        .card .table,
+        .table,
+        .table thead,
+        .table tbody,
+        .table th,
+        .table td { background-color: transparent !important; }
+        .card .table thead th { background-color: transparent !important; }
+        .table-hover tbody tr:hover { background-color: rgba(148,163,184,.08) !important; }
+        .input-group-text { display: inline-flex; align-items: center; }
+        .bi, .fa, .fa-solid, .fa-regular, .fa-brands { vertical-align: middle; line-height: 1; }
     </style>
 
     @stack('styles')
+    <style>
+        html[data-bs-theme="dark"] {
+            --bs-primary: #ff9c00;
+            --bs-secondary: #03a6e5;
+            --bs-body-font-family: 'Nunito Sans', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+            --surface: #0f172a;
+            --text-muted: #9ca3af;
+            --border: #334155;
+        }
+        html[data-bs-theme="dark"] .table thead th { color: #cbd5e1 !important; }
+        html[data-bs-theme="dark"] .table tbody td { color: #e5e7eb !important; }
+        html[data-bs-theme="dark"] .card { background-color: var(--surface) !important; }
+        html[data-bs-theme="dark"] .card-header { border-bottom-color: var(--border) !important; background-color: transparent !important; color: #e5e7eb !important; }
+        html[data-bs-theme="dark"] .table-hover tbody tr:hover { background-color: rgba(148,163,184,.15) !important; }
+        html[data-bs-theme="dark"] .dropdown-menu { background-color: var(--surface) !important; color: #e5e7eb !important; border-color: var(--border) !important; }
+        html[data-bs-theme="dark"] .badge-soft { background-color: #334155 !important; color: #e5e7eb !important; }
+    </style>
     @if(session('force_dark'))
     <script>
         localStorage.setItem('theme', 'dark');
@@ -143,6 +171,31 @@
     <script src="{{ asset('admindash/assets/extensions/perfect-scrollbar/perfect-scrollbar.min.js') }}"></script>
     <script src="{{ asset('admindash/assets/compiled/js/app.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Guard sidebar methods from null elements to prevent errors in compiled app.js
+        window.addEventListener('DOMContentLoaded', function() {
+            if (window.sidebar) {
+                // Override isElementInViewport to tolerate null
+                window.sidebar.isElementInViewport = function(el) {
+                    if (!el) return true;
+                    const rect = el.getBoundingClientRect();
+                    return (
+                        rect.top >= 0 &&
+                        rect.left >= 0 &&
+                        rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+                        rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+                    );
+                };
+                // Override forceElementVisibility to no-op on null
+                window.sidebar.forceElementVisibility = function(el) {
+                    if (!el) return;
+                    if (!this.isElementInViewport(el)) {
+                        el.scrollIntoView(false);
+                    }
+                };
+            }
+        });
+    </script>
 
     @if (session('success'))
         <script>
