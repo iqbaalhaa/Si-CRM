@@ -26,7 +26,7 @@
     <div class="page-content">
         <div class="row">
             {{-- LEFT: Fokus utama di contacts table --}}
-            <div class="col-lg-9">
+            <div class="col-lg-4">
                 {{-- Header card (ringkas) --}}
                 <div class="card mb-3">
                     <div class="card-body">
@@ -60,8 +60,97 @@
                         </div>
                     </div>
                 </div>
-
-                {{-- MAIN FOCUS: Toolbar + Contacts table --}}
+            </div>
+            <div class="col-lg-4">
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <h6 class="mb-1">Tim Campaign</h6>
+                                <p class="small text-muted mb-0">
+                                    Klik avatar untuk melihat detail peran & akses.
+                                </p>
+                            </div>
+                            <button class="btn btn-sm btn-outline-primary"
+                                    data-bs-toggle="modal" data-bs-target="#modal-invite-team">
+                                <i class="bi bi-person-plus me-1"></i>Invite
+                            </button>
+                        </div>
+            
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            {{-- Owner --}}
+                            <button type="button"
+                                    class="btn p-0 border-0 bg-transparent team-member-avatar"
+                                    data-bs-toggle="modal" data-bs-target="#modal-team-member"
+                                    data-name="Admin Depati"
+                                    data-role="Owner Campaign"
+                                    data-email="admin@depati.co.id"
+                                    data-notes="Mengatur strategi & keputusan utama campaign."
+                                    data-permissions="Full access, manage contact, manage team, export data">
+                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
+                                    style="width: 36px; height: 36px;">
+                                    AD
+                                </div>
+                            </button>
+            
+                            {{-- Marketing --}}
+                            <button type="button"
+                                    class="btn p-0 border-0 bg-transparent team-member-avatar"
+                                    data-bs-toggle="modal" data-bs-target="#modal-team-member"
+                                    data-name="Tim Marketing"
+                                    data-role="Marketing"
+                                    data-email="marketing@depati.co.id"
+                                    data-notes="Fokus di follow up awal, blast campaign, dan nurture lead."
+                                    data-permissions="Edit contact, ubah stage, tambah contact ke campaign">
+                                <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center"
+                                    style="width: 36px; height: 36px;">
+                                    MK
+                                </div>
+                            </button>
+            
+                            {{-- CS --}}
+                            <button type="button"
+                                    class="btn p-0 border-0 bg-transparent team-member-avatar"
+                                    data-bs-toggle="modal" data-bs-target="#modal-team-member"
+                                    data-name="Tim CS"
+                                    data-role="Customer Service"
+                                    data-email="cs@depati.co.id"
+                                    data-notes="Handle closing, onboarding, dan after sales."
+                                    data-permissions="Edit contact, ubah stage, lihat riwayat campaign">
+                                <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center"
+                                    style="width: 36px; height: 36px;">
+                                    CS
+                                </div>
+                            </button>
+            
+                            {{-- Kalau mau indikator tambahan member lain --}}
+                            <span class="badge bg-light text-muted small">
+                                + 2 anggota lain
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h6 class="mb-2">Catatan Campaign</h6>
+                        <textarea class="form-control form-control-sm mb-2" rows="3"
+                            placeholder="Catatan singkat untuk tim, misalnya skrip WA, keberatan umum, dll."></textarea>
+                        <button class="btn btn-sm btn-outline-secondary w-100 mb-2">
+                            <i class="bi bi-save me-1"></i>Simpan Catatan (UI Only)
+                        </button>
+                        <div class="small text-muted mb-1">Aktivitas Terakhir (mockup):</div>
+                        <ul class="small mb-0 ps-3">
+                            <li>Admin Depati mengubah stage 20 kontak menjadi <strong>Follow Up</strong>.</li>
+                            <li>Tim CS menandai 5 kontak sebagai <strong>Deal</strong>.</li>
+                            <li>Tim Marketing menambahkan 50 kontak dari <strong>Facebook Ads</strong>.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {{-- add space in between the cards --}}
+            <div class="col-lg-12 mb-3">
                 <div class="card">
                     <div class="card-body">
                         {{-- Toolbar atas --}}
@@ -120,14 +209,41 @@
                                         Product Campaign
                                         <small class="text-muted">(opsional)</small>
                                     </div>
-                                    <div class="d-flex flex-wrap gap-2">
-                                        <select id="bulk-product-select" class="form-select form-select-sm" multiple
-                                            style="min-width: 220px;">
-                                            <option value="Paket Winter Class">Paket Winter Class</option>
-                                            <option value="Add-on Support 3 Bulan">Add-on Support 3 Bulan</option>
-                                            <option value="Paket Premium">Paket Premium</option>
-                                            <option value="Kelas Online Mandiri">Kelas Online Mandiri</option>
-                                        </select>
+                                
+                                    <div class="small text-muted mb-2">
+                                        Pilih product yang akan ditempel ke banyak contact sekaligus.
+                                    </div>
+                                
+                                    {{-- Chip product campaign --}}
+                                    <div id="bulk-product-chip-container" class="d-flex flex-wrap gap-2 mb-2">
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-primary bulk-product-chip"
+                                                data-product="Paket Winter Class">
+                                            Paket Winter Class
+                                        </button>
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-primary bulk-product-chip"
+                                                data-product="Add-on Support 3 Bulan">
+                                            Add-on Support 3 Bulan
+                                        </button>
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-primary bulk-product-chip"
+                                                data-product="Paket Premium">
+                                            Paket Premium
+                                        </button>
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-primary bulk-product-chip"
+                                                data-product="Kelas Online Mandiri">
+                                            Kelas Online Mandiri
+                                        </button>
+                                    </div>
+                                
+                                    <div class="d-flex flex-wrap gap-2 mb-2">
+                                        <input type="text"
+                                               class="form-control form-control-sm"
+                                               id="bulk-product-new-input"
+                                               placeholder="Tambah product baru lalu Enter"
+                                               style="max-width: 260px;">
                                         <button id="btn-product-all" class="btn btn-sm btn-outline-secondary">
                                             Terapkan ke semua
                                         </button>
@@ -135,6 +251,10 @@
                                             Clear semua
                                         </button>
                                     </div>
+                                
+                                    <small class="text-muted">
+                                        Biru = product terpilih. Tombol <strong>Terapkan ke semua</strong> akan mengganti product di semua contact.
+                                    </small>
                                 </div>
                             </div>
                         </div>
@@ -170,11 +290,14 @@
                                         <td>0812-3456-7890</td>
                                         <td>
                                             <div class="d-flex flex-wrap gap-1 align-items-center">
-                                                <span class="badge bg-primary-subtle text-primary small">Paket Winter
-                                                    Class</span>
-                                                <button class="btn btn-xs btn-outline-secondary btn-sm btn-manage-product"
-                                                    data-contact="Ahmad Fauzi">
-                                                    <i class="bi bi-three-dots"></i>
+                                                <span class="badge bg-primary-subtle text-primary small product-badge"
+                                                      data-product="Paket Winter Class">
+                                                    Paket Winter Class
+                                                </span>
+                                                <button type="button"
+                                                        class="btn btn-xs btn-outline-secondary btn-sm btn-manage-product"
+                                                        data-contact="Ahmad Fauzi">
+                                                    <i class="bi bi-sliders"></i>
                                                 </button>
                                             </div>
                                         </td>
@@ -209,13 +332,18 @@
                                         <td>0821-2345-6789</td>
                                         <td>
                                             <div class="d-flex flex-wrap gap-1 align-items-center">
-                                                <span class="badge bg-primary-subtle text-primary small">Paket Winter
-                                                    Class</span>
-                                            <span class="badge bg-primary-subtle text-primary small">Add-on Support 3
-                                                    Bulan</span>
-                                                <button class="btn btn-xs btn-outline-secondary btn-sm btn-manage-product"
-                                                    data-contact="Siti Rahma">
-                                                    <i class="bi bi-three-dots"></i>
+                                                <span class="badge bg-primary-subtle text-primary small product-badge"
+                                                      data-product="Paket Winter Class">
+                                                    Paket Winter Class
+                                                </span>
+                                                <span class="badge bg-primary-subtle text-primary small product-badge"
+                                                      data-product="Add-on Support 3 Bulan">
+                                                    Add-on Support 3 Bulan
+                                                </span>
+                                                <button type="button"
+                                                        class="btn btn-xs btn-outline-secondary btn-sm btn-manage-product"
+                                                        data-contact="Siti Rahma">
+                                                    <i class="bi bi-sliders"></i>
                                                 </button>
                                             </div>
                                         </td>
@@ -254,9 +382,10 @@
                                                     class="badge bg-secondary-subtle text-secondary small placeholder-product">
                                                     Belum ada product
                                                 </span>
-                                                <button class="btn btn-xs btn-outline-secondary btn-sm btn-manage-product"
-                                                    data-contact="Budi Santoso">
-                                                    <i class="bi bi-three-dots"></i>
+                                                <button type="button"
+                                                        class="btn btn-xs btn-outline-secondary btn-sm btn-manage-product"
+                                                        data-contact="Budi Santoso">
+                                                    <i class="bi bi-sliders"></i>
                                                 </button>
                                             </div>
                                         </td>
@@ -286,86 +415,6 @@
                     </div>
                 </div>
             </div>
-
-            {{-- RIGHT: lebih simple, tidak terlalu ramai --}}
-            <div class="col-lg-3">
-                {{-- Team --}}
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <h6 class="mb-2 d-flex justify-content-between align-items-center">
-                            <span>Tim Campaign</span>
-                            <button class="btn btn-sm btn-outline-primary"
-                                data-bs-toggle="modal" data-bs-target="#modal-invite-team">
-                                <i class="bi bi-person-plus me-1"></i>Invite
-                            </button>
-                        </h6>
-                        <p class="small text-muted mb-2">
-                            Siapa saja yang terlibat di campaign ini.
-                        </p>
-
-                        <ul class="list-group list-group-flush small">
-                            <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
-                                        style="width: 28px; height: 28px;">
-                                        AD
-                                    </div>
-                                    <div>
-                                        <div class="fw-semibold">Admin Depati</div>
-                                        <div class="text-muted">Owner</div>
-                                    </div>
-                                </div>
-                                <span class="badge bg-primary-subtle text-primary small">Owner</span>
-                            </li>
-                            <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center"
-                                        style="width: 28px; height: 28px;">
-                                        MK
-                                    </div>
-                                    <div>
-                                        <div class="fw-semibold">Tim Marketing</div>
-                                        <div class="text-muted">Follow up awal</div>
-                                    </div>
-                                </div>
-                                <span class="badge bg-secondary-subtle text-secondary small">Marketing</span>
-                            </li>
-                            <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center"
-                                        style="width: 28px; height: 28px;">
-                                        CS
-                                    </div>
-                                    <div>
-                                        <div class="fw-semibold">Tim CS</div>
-                                        <div class="text-muted">Closing & onboarding</div>
-                                    </div>
-                                </div>
-                                <span class="badge bg-success-subtle text-success small">CS</span>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-
-                {{-- Notes --}}
-                <div class="card mb-0">
-                    <div class="card-body">
-                        <h6 class="mb-2">Catatan Campaign</h6>
-                        <textarea class="form-control form-control-sm mb-2" rows="3"
-                            placeholder="Catatan singkat untuk tim, misalnya skrip WA, keberatan umum, dll."></textarea>
-                        <button class="btn btn-sm btn-outline-secondary w-100 mb-2">
-                            <i class="bi bi-save me-1"></i>Simpan Catatan (UI Only)
-                        </button>
-                        <div class="small text-muted mb-1">Aktivitas Terakhir (mockup):</div>
-                        <ul class="small mb-0 ps-3">
-                            <li>Admin Depati mengubah stage 20 kontak menjadi <strong>Follow Up</strong>.</li>
-                            <li>Tim CS menandai 5 kontak sebagai <strong>Deal</strong>.</li>
-                            <li>Tim Marketing menambahkan 50 kontak dari <strong>Facebook Ads</strong>.</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
         </div>
     </div>
 
@@ -647,16 +696,22 @@
                         <p class="small mb-2">
                             Contact: <strong id="product-contact-name">-</strong>
                         </p>
+                    
                         <div class="mb-3">
-                            <label class="form-label">Pilih Product</label>
-                            <select class="form-select" multiple id="product-multi-select">
-                                <option value="Paket Winter Class">Paket Winter Class</option>
-                                <option value="Add-on Support 3 Bulan">Add-on Support 3 Bulan</option>
-                                <option value="Paket Premium">Paket Premium</option>
-                                <option value="Kelas Online Mandiri">Kelas Online Mandiri</option>
-                            </select>
+                            <label class="form-label small">Pilih Product</label>
+                            {{-- Chip container --}}
+                            <div id="product-chip-container" class="d-flex flex-wrap gap-2 mb-2">
+                                {{-- Chip product akan di-render via JS --}}
+                            </div>
+                            <small class="text-muted d-block mb-2">
+                                Klik chip untuk aktif/nonaktif. Biru = terpilih, outline = tidak terpilih.
+                            </small>
+                    
+                            <label class="form-label small">Tambah Product Baru</label>
+                            <input type="text" class="form-control form-control-sm" id="product-new-input"
+                                   placeholder="Ketik nama product lalu Enter">
                             <small class="text-muted">
-                                Product bisa lebih dari satu untuk tiap contact (relasi many-to-many).
+                                Product baru akan muncul sebagai pilihan dan langsung terpilih.
                             </small>
                         </div>
                     </div>
@@ -671,71 +726,201 @@
         </div>
     </div>
 
-    {{-- MODAL: Invite Team --}}
+    {{-- MODAL: Invite Team (pilih dari data yang ada) --}}
     <div class="modal fade" id="modal-invite-team" tabindex="-1" aria-labelledby="modal-invite-team-label"
         aria-hidden="true">
-        <div class="modal-dialog modal-md modal-dialog-scrollable">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
                 <form action="javascript:void(0)" id="form-invite-team">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="modal-invite-team-label">Invite Tim ke Campaign</h5>
+                        <h5 class="modal-title" id="modal-invite-team-label">Pilih Tim untuk Campaign Ini</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"
-                            aria-label="Close"></button>
+                                aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label">Nama</label>
-                            <input type="text" class="form-control" placeholder="Nama anggota tim">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Email</label>
-                            <input type="email" class="form-control" placeholder="email@perusahaan.com">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Role di Campaign</label>
-                            <select class="form-select">
-                                <option value="marketing">Marketing</option>
-                                <option value="cs">CS</option>
-                                <option value="fo">Front Office</option>
-                                <option value="owner">Owner / Decision Maker</option>
-                                <option value="viewer">Viewer Only</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Hak Akses</label>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="invite-can-edit-contact" checked>
-                                <label class="form-check-label" for="invite-can-edit-contact">
-                                    Boleh edit stage & product contact
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="invite-can-export">
-                                <label class="form-check-label" for="invite-can-export">
-                                    Boleh download / export data campaign
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="invite-can-manage-team">
-                                <label class="form-check-label" for="invite-can-manage-team">
-                                    Boleh mengelola tim campaign
-                                </label>
+                        {{-- Filter sederhana --}}
+                        <div class="card mb-3">
+                            <div class="card-body py-2">
+                                <div class="row g-2 align-items-center">
+                                    <div class="col-md-5">
+                                        <label class="form-label mb-1 small">Cari Nama / Email</label>
+                                        <input type="text" class="form-control form-control-sm"
+                                            placeholder="Ketik nama atau email"
+                                            id="invite-team-search-helper">
+                                        <small class="text-muted small">
+                                            Atau gunakan search bawaan tabel di kanan atas.
+                                        </small>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label mb-1 small">Filter Role</label>
+                                        <select class="form-select form-select-sm" id="invite-team-role-filter">
+                                            <option value="">Semua Role</option>
+                                            <option value="Owner">Owner</option>
+                                            <option value="Marketing">Marketing</option>
+                                            <option value="CS">CS</option>
+                                            <option value="FO">Front Office</option>
+                                            <option value="Viewer">Viewer Only</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
                         </div>
+
+                        {{-- Tabel daftar user internal (dummy) --}}
+                        <div class="table-responsive">
+                            <table class="table table-striped align-middle" id="table-invite-team">
+                                <thead>
+                                    <tr class="text-center">
+                                        <th style="width: 40px;">
+                                            <input type="checkbox" id="invite-select-all">
+                                        </th>
+                                        <th>Nama</th>
+                                        <th>Email</th>
+                                        <th style="width: 120px;">Role Sistem</th>
+                                        <th style="width: 140px;">Role di Campaign</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr data-role-campaign="Owner">
+                                        <td class="text-center">
+                                            <input type="checkbox" class="invite-member-check">
+                                        </td>
+                                        <td>
+                                            <strong>Admin Depati</strong>
+                                        </td>
+                                        <td>admin@depati.co.id</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-primary-subtle text-primary">Super Admin</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-primary-subtle text-primary small">Owner</span>
+                                        </td>
+                                    </tr>
+                                    <tr data-role-campaign="Marketing">
+                                        <td class="text-center">
+                                            <input type="checkbox" class="invite-member-check">
+                                        </td>
+                                        <td>
+                                            <strong>Tim Marketing</strong>
+                                        </td>
+                                        <td>marketing@depati.co.id</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-secondary-subtle text-secondary">Marketing</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-secondary-subtle text-secondary small">Marketing</span>
+                                        </td>
+                                    </tr>
+                                    <tr data-role-campaign="CS">
+                                        <td class="text-center">
+                                            <input type="checkbox" class="invite-member-check">
+                                        </td>
+                                        <td>
+                                            <strong>Tim CS</strong>
+                                        </td>
+                                        <td>cs@depati.co.id</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-success-subtle text-success">CS</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-success-subtle text-success small">CS</span>
+                                        </td>
+                                    </tr>
+                                    <tr data-role-campaign="FO">
+                                        <td class="text-center">
+                                            <input type="checkbox" class="invite-member-check">
+                                        </td>
+                                        <td>
+                                            <strong>Front Office</strong>
+                                        </td>
+                                        <td>fo@depati.co.id</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-info-subtle text-info">FO</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-info-subtle text-info small">FO</span>
+                                        </td>
+                                    </tr>
+                                    <tr data-role-campaign="Viewer">
+                                        <td class="text-center">
+                                            <input type="checkbox" class="invite-member-check">
+                                        </td>
+                                        <td>
+                                            <strong>Owner Bisnis</strong>
+                                        </td>
+                                        <td>owner@client.co.id</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-light text-muted">Client</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-light text-muted small">Viewer</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <hr>
                         <p class="small text-muted mb-0">
-                            Prototype: di versi production, ini bisa kirim email undangan atau assign user yang sudah ada.
+                            Prototype: di versi production, data ini diambil dari tabel <strong>users</strong>,
+                            dan yang terpilih akan di-assign sebagai member campaign.
                         </p>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
                         <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-send me-1"></i>Kirim Invite (UI Only)
+                            <i class="bi bi-send me-1"></i>Tambahkan ke Campaign (UI Only)
                         </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+
+
+    {{-- MODAL: Detail Member Tim --}}
+    <div class="modal fade" id="modal-team-member" tabindex="-1" aria-labelledby="modal-team-member-label" aria-hidden="true">
+        <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal-team-member-label">Detail Member Tim</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div id="team-member-avatar-preview"
+                            class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
+                            style="width: 40px; height: 40px;">
+                        AD
+                    </div>
+                    <div>
+                        <div class="fw-semibold" id="team-member-name">Nama Member</div>
+                        <div class="small text-muted" id="team-member-role">Role di Campaign</div>
+                        <div class="small text-muted" id="team-member-email">email@example.com</div>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <div class="small fw-semibold mb-1">Catatan Peran</div>
+                    <p class="small mb-0" id="team-member-notes">
+                        Deskripsi singkat tentang tugas member ini di campaign.
+                    </p>
+                </div>
+                <hr>
+                <div>
+                    <div class="small fw-semibold mb-1">Hak Akses</div>
+                    <p class="small mb-0" id="team-member-permissions">
+                        Bisa edit stage contact, mengelola tim, dan export data.
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+        </div>
+    </div>
+
 @endsection
 
 @push('styles')
@@ -749,43 +934,72 @@
     <script src="{{ asset('admindash/assets/extensions/datatables.net-bs5/js/dataTables.bootstrap5.min.js') }}"></script>
     <script>
         $(function() {
-            // Datatable contacts di campaign
+            // ==========================
+            //  Datatables
+            // ==========================
             $('#table-campaign-contacts').DataTable({
                 pageLength: 10,
                 lengthMenu: [10, 25, 50, 100],
-                order: [
-                    [1, 'asc']
-                ],
-                columnDefs: [{
-                    targets: [0, 5, 7],
-                    className: 'text-center'
-                }]
+                order: [[1, 'asc']],
+                columnDefs: [
+                    { targets: [0, 5, 7], className: 'text-center' }
+                ]
             });
 
-            // Datatable untuk select contacts
             $('#table-select-contacts').DataTable({
                 pageLength: 5,
                 lengthMenu: [5, 10, 25],
-                order: [
-                    [1, 'asc']
-                ],
-                columnDefs: [{
-                    targets: [0, 4],
-                    className: 'text-center'
-                }]
+                order: [[1, 'asc']],
+                columnDefs: [
+                    { targets: [0, 4], className: 'text-center' }
+                ]
             });
 
-            // Check all campaign contacts
+            const inviteTable = $('#table-invite-team').length
+                ? $('#table-invite-team').DataTable({
+                    pageLength: 5,
+                    lengthMenu: [5, 10, 25],
+                    order: [[1, 'asc']],
+                    columnDefs: [
+                        { targets: [0, 3, 4], className: 'text-center' }
+                    ]
+                })
+                : null;
+
+            // Helper filter (kalau tabel invite ada)
+            if (inviteTable) {
+                $('#invite-team-search-helper').on('keyup', function() {
+                    inviteTable.search(this.value).draw();
+                });
+
+                $('#invite-team-role-filter').on('change', function() {
+                    const val = $(this).val();
+                    if (!val) {
+                        inviteTable.column(4).search('').draw();
+                    } else {
+                        inviteTable.column(4).search(val, true, false).draw();
+                    }
+                });
+            }
+
+            // ==========================
+            //  Checkbox helpers
+            // ==========================
             $('#check-all').on('change', function() {
                 $('.row-check').prop('checked', $(this).is(':checked'));
             });
 
-            // Check all in select-contact modal
             $('#select-all-contacts').on('change', function() {
                 $('.select-contact-check').prop('checked', $(this).is(':checked'));
             });
 
-            // Bulk stage
+            $('#invite-select-all').on('change', function() {
+                $('.invite-member-check').prop('checked', $(this).is(':checked'));
+            });
+
+            // ==========================
+            //  Bulk Stage
+            // ==========================
             function setStageFor(selector) {
                 const selectedStage = $('#bulk-stage-select').val();
                 if (!selectedStage) {
@@ -816,12 +1030,50 @@
                 setStageFor('tbody tr .stage-select');
             });
 
-            // Bulk product helper
+            // ==========================
+            //  Bulk Product (campaign level)
+            // ==========================
             function getBulkProducts() {
-                return $('#bulk-product-select').val() || [];
+                const products = [];
+                $('#bulk-product-chip-container .bulk-product-chip.btn-primary').each(function() {
+                    products.push($(this).data('product'));
+                });
+                return products;
             }
 
-            // Terapkan product ke semua contact
+            $(document).on('click', '.bulk-product-chip', function() {
+                const $chip = $(this);
+                if ($chip.hasClass('btn-outline-primary')) {
+                    $chip.removeClass('btn-outline-primary')
+                        .addClass('btn-primary text-white');
+                } else {
+                    $chip.removeClass('btn-primary text-white')
+                        .addClass('btn-outline-primary');
+                }
+            });
+
+            // Tambah product baru di bulk bar
+            $('#bulk-product-new-input').on('keypress', function(e) {
+                if (e.which === 13) { // Enter
+                    e.preventDefault();
+                    const val = $(this).val().trim();
+                    if (!val) return;
+
+                    // Masukkan ke master list kalau belum ada
+                    if (MASTER_PRODUCTS.indexOf(val) === -1) {
+                        MASTER_PRODUCTS.push(val);
+                    }
+
+                    // Tambah chip baru (langsung terpilih = biru)
+                    const $chip = $('<button type="button" class="btn btn-sm bulk-product-chip me-1 mb-1 btn-primary text-white"></button>')
+                        .text(val)
+                        .attr('data-product', val);
+
+                    $('#bulk-product-chip-container').append($chip);
+                    $(this).val('');
+                }
+            });
+
             $('#btn-product-all').on('click', function() {
                 const products = getBulkProducts();
                 if (products.length === 0) {
@@ -834,13 +1086,15 @@
                 }
 
                 $('#table-campaign-contacts tbody tr').each(function() {
-                    const container = $(this).find('td:nth-child(5) > .d-flex'); // kolom Product
-                    container.find('span.badge').remove(); // clear badge lama
+                    const container = $(this).find('td:nth-child(5) > .d-flex');
+                    container.find('.product-badge, .placeholder-product').remove();
+
                     products.forEach(function(p) {
-                        $('<span class="badge bg-primary-subtle text-primary small me-1"></span>').text(p)
+                        $('<span class="badge bg-primary-subtle text-primary small product-badge me-1"></span>')
+                            .text(p)
+                            .attr('data-product', p)
                             .insertBefore(container.find('button.btn-manage-product'));
                     });
-                    container.find('.placeholder-product').remove();
                 });
 
                 Swal.fire({
@@ -850,11 +1104,10 @@
                 });
             });
 
-            // Clear product semua contact
             $('#btn-product-clear-all').on('click', function() {
                 $('#table-campaign-contacts tbody tr').each(function() {
                     const container = $(this).find('td:nth-child(5) > .d-flex');
-                    container.find('span.badge').remove();
+                    container.find('.product-badge').remove();
                     if (container.find('.placeholder-product').length === 0) {
                         $('<span class="badge bg-secondary-subtle text-secondary small placeholder-product"></span>')
                             .text('Belum ada product')
@@ -869,7 +1122,9 @@
                 });
             });
 
-            // Add contact modal submit
+            // ==========================
+            //  Modal Add / Import / Select Contacts
+            // ==========================
             $('#form-add-contact').on('submit', function() {
                 Swal.fire({
                     icon: 'success',
@@ -879,7 +1134,6 @@
                 $('#modal-add-contact').modal('hide');
             });
 
-            // Import CSV submit
             $('#form-import-csv').on('submit', function() {
                 Swal.fire({
                     icon: 'success',
@@ -889,7 +1143,6 @@
                 $('#modal-import-csv').modal('hide');
             });
 
-            // Select contacts submit
             $('#form-select-contact').on('submit', function() {
                 const selectedCount = $('.select-contact-check:checked').length;
                 Swal.fire({
@@ -909,15 +1162,140 @@
                 });
             });
 
-            // Manage product per contact (open modal)
-            $('.btn-manage-product').on('click', function() {
-                const contactName = $(this).data('contact') || '-';
-                $('#product-contact-name').text(contactName);
-                // Prototype only, tidak load value existing
+            // ==========================
+            //  PRODUCT PER CONTACT – CHIP UI
+            // ==========================
+            let currentProductRow = null;
+
+            // Master list product (bisa diperluas dari data row)
+            let MASTER_PRODUCTS = [
+                'Paket Winter Class',
+                'Add-on Support 3 Bulan',
+                'Paket Premium',
+                'Kelas Online Mandiri'
+            ];
+
+            function openProductModalForRow(row, contactName) {
+                currentProductRow = row;
+                $('#product-contact-name').text(contactName || '-');
+
+                // Ambil product yang sudah terpasang di row
+                const existingProducts = [];
+                row.find('.product-badge').each(function() {
+                    const p = $(this).data('product');
+                    if (p) existingProducts.push(p);
+                });
+
+                // Masukkan ke master list kalau belum ada
+                existingProducts.forEach(function(p) {
+                    if (MASTER_PRODUCTS.indexOf(p) === -1) {
+                        MASTER_PRODUCTS.push(p);
+                    }
+                });
+
+                // Render chip
+                const $container = $('#product-chip-container');
+                $container.empty();
+
+                MASTER_PRODUCTS.forEach(function(p) {
+                    const isActive = existingProducts.indexOf(p) !== -1;
+                    const $chip = $('<button type="button" class="btn btn-sm product-chip me-1 mb-1"></button>')
+                        .text(p)
+                        .attr('data-product', p);
+
+                    if (isActive) {
+                        $chip.addClass('btn-primary text-white');
+                    } else {
+                        $chip.addClass('btn-outline-primary');
+                    }
+
+                    $container.append($chip);
+                });
+
+                $('#product-new-input').val('');
                 $('#modal-manage-product').modal('show');
+            }
+
+            // Klik tombol kelola product di tabel
+            $(document).on('click', '.btn-manage-product', function() {
+                const row = $(this).closest('tr');
+                const contactName = $(this).data('contact') ||
+                    row.find('td:nth-child(2) strong').text() || '-';
+
+                openProductModalForRow(row, contactName);
             });
 
+            // Klik chip product → toggle aktif / nonaktif
+            $(document).on('click', '.product-chip', function() {
+                const $chip = $(this);
+                if ($chip.hasClass('btn-outline-primary')) {
+                    $chip.removeClass('btn-outline-primary').addClass('btn-primary text-white');
+                } else {
+                    $chip.removeClass('btn-primary text-white').addClass('btn-outline-primary');
+                }
+            });
+
+            // Tambah product baru via input
+            $('#product-new-input').on('keypress', function(e) {
+                if (e.which === 13) {
+                    e.preventDefault();
+                    const val = $(this).val().trim();
+                    if (!val) return;
+
+                    if (MASTER_PRODUCTS.indexOf(val) === -1) {
+                        MASTER_PRODUCTS.push(val);
+                    }
+
+                    // Tambah chip di modal contact
+                    const $container = $('#product-chip-container');
+                    const $chip = $('<button type="button" class="btn btn-sm product-chip me-1 mb-1 btn-primary text-white"></button>')
+                        .text(val)
+                        .attr('data-product', val);
+                    $container.append($chip);
+                    $(this).val('');
+
+                    // OPTIONAL: juga tambahkan ke chip bulk kalau belum ada
+                    if ($('#bulk-product-chip-container').length) {
+                        const existsBulk = $('#bulk-product-chip-container .bulk-product-chip').filter(function() {
+                            return $(this).data('product') === val;
+                        }).length;
+
+                        if (!existsBulk) {
+                            const $bulkChip = $('<button type="button" class="btn btn-sm bulk-product-chip me-1 mb-1 btn-outline-primary"></button>')
+                                .text(val)
+                                .attr('data-product', val);
+                            $('#bulk-product-chip-container').append($bulkChip);
+                        }
+                    }
+                }
+            });
+
+
+            // Submit modal product → update badge di row
             $('#form-manage-product').on('submit', function() {
+                if (!currentProductRow) return;
+
+                const selectedProducts = [];
+                $('#product-chip-container .product-chip.btn-primary').each(function() {
+                    selectedProducts.push($(this).data('product'));
+                });
+
+                const container = currentProductRow.find('td:nth-child(5) > .d-flex');
+                container.find('.product-badge, .placeholder-product').remove();
+
+                if (selectedProducts.length === 0) {
+                    $('<span class="badge bg-secondary-subtle text-secondary small placeholder-product"></span>')
+                        .text('Belum ada product')
+                        .insertBefore(container.find('button.btn-manage-product'));
+                } else {
+                    selectedProducts.forEach(function(p) {
+                        $('<span class="badge bg-primary-subtle text-primary small product-badge me-1"></span>')
+                            .text(p)
+                            .attr('data-product', p)
+                            .insertBefore(container.find('button.btn-manage-product'));
+                    });
+                }
+
                 Swal.fire({
                     icon: 'success',
                     title: 'Product contact diperbarui (Prototype)',
@@ -926,15 +1304,48 @@
                 $('#modal-manage-product').modal('hide');
             });
 
-            // Invite team submit
+            // ==========================
+            //  Invite Team
+            // ==========================
             $('#form-invite-team').on('submit', function() {
+                const selectedCount = $('.invite-member-check:checked').length;
                 Swal.fire({
                     icon: 'success',
-                    title: 'Invite dikirim (Prototype)',
-                    text: 'Di versi production, sistem bisa kirim email atau assign user ke campaign.'
+                    title: selectedCount + ' member ditambahkan (Prototype)',
+                    text: 'Di versi production, user terpilih akan di-assign ke campaign ini.'
                 });
                 $('#modal-invite-team').modal('hide');
+            });
+
+            // ==========================
+            //  Detail Member Tim (avatar)
+            // ==========================
+            $('.team-member-avatar').on('click', function() {
+                const $btn = $(this);
+                const name = $btn.data('name') || '-';
+                const role = $btn.data('role') || '-';
+                const email = $btn.data('email') || '-';
+                const notes = $btn.data('notes') || '';
+                const perms = $btn.data('permissions') || '';
+
+                $('#team-member-name').text(name);
+                $('#team-member-role').text(role);
+                $('#team-member-email').text(email);
+                $('#team-member-notes').text(notes);
+                $('#team-member-permissions').text(perms);
+
+                const initials = name
+                    .split(' ')
+                    .filter(Boolean)
+                    .map(function(w) { return w[0]; })
+                    .join('')
+                    .substring(0, 2)
+                    .toUpperCase();
+
+                $('#team-member-avatar-preview').text(initials);
             });
         });
     </script>
 @endpush
+
+
