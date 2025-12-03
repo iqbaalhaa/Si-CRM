@@ -15,10 +15,10 @@ class ProductSeeder extends Seeder
 
         $user    = User::first();
 
-        if (!$company || !$user) {
-            $this->command->warn('Perusahaan atau User belum ada. ProductSeeder dilewati.');
-            return;
-        }
+        // if (!$company || !$user) {
+        //     $this->command->warn('Perusahaan atau User belum ada. ProductSeeder dilewati.');
+        //     return;
+        // }
 
         // === PRODUCT 1 ===
         $crmBasic = Product::create([
