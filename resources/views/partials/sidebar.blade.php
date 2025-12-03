@@ -104,6 +104,14 @@
                         <span>Customers</span>
                     </a>
                 </li>
+
+                {{-- Customers (LIST) --}}
+                <li class="sidebar-item {{ request()->is('products*') ? 'active' : '' }}">
+                    <a href="{{ route('products.index') }}" class="sidebar-link">
+                        <i class="bi bi-people-fill"></i>
+                        <span>Products</span>
+                    </a>
+                </li>
             @endhasanyrole
             {{-- Tim & Role (tetap khusus admin perusahaan) --}}
             @role('admin')

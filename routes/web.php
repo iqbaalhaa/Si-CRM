@@ -7,6 +7,7 @@ use App\Http\Controllers\PipelineStageController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\CampaignController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ProductController;
 
 // =========================
 // Guest only
@@ -257,13 +258,13 @@ Route::middleware('auth')->group(function () {
     // Campaign
     Route::get('/campaigns/create', [CampaignController::class, 'create'])
         ->name('campaign.create');
-    
+
     Route::get('/campaigns/active', [CampaignController::class, 'active'])
         ->name('campaign.active');
-    
+
     Route::get('/campaigns/history', [CampaignController::class, 'history'])
         ->name('campaign.history');
-        
+
     Route::get('/campaigns/{id}', [CampaignController::class, 'show'])
         ->name('campaign.show');
     // /////////////////////////////////////////////////////////////////////////////
@@ -286,4 +287,27 @@ Route::middleware('auth')->group(function () {
 
         return redirect($notif->data['url'] ?? '/');
     })->name('notifications.read');
+
+
+
+    // Resource
+    Route::resource('products', ProductController::class);
+
+    // Mass update
+    Route::post('/products/mass-update', [ProductController::class, 'massUpdate'])
+        ->name('products.mass-update');
+
+    // Export / import CSV
+    Route::get('/products-export-csv', [ProductController::class, 'exportCsv'])
+        ->name('products.export.csv');
+
+    Route::post('/products-import-csv', [ProductController::class, 'importCsv'])
+        ->name('products.import.csv');
+
+    // Export / import XLSX
+    Route::get('/products-export-xlsx', [ProductController::class, 'exportXlsx'])
+        ->name('products.export.xlsx');
+
+    Route::post('/products-import-xlsx', [ProductController::class, 'importXlsx'])
+        ->name('products.import.xlsx');
 });
