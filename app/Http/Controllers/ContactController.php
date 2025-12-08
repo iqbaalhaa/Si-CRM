@@ -608,44 +608,6 @@ class ContactController extends Controller
         return response()->stream($callback, 200, $headers);
     }
 
-    protected function streamXlsx(array $rows, string $filename)
-    {
-        $zip = new \ZipArchive();
-        $tmp = tempnam(sys_get_temp_dir(), 'xlsx');
-        $zip->open($tmp, \ZipArchive::OVERWRITE);
-        $zip->addFromString('[Content_Types].xml', '<?xml version="1.0" encoding="UTF-8"?>\n<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>');
-        $zip->addFromString('_rels/.rels', '<?xml version="1.0" encoding="UTF-8"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="/xl/workbook.xml"/></Relationships>');
-        $zip->addFromString('xl/workbook.xml', '<?xml version="1.0" encoding="UTF-8"?>\n<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Contacts" sheetId="1" r:id="rId1"/></sheets></workbook>');
-        $zip->addFromString('xl/_rels/workbook.xml.rels', '<?xml version="1.0" encoding="UTF-8"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>');
-        $zip->addFromString('xl/styles.xml', '<?xml version="1.0" encoding="UTF-8"?>\n<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"/>');
-        $sheet = '<?xml version="1.0" encoding="UTF-8"?>\n<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>';
-        $r = 1;
-        foreach ($rows as $row) {
-            $sheet .= '<row r="' . $r . '">';
-            $c = 1;
-            foreach ($row as $val) {
-                $v = htmlspecialchars((string) $val, ENT_XML1 | ENT_COMPAT, 'UTF-8');
-                $col = $this->xlsxCol($c) . $r;
-                $sheet .= '<c r="' . $col . '" t="inlineStr"><is><t>' . $v . '</t></is></c>';
-                $c++;
-            }
-            $sheet .= '</row>';
-            $r++;
-        }
-        $sheet .= '</sheetData></worksheet>';
-        $zip->addFromString('xl/worksheets/sheet1.xml', $sheet);
-        $zip->close();
-        $headers = [
-            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'Content-Disposition' => "attachment; filename=\"$filename\"",
-        ];
-        $callback = function () use ($tmp) {
-            readfile($tmp);
-            unlink($tmp);
-        };
-        return response()->stream($callback, 200, $headers);
-    }
-
     protected function xlsxCol(int $index): string
     {
         $s = '';
@@ -657,6 +619,73 @@ class ContactController extends Controller
         return $s;
     }
 
+    public function downloadTemplate(string $type)
+    {
+        $user = Auth::user();
+        if (! $user) {
+            abort(403);
+        }
+
+        // Normalisasi tipe ke huruf kecil
+        $type = strtolower($type);
+
+        // Kolom dasar untuk semua tipe kontak
+        $baseColumns = [
+            'name',   // Nama kontak
+            'email',  // Email utama
+            'phone',  // Nomor telepon / WhatsApp
+        ];
+
+        // Tambahan kolom per tipe kontak
+        $extraColumnsByType = [
+            'individual' => [
+                'alamat_lengkap',
+                'kota_kabupaten',
+                'provinsi',
+                'negara',
+                'jenis_kelamin',
+                'tanggal_lahir',
+                'agama',
+                'status_pernikahan',
+            ],
+            'company' => [
+                'nama_brand',
+                'industri',
+                'npwp',
+                'alamat_lengkap',
+                'kota_kabupaten',
+                'provinsi',
+                'negara',
+            ],
+            'organization' => [
+                'tipe_organisasi',
+                'bidang_kegiatan',
+                'jumlah_anggota',
+                'alamat_lengkap',
+                'kota_kabupaten',
+                'provinsi',
+                'negara',
+            ],
+        ];
+
+        // Validasi tipe
+        if (! array_key_exists($type, $extraColumnsByType)) {
+            abort(404);
+        }
+
+        // Gabungkan kolom dasar + spesifik tipe
+        $headers = array_merge($baseColumns, $extraColumnsByType[$type]);
+
+        // Baris pertama = header saja (rapi di Excel, user tinggal isi baris2)
+        $rows = [
+            $headers,
+        ];
+
+        $filename = 'contacts_template_' . $type . '_' . now()->format('Ymd_His') . '.xlsx';
+
+        return $this->streamXlsx($rows, $filename);
+    }
+
     public function destroy(Contact $contact)
     {
         $this->ensureRoleIdsAllowed();
@@ -666,4 +695,104 @@ class ContactController extends Controller
 
         return redirect()->route('contacts.index')->with('success', 'Kontak dihapus');
     }
+
+    protected function streamXlsx(array $rows, string $filename)
+    {
+        $zip = new \ZipArchive();
+        $tmp = tempnam(sys_get_temp_dir(), 'xlsx');
+
+        if ($zip->open($tmp, \ZipArchive::OVERWRITE) !== true) {
+            abort(500, 'Cannot create XLSX file');
+        }
+
+        // [Content_Types].xml
+        $contentTypes =
+            '<?xml version="1.0" encoding="UTF-8"?>' . "\n" .
+            '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' .
+                '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' .
+                '<Default Extension="xml" ContentType="application/xml"/>' .
+                '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' .
+                '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' .
+                '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' .
+            '</Types>';
+
+        $zip->addFromString('[Content_Types].xml', $contentTypes);
+
+        // _rels/.rels
+        $relsMain =
+            '<?xml version="1.0" encoding="UTF-8"?>' . "\n" .
+            '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' .
+                '<Relationship Id="rId1" ' .
+                    'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" ' .
+                    'Target="xl/workbook.xml"/>' .
+            '</Relationships>';
+
+        $zip->addFromString('_rels/.rels', $relsMain);
+
+        // xl/workbook.xml
+        $workbook =
+            '<?xml version="1.0" encoding="UTF-8"?>' . "\n" .
+            '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" ' .
+                    'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' .
+                '<sheets>' .
+                    '<sheet name="Contacts" sheetId="1" r:id="rId1"/>' .
+                '</sheets>' .
+            '</workbook>';
+
+        $zip->addFromString('xl/workbook.xml', $workbook);
+
+        // xl/_rels/workbook.xml.rels
+        $workbookRels =
+            '<?xml version="1.0" encoding="UTF-8"?>' . "\n" .
+            '<Relationships xmlns="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' .
+                '<Relationship Id="rId1" ' .
+                    'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" ' .
+                    'Target="worksheets/sheet1.xml"/>' .
+            '</Relationships>';
+
+        $zip->addFromString('xl/_rels/workbook.xml.rels', $workbookRels);
+
+        // xl/styles.xml (minimal, biar Excel nggak komplain)
+        $styles =
+            '<?xml version="1.0" encoding="UTF-8"?>' . "\n" .
+            '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"/>';
+        $zip->addFromString('xl/styles.xml', $styles);
+
+        // xl/worksheets/sheet1.xml
+        $sheet =
+            '<?xml version="1.0" encoding="UTF-8"?>' . "\n" .
+            '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' .
+                '<sheetData>';
+
+        $r = 1;
+        foreach ($rows as $row) {
+            $sheet .= '<row r="' . $r . '">';
+            $c = 1;
+            foreach ($row as $val) {
+                $v   = htmlspecialchars((string) $val, ENT_XML1 | ENT_COMPAT, 'UTF-8');
+                $col = $this->xlsxCol($c) . $r;
+                $sheet .= '<c r="' . $col . '" t="inlineStr"><is><t>' . $v . '</t></is></c>';
+                $c++;
+            }
+            $sheet .= '</row>';
+            $r++;
+        }
+
+        $sheet .= '</sheetData></worksheet>';
+
+        $zip->addFromString('xl/worksheets/sheet1.xml', $sheet);
+
+        $zip->close();
+
+        $headers = [
+            'Content-Type'        => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+
+        return response()->stream(function () use ($tmp) {
+            readfile($tmp);
+            @unlink($tmp);
+        }, 200, $headers);
+    }
+
 }

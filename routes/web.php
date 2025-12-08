@@ -197,6 +197,14 @@ Route::middleware('auth')->group(function () {
     ->name('contacts.advanced');
     Route::get('contacts/export', [\App\Http\Controllers\ContactController::class, 'export'])
     ->name('contacts.export');
+    // === IMPORT ===
+    Route::get('contacts/template/{type}', [\App\Http\Controllers\ContactController::class, 'downloadTemplate'])
+        ->whereIn('type', ['individual', 'company', 'organization'])
+        ->name('contacts.template');
+
+    Route::post('contacts/import', [\App\Http\Controllers\ContactController::class, 'import'])
+        ->name('contacts.import');
+
 
 
     // -------------------------
