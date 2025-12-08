@@ -47,9 +47,14 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="photo_path" class="form-label">Foto Produk (URL)</label>
-                        <input type="text" class="form-control @error('photo_path') is-invalid @enderror"
-                            id="photo_path" name="photo_path" value="{{ old('photo_path') }}">
+                        <label for="photo_path" class="form-label">Foto Produk</label>
+                        <div id="photo-preview" class="mb-2" style="max-width: 150px; display: none;">
+                            <img id="preview-img" src="" alt="Preview"
+                                style="max-width: 100%; border-radius: 4px;">
+                        </div>
+                        <input type="file" class="form-control @error('photo_path') is-invalid @enderror"
+                            id="photo_path" name="photo_path" accept="image/*">
+                        <small class="text-muted d-block mt-1">Format: JPG, PNG, GIF (Max 2MB)</small>
                         @error('photo_path')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
@@ -94,6 +99,25 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             let detailCount = 0;
+            const createModal = document.getElementById('createProductModal');
+
+            // Preview foto saat file dipilih
+            document.getElementById('photo_path').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                const preview = document.getElementById('photo-preview');
+                const previewImg = document.getElementById('preview-img');
+
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        previewImg.src = event.target.result;
+                        preview.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    preview.style.display = 'none';
+                }
+            });
 
             // Tambah detail row
             document.getElementById('btn-add-detail').addEventListener('click', function() {
@@ -140,13 +164,13 @@
 
                 const form = this;
                 const formData = new FormData(form);
+                const submitBtn = document.querySelector('#createProductModal button[type="submit"]');
+                const submitText = submitBtn.textContent;
 
-                // Optional: validasi minimal 1 detail
-                // const detailRows = document.querySelectorAll('.detail-row');
-                // if (detailRows.length === 0) {
-                //     alert('Tambahkan minimal 1 detail produk');
-                //     return;
-                // }
+                // Disable button dan tampilkan loader
+                submitBtn.disabled = true;
+                submitBtn.innerHTML =
+                    '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Loading...';
 
                 fetch(form.action, {
                         method: 'POST',
@@ -160,16 +184,31 @@
                             window.location.href = response.url || '{{ route('products.index') }}';
                         } else {
                             return response.text().then(html => {
-                                // Handle validation errors
                                 alert('Ada error dalam form. Silakan cek kembali.');
                                 console.error(html);
+                                // Reset button
+                                submitBtn.disabled = false;
+                                submitBtn.textContent = submitText;
                             });
                         }
                     })
                     .catch(error => {
                         console.error('Error:', error);
                         alert('Terjadi kesalahan. Silakan coba lagi.');
+                        // Reset button
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = submitText;
                     });
+            });
+
+            // Reset form dan clear preview saat modal ditutup
+            createModal.addEventListener('hidden.bs.modal', function() {
+                const form = document.getElementById('createProductForm');
+                form.reset();
+                document.getElementById('photo-preview').style.display = 'none';
+                const detailContainer = document.getElementById('product-details-container');
+                detailContainer.innerHTML = '';
+                detailCount = 0;
             });
         });
     </script>

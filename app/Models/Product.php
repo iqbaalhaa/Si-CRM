@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 class Product extends Model
 {
@@ -26,6 +27,8 @@ class Product extends Model
         'base_price' => 'decimal:2',
         'is_active'  => 'boolean',
     ];
+
+    // We no longer append photo_url; use photo_path and build URLs in views: asset('storage') . '/' . photo_path
 
     public function company()
     {
