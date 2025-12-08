@@ -17,12 +17,12 @@
                 @endif
             </div>
 
-            <form method="GET" action="{{ route('contacts.advanced') }}" class="row g-2">
+            <form method="GET" action="{{ route('contacts.advanced') }}" class="row g-2" id="contactSearchForm">
                 <div class="col-12 col-md-6">
-                    <input type="text" name="q" value="{{ request('q') }}" class="form-control" placeholder="Contoh: muhammad, kerinci, sungai penuh">
+                    <input type="text" name="q" value="{{ request('q') }}" class="form-control" placeholder="Contoh: muhammad, kerinci, sungai penuh" id="qInput">
                 </div>
                 <div class="col-6 col-md-3">
-                    <select name="type" class="form-select">
+                    <select name="type" class="form-select" id="typeSelect">
                         <option value="">Semua Tipe</option>
                         <option value="individual" {{ request('type') === 'individual' ? 'selected' : '' }}>Individu</option>
                         <option value="company" {{ request('type') === 'company' ? 'selected' : '' }}>Perusahaan</option>
@@ -35,6 +35,7 @@
                         <label class="form-check-label" for="onlyActive">Hanya yang aktif</label>
                     </div>
                 </div>
+                
                 
             </form>
         </div>
@@ -88,6 +89,8 @@
                                                     <span class="contact-name">{{ $c->name }}</span>
                                                 </div>
                                             </td>
+
+                                            
 
                                             <td>
                                                 <span class="badge-type
@@ -389,10 +392,10 @@
                 dom: 'lrtip'
             });
 
-            const $q = $('input[name="q"]');
-            const $type = $('select[name="type"]');
+            const baseUrl = '{{ route('contacts.advanced') }}';
+            const $q = $('#qInput');
+            const $type = $('#typeSelect');
             const $onlyActive = $('#onlyActive');
-            const $export = $('#exportBtn');
 
             function updateExportHref() {
                 const params = {};
@@ -416,7 +419,27 @@
                 }
             }
 
-            $type.on('change', function() {
+            function buildRow(item, idx) {
+                const emailChip = item.email ? `<a href="mailto:${item.email}" class="contact-chip" title="Kirim Email"><i class="bi bi-envelope"></i><span>${item.email}</span></a>` : '';
+                const phoneChip = item.phone ? `<a href="tel:${item.phone}" class="contact-chip" title="Telepon"><i class="bi bi-telephone"></i><span>${item.phone}</span></a>` : '';
+                const waChip = item.whatsapp ? `<a href="https://wa.me/${String(item.whatsapp).replace('+','')}" target="_blank" class="contact-chip" title="WhatsApp"><i class="bi bi-whatsapp"></i><span>WhatsApp</span></a>` : '';
+                const status = item.is_active ? '<span class="badge bg-success rounded-pill px-3 py-1 small">Aktif</span>' : '<span class="badge bg-secondary rounded-pill px-3 py-1 small">Nonaktif</span>';
+                const nameHtml = `<div class="contact-main"><span class="contact-name">${item.name}</span></div>`;
+                const typeHtml = `<span class="badge-type">${(item.type || '').charAt(0).toUpperCase() + (item.type || '').slice(1)}</span>`;
+                const infoHtml = `<div class="contact-info-cell"><div class="contact-chips">${phoneChip}${emailChip}${waChip}</div>${(!item.phone && !item.email && !item.whatsapp) ? '<span class="text-muted small">Belum ada informasi kontak utama.</span>' : ''}</div>`;
+                const actionsHtml = `<div class="table-actions"><a href="${window.location.origin}/contacts/${item.id}" class="btn btn-light btn-icon border" title="Detail"><i class="bi bi-eye"></i></a><a href="${window.location.origin}/contacts/${item.id}/edit" class="btn btn-light btn-icon border" title="Edit"><i class="bi bi-pencil-square"></i></a></div>`;
+                return [idx, nameHtml, typeHtml, infoHtml, status, actionsHtml];
+            }
+
+            function render(items) {
+                table.clear();
+                let i = 1;
+                for (const item of items) table.row.add(buildRow(item, i++));
+                if (!items.length) table.row.add(['', 'Belum ada data kontak', '', '', '', '']);
+                table.draw(false);
+            }
+
+            function fetchContacts() {
                 const params = {};
                 const qVal = ($q.val() || '').trim();
                 if (qVal) params.q = qVal;
@@ -424,43 +447,26 @@
                 if (tVal) params.type = tVal;
                 if ($onlyActive.is(':checked')) params.only_active = 1;
                 const qs = $.param(params);
-                window.location.href = '{{ route('contacts.advanced') }}' + (qs ? ('?' + qs) : '');
-            });
-
-            @if(!empty($type))
-                $type.trigger('change');
-            @endif
+                $.ajax({
+                    url: baseUrl + (qs ? ('?' + qs) : ''),
+                    headers: { 'Accept': 'application/json' },
+                    success: function(d) {
+                        render((d && d.items) ? d.items : []);
+                        updateExportHref();
+                    }
+                });
+            }
 
             let qTimer;
             $q.on('input', function() {
                 clearTimeout(qTimer);
-                qTimer = setTimeout(function() {
-                    const params = {};
-                    const qVal = ($q.val() || '').trim();
-                    if (qVal) params.q = qVal;
-                    const tVal = ($type.val() || '').trim();
-                    if (tVal) params.type = tVal;
-                    if ($onlyActive.is(':checked')) params.only_active = 1;
-                    const qs = $.param(params);
-                    window.location.href = '{{ route('contacts.advanced') }}' + (qs ? ('?' + qs) : '');
-                }, 350);
+                qTimer = setTimeout(fetchContacts, 300);
             });
+            $type.on('change', fetchContacts);
+            $onlyActive.on('change', fetchContacts);
+            
 
-            $onlyActive.on('change', function() {
-                const params = {};
-                const qVal = ($q.val() || '').trim();
-                if (qVal) params.q = qVal;
-                const tVal = ($type.val() || '').trim();
-                if (tVal) params.type = tVal;
-                if (this.checked) params.only_active = 1;
-                const qs = $.param(params);
-                window.location.href = '{{ route('contacts.advanced') }}' + (qs ? ('?' + qs) : '');
-            });
-
-            // Initial: hanya update href export, filtering handled server-side
             updateExportHref();
-
-            // Izinkan submit form agar navigasi advance search berjalan
         });
     </script>
 @endpush
