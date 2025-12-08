@@ -182,7 +182,11 @@
                                     Centang produk yang ingin diubah, lalu pilih aksi massal.
                                 </small>
                             </div>
-
+                            @if ($products->isEmpty())
+                                <div class="alert alert-info">
+                                    Belum ada produk. Tambahkan terlebih dahulu.
+                                </div>
+                            @endif
                             <div class="table-responsive">
                                 <table class="table table-striped align-middle" id="table-products">
                                     <thead>
@@ -200,17 +204,16 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @forelse ($products as $index => $product)
+                                        @foreach ($products as $index => $product)
                                             @php
                                                 $details = $product->relationLoaded('details')
                                                     ? $product->details
-                                                    : $product->details; // biar tetap jalan walau belum eager load
+                                                    : $product->details;
                                                 $detailPreview = $details->take(3);
                                             @endphp
                                             <tr>
                                                 <td class="text-center">
-                                                    <input type="checkbox" name="ids[]" value="{{ $product->id }}"
-                                                        class="row-check">
+                                                    <input type="checkbox" name="ids[]" value="{{ $product->id }}" class="row-check">
                                                 </td>
                                                 <td class="text-center">{{ $index + 1 }}</td>
                                                 <td>{{ $product->name }}</td>
@@ -247,15 +250,11 @@
                                                     {{ optional($product->created_at)->format('d M Y H:i') }}
                                                 </td>
                                                 <td class="text-nowrap text-center">
-
-                                                    <a href="{{ route('products.edit', $product) }}"
-                                                        class="btn btn-sm btn-secondary">
+                                                    <a href="{{ route('products.edit', $product) }}" class="btn btn-sm btn-secondary">
                                                         <i class="bi bi-pencil-square"></i>
                                                     </a>
-
-
-                                                    <form action="{{ route('products.destroy', $product) }}"
-                                                        method="POST" class="d-inline product-delete-form">
+                                                    <form action="{{ route('products.destroy', $product) }}" method="POST"
+                                                          class="d-inline product-delete-form">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit" class="btn btn-sm btn-danger">
@@ -264,13 +263,7 @@
                                                     </form>
                                                 </td>
                                             </tr>
-                                        @empty
-                                            <tr>
-                                                <td colspan="8" class="text-center text-muted">
-                                                    Belum ada produk. Tambahkan terlebih dahulu.
-                                                </td>
-                                            </tr>
-                                        @endforelse
+                                        @endforeach
                                     </tbody>
                                 </table>
                             </div>
