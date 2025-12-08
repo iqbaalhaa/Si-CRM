@@ -27,7 +27,10 @@
         $companyId = Auth::user()->company_id;
         $companyName = optional(\App\Models\Perusahaan::find($companyId))->name;
         $customersCount = \App\Models\Customer::where('company_id', $companyId)->count();
-        $teamCount = \App\Models\User::where('company_id', $companyId)->whereHas('roles', function($q){ $q->whereIn('name', ['marketing','cs']); })->count();
+        $hasUserCompanyId = \Illuminate\Support\Facades\Schema::hasColumn('users', 'company_id');
+        $teamCount = $hasUserCompanyId
+            ? \App\Models\User::where('company_id', $companyId)->whereHas('roles', function($q){ $q->whereIn('name', ['marketing','cs']); })->count()
+            : \App\Models\User::whereHas('roles', function($q){ $q->whereIn('name', ['marketing','cs']); })->count();
         $stagesCount = \App\Models\PipelineStage::where('company_id', $companyId)->count();
         
         $recentCustomers = \App\Models\Customer::where('company_id', $companyId)->latest()->take(5)->get(['name','email','source','created_at']);

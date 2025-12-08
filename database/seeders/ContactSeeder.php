@@ -8,6 +8,7 @@ use App\Models\ContactDetail;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Schema;
 
 class ContactSeeder extends Seeder
 {
@@ -16,10 +17,19 @@ class ContactSeeder extends Seeder
         // Pakai company_id 3 secara default
         $companyId = 3;
 
-        // Pastikan user yang dipakai juga dari company_id 3
-        $users = User::where('company_id', $companyId)->pluck('id')->all();
+        // Pastikan user yang dipakai juga dari company_id 3 (fallback kalau kolom company_id belum ada)
+        $users = [];
+        if (Schema::hasColumn('users', 'company_id')) {
+            $users = User::where('company_id', $companyId)->pluck('id')->all();
+        } else {
+            $users = User::pluck('id')->all();
+        }
         if (empty($users)) {
-            $user = User::factory()->create(['company_id' => $companyId]);
+            $payload = [];
+            if (Schema::hasColumn('users', 'company_id')) {
+                $payload['company_id'] = $companyId;
+            }
+            $user = User::factory()->create($payload);
             $users = [$user->id];
         }
 
