@@ -11,6 +11,10 @@ use Illuminate\Support\Facades\Auth;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Color;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
 
 
 class ContactController extends Controller
@@ -871,15 +875,21 @@ class ContactController extends Controller
                 ?? ''; // default kosong
         }
 
-        // rows: baris 1 = header, baris 2 = hint
         $rows = [
             $headers,
             $hints,
         ];
 
+        $defaults = array_map(function ($h) { return ''; }, $headers);
+        $negaraIndex = array_search('negara', $headers, true);
+        if ($negaraIndex !== false) {
+            $defaults[$negaraIndex] = 'Indonesia';
+        }
+        $rows[] = $defaults;
+
         $filename = 'contacts_template_' . $type . '_' . now()->format('Ymd_His') . '.xlsx';
 
-        return $this->streamXlsx($rows, $filename);
+        return $this->streamXlsx($rows, $filename, ['template' => true]);
     }
 
     public function destroy(Contact $contact)
@@ -892,7 +902,7 @@ class ContactController extends Controller
         return redirect()->route('contacts.index')->with('success', 'Kontak dihapus');
     }
 
-    protected function streamXlsx(array $rows, string $filename)
+    protected function streamXlsx(array $rows, string $filename, array $options = [])
     {
         // Buat workbook baru
         $spreadsheet = new Spreadsheet();
@@ -913,6 +923,51 @@ class ContactController extends Controller
         if ($headerColumnCount > 0) {
             $lastColLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($headerColumnCount);
             $sheet->getStyle("A1:{$lastColLetter}1")->getFont()->setBold(true);
+
+            if (!empty($options['template'])) {
+                $headers = $rows[0] ?? [];
+                for ($col = 1; $col <= $headerColumnCount; $col++) {
+                    $label = strtolower((string) ($headers[$col - 1] ?? ''));
+                    $width = 22;
+                    if ($label === 'name') $width = 30;
+                    elseif ($label === 'email') $width = 28;
+                    elseif ($label === 'phone') $width = 18;
+                    elseif ($label === 'alamat_lengkap') $width = 30;
+                    elseif ($label === 'kota_kabupaten') $width = 20;
+                    elseif ($label === 'provinsi') $width = 18;
+                    elseif ($label === 'negara') $width = 16;
+                    elseif ($label === 'jenis_kelamin') $width = 16;
+                    elseif ($label === 'tanggal_lahir') $width = 16;
+                    elseif ($label === 'agama') $width = 18;
+                    elseif ($label === 'status_pernikahan') $width = 20;
+                    elseif ($label === 'nama_brand') $width = 24;
+                    elseif ($label === 'industri') $width = 20;
+                    elseif ($label === 'npwp') $width = 20;
+                    elseif ($label === 'tipe_organisasi') $width = 20;
+                    elseif ($label === 'bidang_kegiatan') $width = 24;
+                    elseif ($label === 'jumlah_anggota') $width = 16;
+                    $letter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col);
+                    $sheet->getColumnDimension($letter)->setWidth($width);
+                }
+
+                $sheet->getStyle("A1:{$lastColLetter}1")->applyFromArray([
+                    'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+                    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '03A6E5']],
+                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+                    'borders' => ['bottom' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'FF9C00']]]
+                ]);
+
+                $sheet->getStyle("A2:{$lastColLetter}2")->applyFromArray([
+                    'font' => ['italic' => true, 'color' => ['rgb' => '8A5A00']],
+                    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFF6E5']],
+                    'alignment' => ['wrapText' => true, 'vertical' => Alignment::VERTICAL_TOP]
+                ]);
+
+                $sheet->getRowDimension(1)->setRowHeight(24);
+                $sheet->getRowDimension(2)->setRowHeight(34);
+                $sheet->freezePane('A3');
+                $sheet->setAutoFilter("A1:{$lastColLetter}1");
+            }
         }
 
         // Stream ke browser
