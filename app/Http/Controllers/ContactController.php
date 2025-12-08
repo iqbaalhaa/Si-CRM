@@ -24,18 +24,20 @@ class ContactController extends Controller
     {
         $this->ensureRoleIdsAllowed();
 
-        $companyId = Auth::user()->company_id ?? (Perusahaan::query()->value('id'));
         $type = $request->query('type');
 
-        $query = Contact::with(['channels'])
-            ->where('company_id', $companyId)
+        $query = $this->buildSearchQuery($request)
+            ->with([
+                'company',
+                'channels' => fn($q) => $q->where('is_primary', 1)
+            ])
             ->latest();
 
         if ($type) {
             $query->where('type', $type);
         }
 
-        $contacts = $query->paginate(50)->withQueryString();
+        $contacts = $query->get();
 
         return view('pages.contact.list', compact('contacts', 'type'));
     }
@@ -389,10 +391,14 @@ class ContactController extends Controller
 
     protected function buildSearchQuery(Request $request)
     {
-        $companyId = auth()->user()->company_id ?? (Perusahaan::query()->value('id'));
+        $user = auth()->user();
+        $companyId = $user?->company_id ?? (Perusahaan::query()->value('id'));
+        $showAll = $request->boolean('all') && $user && $user->hasRole('super-admin');
 
-        $query = Contact::query()
-            ->where('company_id', $companyId);
+        $query = Contact::query();
+        if (!$showAll) {
+            $query->where('company_id', $companyId);
+        }
 
         // filter aktif (opsional)
         if ($request->boolean('only_active')) {
@@ -466,15 +472,35 @@ class ContactController extends Controller
         $type = $request->query('type');
 
         $query = $this->buildSearchQuery($request)
-            ->with(['channels' => fn($q) => $q->where('is_primary', 1)])
+            ->with([
+                'company',
+                'channels' => fn($q) => $q->where('is_primary', 1)
+            ])
             ->orderBy('name');
 
         if ($type) {
             $query->where('type', $type);
         }
 
-        $contacts = $query->paginate(50)->withQueryString();
-
+        $contacts = $query->get();
+        if ($request->wantsJson()) {
+            $items = $contacts->map(function ($c) {
+                $email = optional($c->channels->firstWhere('label', 'email'))->value;
+                $phone = optional($c->channels->firstWhere('label', 'phone'))->value;
+                $wa = optional($c->channels->firstWhere('label', 'whatsapp'))->value;
+                return [
+                    'id' => $c->id,
+                    'name' => $c->name,
+                    'type' => $c->type,
+                    'company' => optional($c->company)->name,
+                    'is_active' => (bool) $c->is_active,
+                    'email' => $email,
+                    'phone' => $phone,
+                    'whatsapp' => $wa,
+                ];
+            });
+            return response()->json(['items' => $items]);
+        }
         return view('pages.contact.list', compact('contacts', 'type'));
     }
 
