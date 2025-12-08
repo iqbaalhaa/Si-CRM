@@ -14,7 +14,7 @@ class ProductSeeder extends Seeder
     public function run(): void
     {
         $user = User::first();
-        $companyId = Perusahaan::query()->value('id') ?? 1;
+        $companyId = 3;
 
         // if (!$company || !$user) {
         //     $this->command->warn('Perusahaan atau User belum ada. ProductSeeder dilewati.');

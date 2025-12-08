@@ -148,12 +148,11 @@
                                     </div>
                                 </div>
 
-
-                                <a href="{{ route('products.create') }}"
-                                    class="btn btn-primary btn-sm d-flex align-items-center gap-1">
+                                <button type="button" class="btn btn-primary btn-sm d-flex align-items-center gap-1"
+                                    data-bs-toggle="modal" data-bs-target="#createProductModal">
                                     <i class="bi bi-plus-circle"></i>
                                     <span>Tambah Produk</span>
-                                </a>
+                                </button>
                             </div>
                         </div>
 
@@ -171,7 +170,6 @@
                                         <option value="">Aksi Massal</option>
                                         <option value="activate">Aktifkan</option>
                                         <option value="deactivate">Nonaktifkan</option>
-                                        {{-- Bisa ditambah opsi lain, misal set_base_price --}}
                                     </select>
                                     <button type="button" id="btn-apply-bulk" class="btn btn-sm btn-outline-primary">
                                         Terapkan
@@ -213,7 +211,8 @@
                                             @endphp
                                             <tr>
                                                 <td class="text-center">
-                                                    <input type="checkbox" name="ids[]" value="{{ $product->id }}" class="row-check">
+                                                    <input type="checkbox" name="ids[]" value="{{ $product->id }}"
+                                                        class="row-check">
                                                 </td>
                                                 <td class="text-center">{{ $index + 1 }}</td>
                                                 <td>{{ $product->name }}</td>
@@ -250,14 +249,25 @@
                                                     {{ optional($product->created_at)->format('d M Y H:i') }}
                                                 </td>
                                                 <td class="text-nowrap text-center">
-                                                    <a href="{{ route('products.edit', $product) }}" class="btn btn-sm btn-secondary">
+                                                    <button type="button"
+                                                        class="btn btn-sm btn-secondary btn-edit-product"
+                                                        data-bs-toggle="modal" data-bs-target="#editProductModal"
+                                                        data-id="{{ $product->id }}" data-name="{{ $product->name }}"
+                                                        data-base_price="{{ $product->base_price }}"
+                                                        data-description="{{ $product->description }}"
+                                                        data-photo_path="{{ $product->photo_path }}"
+                                                        data-is_active="{{ $product->is_active ? 1 : 0 }}"
+                                                        data-details="{{ e($product->details->toJson()) }}">
                                                         <i class="bi bi-pencil-square"></i>
-                                                    </a>
-                                                    <form action="{{ route('products.destroy', $product) }}" method="POST"
-                                                          class="d-inline product-delete-form">
+                                                    </button>
+
+                                                    <form action="{{ route('products.destroy', $product) }}"
+                                                        method="POST" class="d-inline product-delete-form"
+                                                        data-product-name="{{ $product->name }}">
                                                         @csrf
                                                         @method('DELETE')
-                                                        <button type="submit" class="btn btn-sm btn-danger">
+                                                        <button type="submit" class="btn btn-sm btn-warning"
+                                                            title="Hapus Produk Ini?">
                                                             <i class="bi bi-trash"></i>
                                                         </button>
                                                     </form>
@@ -274,6 +284,11 @@
             </div>
         </div>
     </div>
+
+    {{-- Modal Create Product --}}
+    @include('pages.products.create')
+    {{-- Modal Edit Product --}}
+    @include('pages.products.edit')
 @endsection
 
 @push('styles')
@@ -360,28 +375,91 @@
                 }
             });
 
-            // Konfirmasi delete single product
+            // Konfirmasi delete single product (soft delete)
             $('#table-products').on('submit', '.product-delete-form', function(e) {
                 e.preventDefault();
                 const form = this;
+                const productName = $(form).data('product-name') || 'produk ini';
 
                 if (window.Swal) {
                     Swal.fire({
                         icon: 'warning',
-                        title: 'Hapus produk?',
-                        text: 'Tindakan ini tidak dapat dibatalkan.',
+                        title: 'Pindahkan produk ke Sampah?',
+                        text: `Produk "${productName}" akan dipindahkan ke sampah dan dapat dipulihkan nanti.`,
                         showCancelButton: true,
-                        confirmButtonText: 'Hapus',
+                        confirmButtonText: 'Ya, pindahkan',
                         cancelButtonText: 'Batal',
-                        confirmButtonColor: '#d33'
+                        confirmButtonColor: '#f59e0b' // amber / warning
                     }).then((result) => {
                         if (result.isConfirmed) form.submit();
                     });
                 } else {
-                    if (confirm('Hapus produk ini?')) {
+                    if (confirm(`Pindahkan ${productName} ke sampah?`)) {
                         form.submit();
                     }
                 }
+            });
+
+            // Edit product button click
+            $('.btn-edit-product').on('click', function() {
+                const button = $(this);
+                const modal = $('#editProductModal');
+
+                // Get data attributes from button
+                const id = button.data('id');
+                const name = button.data('name');
+                const base_price = button.data('base_price');
+                const description = button.data('description');
+                const photo_path = button.data('photo_path');
+                const is_active = button.data('is_active');
+                const details = button.data('details');
+
+                // Set form action to update route
+                const form = modal.find('form');
+                form.attr('action', '{{ url('products') }}/' + id);
+
+                // Fill in the form fields
+                modal.find('input[name="name"]').val(name);
+                modal.find('input[name="base_price"]').val(base_price);
+                modal.find('textarea[name="description"]').val(description);
+                modal.find('input[name="photo_path"]').val(photo_path);
+                modal.find('select[name="is_active"]').val(is_active);
+
+                // Clear existing detail rows
+                const detailsContainer = modal.find('.detail-rows');
+                detailsContainer.empty();
+
+                // Add detail rows from product data
+                if (details && details.length > 0) {
+                    details.forEach((detail, index) => {
+                        const row = `
+                            <div class="row g-2 align-items-center mb-2">
+                                <div class="col">
+                                    <input type="text" name="details[${index}][label]" class="form-control form-control-sm"
+                                        placeholder="Label" value="${detail.label}" required>
+                                </div>
+                                <div class="col">
+                                    <input type="text" name="details[${index}][value]" class="form-control form-control-sm"
+                                        placeholder="Value" value="${detail.value}" required>
+                                </div>
+                                <div class="col-auto">
+                                    <button type="button" class="btn btn-sm btn-danger remove-detail-row">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        detailsContainer.append(row);
+                    });
+                }
+
+                // Show the modal
+                modal.modal('show');
+            });
+
+            // Remove detail row
+            $(document).on('click', '.remove-detail-row', function() {
+                $(this).closest('.row').remove();
             });
         });
     </script>
