@@ -8,6 +8,9 @@ use App\Models\ContactDetail;
 use App\Models\Perusahaan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 
 class ContactController extends Controller
@@ -608,6 +611,156 @@ class ContactController extends Controller
         return response()->stream($callback, 200, $headers);
     }
 
+    public function import(Request $request)
+    {
+        $this->ensureRoleIdsAllowed();
+
+        $request->validate([
+            'type' => 'required|in:individual,company,organization',
+            'file' => 'required|file|mimes:xlsx',
+        ]);
+
+        $user = Auth::user();
+        if (! $user || ! $user->company_id) {
+            abort(403);
+        }
+
+        $companyId = $user->company_id;
+        $createdBy = $user->id;
+
+        $type = strtolower($request->input('type'));
+
+        $detailLabels = [];
+        if ($type === 'individual') {
+            $detailLabels = [
+                'alamat_lengkap',
+                'kota_kabupaten',
+                'provinsi',
+                'negara',
+                'jenis_kelamin',
+                'tanggal_lahir',
+                'agama',
+                'status_pernikahan',
+            ];
+        } elseif ($type === 'company') {
+            $detailLabels = [
+                'nama_brand',
+                'industri',
+                'npwp',
+                'alamat_lengkap',
+                'kota_kabupaten',
+                'provinsi',
+                'negara',
+            ];
+        } else {
+            $detailLabels = [
+                'tipe_organisasi',
+                'bidang_kegiatan',
+                'jumlah_anggota',
+                'alamat_lengkap',
+                'kota_kabupaten',
+                'provinsi',
+                'negara',
+            ];
+        }
+
+        $file = $request->file('file');
+        $reader = IOFactory::createReader('Xlsx');
+        $spreadsheet = $reader->load($file->getRealPath());
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $highestRow = $sheet->getHighestRow();
+        $highestColumn = $sheet->getHighestColumn();
+        $highestColIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($highestColumn);
+
+        $headers = [];
+        for ($col = 1; $col <= $highestColIndex; $col++) {
+            $val = (string) $sheet->getCellByColumnAndRow($col, 1)->getValue();
+            $norm = strtolower(trim($val));
+            $norm = str_replace([' ', '-', '/'], '_', $norm);
+            $headers[$col] = $norm;
+        }
+
+        $required = ['name'];
+        foreach ($required as $req) {
+            if (! in_array($req, $headers, true)) {
+                return redirect()->route('contacts.index')->with('error', 'Header tidak valid.');
+            }
+        }
+
+        $created = 0;
+        for ($row = 3; $row <= $highestRow; $row++) {
+            $rowVals = [];
+            $isEmptyRow = true;
+            for ($col = 1; $col <= $highestColIndex; $col++) {
+                $v = $sheet->getCellByColumnAndRow($col, $row)->getValue();
+                $v = is_string($v) ? trim($v) : $v;
+                if ($v !== null && $v !== '') $isEmptyRow = false;
+                $rowVals[$headers[$col] ?? ''] = $v;
+            }
+            if ($isEmptyRow) continue;
+
+            $name = (string) ($rowVals['name'] ?? '');
+            if ($name === '') continue;
+
+            $contact = Contact::create([
+                'company_id' => $companyId,
+                'type' => $type,
+                'name' => $name,
+                'is_active' => true,
+                'created_by' => $createdBy,
+            ]);
+
+            $email = (string) ($rowVals['email'] ?? '');
+            if ($email !== '') {
+                ContactChannel::create([
+                    'company_id' => $companyId,
+                    'contact_id' => $contact->id,
+                    'label' => 'email',
+                    'value' => $email,
+                    'is_primary' => true,
+                ]);
+            }
+
+            $phone = (string) ($rowVals['phone'] ?? '');
+            if ($phone !== '') {
+                ContactChannel::create([
+                    'company_id' => $companyId,
+                    'contact_id' => $contact->id,
+                    'label' => 'phone',
+                    'value' => $phone,
+                    'is_primary' => true,
+                ]);
+            }
+
+            foreach ($detailLabels as $label) {
+                $val = $rowVals[$label] ?? null;
+                if ($val === null || $val === '') continue;
+                if ($label === 'jumlah_anggota') {
+                    if (is_numeric($val)) $val = (string) (int) $val;
+                }
+                if ($label === 'tanggal_lahir') {
+                    try {
+                        $dt = \Carbon\Carbon::parse((string) $val);
+                        $val = $dt->toDateString();
+                    } catch (\Exception $e) {
+                        $val = (string) $val;
+                    }
+                }
+                ContactDetail::create([
+                    'company_id' => $companyId,
+                    'contact_id' => $contact->id,
+                    'label' => $label,
+                    'value' => (string) $val,
+                ]);
+            }
+
+            $created++;
+        }
+
+        return redirect()->route('contacts.index')->with('success', 'Import selesai: ' . $created . ' baris.');
+    }
+
     protected function xlsxCol(int $index): string
     {
         $s = '';
@@ -626,7 +779,6 @@ class ContactController extends Controller
             abort(403);
         }
 
-        // Normalisasi tipe ke huruf kecil
         $type = strtolower($type);
 
         // Kolom dasar untuk semua tipe kontak
@@ -668,17 +820,61 @@ class ContactController extends Controller
             ],
         ];
 
-        // Validasi tipe
         if (! array_key_exists($type, $extraColumnsByType)) {
             abort(404);
         }
 
-        // Gabungkan kolom dasar + spesifik tipe
         $headers = array_merge($baseColumns, $extraColumnsByType[$type]);
 
-        // Baris pertama = header saja (rapi di Excel, user tinggal isi baris2)
+        // Baris 2: keterangan / contoh isi (supaya user paham)
+        $hintsBase = [
+            'name'  => 'Nama lengkap kontak',
+            'email' => 'Email aktif (boleh dikosongkan)',
+            'phone' => 'Nomor HP / WhatsApp',
+        ];
+
+        $hintsByType = [
+            'individual' => [
+                'alamat_lengkap'    => 'Alamat rumah lengkap',
+                'kota_kabupaten'    => 'Kota / Kabupaten',
+                'provinsi'          => 'Provinsi',
+                'negara'            => 'Negara',
+                'jenis_kelamin'     => 'L / P',
+                'tanggal_lahir'     => 'Format: YYYY-MM-DD (contoh: 1990-01-31)',
+                'agama'             => 'Agama',
+                'status_pernikahan' => 'Lajang / Menikah / Dll',
+            ],
+            'company' => [
+                'nama_brand'      => 'Nama brand / nama dagang',
+                'industri'        => 'Industri (mis: F&B, IT, Pendidikan)',
+                'npwp'            => 'Nomor NPWP perusahaan',
+                'alamat_lengkap'  => 'Alamat kantor',
+                'kota_kabupaten'  => 'Kota / Kabupaten',
+                'provinsi'        => 'Provinsi',
+                'negara'          => 'Negara',
+            ],
+            'organization' => [
+                'tipe_organisasi'  => 'Mis: Komunitas, Yayasan, LSM, dll',
+                'bidang_kegiatan'  => 'Bidang kegiatan utama',
+                'jumlah_anggota'   => 'Perkiraan jumlah anggota',
+                'alamat_lengkap'   => 'Alamat sekretariat / kantor',
+                'kota_kabupaten'   => 'Kota / Kabupaten',
+                'provinsi'         => 'Provinsi',
+                'negara'           => 'Negara',
+            ],
+        ];
+
+        $hints = [];
+        foreach ($headers as $col) {
+            $hints[] = $hintsBase[$col]
+                ?? $hintsByType[$type][$col]
+                ?? ''; // default kosong
+        }
+
+        // rows: baris 1 = header, baris 2 = hint
         $rows = [
             $headers,
+            $hints,
         ];
 
         $filename = 'contacts_template_' . $type . '_' . now()->format('Ymd_His') . '.xlsx';
@@ -698,101 +894,35 @@ class ContactController extends Controller
 
     protected function streamXlsx(array $rows, string $filename)
     {
-        $zip = new \ZipArchive();
-        $tmp = tempnam(sys_get_temp_dir(), 'xlsx');
+        // Buat workbook baru
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Contacts');
 
-        if ($zip->open($tmp, \ZipArchive::OVERWRITE) !== true) {
-            abort(500, 'Cannot create XLSX file');
-        }
-
-        // [Content_Types].xml
-        $contentTypes =
-            '<?xml version="1.0" encoding="UTF-8"?>' . "\n" .
-            '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' .
-                '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' .
-                '<Default Extension="xml" ContentType="application/xml"/>' .
-                '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' .
-                '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' .
-                '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' .
-            '</Types>';
-
-        $zip->addFromString('[Content_Types].xml', $contentTypes);
-
-        // _rels/.rels
-        $relsMain =
-            '<?xml version="1.0" encoding="UTF-8"?>' . "\n" .
-            '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' .
-                '<Relationship Id="rId1" ' .
-                    'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" ' .
-                    'Target="xl/workbook.xml"/>' .
-            '</Relationships>';
-
-        $zip->addFromString('_rels/.rels', $relsMain);
-
-        // xl/workbook.xml
-        $workbook =
-            '<?xml version="1.0" encoding="UTF-8"?>' . "\n" .
-            '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" ' .
-                    'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' .
-                '<sheets>' .
-                    '<sheet name="Contacts" sheetId="1" r:id="rId1"/>' .
-                '</sheets>' .
-            '</workbook>';
-
-        $zip->addFromString('xl/workbook.xml', $workbook);
-
-        // xl/_rels/workbook.xml.rels
-        $workbookRels =
-            '<?xml version="1.0" encoding="UTF-8"?>' . "\n" .
-            '<Relationships xmlns="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' .
-                '<Relationship Id="rId1" ' .
-                    'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" ' .
-                    'Target="worksheets/sheet1.xml"/>' .
-            '</Relationships>';
-
-        $zip->addFromString('xl/_rels/workbook.xml.rels', $workbookRels);
-
-        // xl/styles.xml (minimal, biar Excel nggak komplain)
-        $styles =
-            '<?xml version="1.0" encoding="UTF-8"?>' . "\n" .
-            '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"/>';
-        $zip->addFromString('xl/styles.xml', $styles);
-
-        // xl/worksheets/sheet1.xml
-        $sheet =
-            '<?xml version="1.0" encoding="UTF-8"?>' . "\n" .
-            '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' .
-                '<sheetData>';
-
-        $r = 1;
-        foreach ($rows as $row) {
-            $sheet .= '<row r="' . $r . '">';
-            $c = 1;
-            foreach ($row as $val) {
-                $v   = htmlspecialchars((string) $val, ENT_XML1 | ENT_COMPAT, 'UTF-8');
-                $col = $this->xlsxCol($c) . $r;
-                $sheet .= '<c r="' . $col . '" t="inlineStr"><is><t>' . $v . '</t></is></c>';
-                $c++;
+        // Isi data baris per baris
+        foreach ($rows as $rowIndex => $row) {
+            $excelRow = $rowIndex + 1; // Excel mulai dari 1
+            foreach ($row as $colIndex => $value) {
+                $excelCol = $colIndex + 1;
+                $sheet->setCellValueByColumnAndRow($excelCol, $excelRow, $value);
             }
-            $sheet .= '</row>';
-            $r++;
         }
 
-        $sheet .= '</sheetData></worksheet>';
+        // Optional: bikin header bold biar enak dipakai
+        $headerColumnCount = count($rows[0] ?? []);
+        if ($headerColumnCount > 0) {
+            $lastColLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($headerColumnCount);
+            $sheet->getStyle("A1:{$lastColLetter}1")->getFont()->setBold(true);
+        }
 
-        $zip->addFromString('xl/worksheets/sheet1.xml', $sheet);
-
-        $zip->close();
-
-        $headers = [
-            'Content-Type'        => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-        ];
-
-        return response()->stream(function () use ($tmp) {
-            readfile($tmp);
-            @unlink($tmp);
-        }, 200, $headers);
+        // Stream ke browser
+        return response()->streamDownload(function () use ($spreadsheet) {
+            $writer = new Xlsx($spreadsheet);
+            // Tulis langsung ke output, bukan ke file sementara
+            $writer->save('php://output');
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
     }
 
 }

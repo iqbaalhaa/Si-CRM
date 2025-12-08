@@ -259,8 +259,8 @@
                         <hr class="my-3">
 
                         <div class="mb-2">
-                            <label class="form-label">Upload File (.xlsx atau .csv)</label>
-                            <input type="file" name="file" class="form-control" accept=".xlsx,.xls,.csv" required>
+                            <label class="form-label">Upload File (.xlsx)</label>
+                            <input type="file" name="file" class="form-control" accept=".xlsx" required>
                             <small class="text-muted d-block mt-1">
                                 Pastikan format kolom mengikuti template yang sudah di-download.
                             </small>
