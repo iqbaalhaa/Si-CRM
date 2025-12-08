@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Exports\ProductsExport;
-use App\imports\ProductsImport;
+use App\Imports\ProductsImport;
 use App\Models\Product;
+use App\Models\ProductDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -58,15 +60,45 @@ class ProductController extends Controller
             'description' => 'nullable|string',
             'photo_path'  => 'nullable|string',
             'is_active'   => 'nullable|boolean',
+            'details'     => 'nullable|array',
+            'details.*.label' => 'nullable|string|max:100',
+            'details.*.value' => 'nullable|string|max:1000',
         ]);
 
         $data['company_id'] = $user->company_id;
         $data['slug']       = Str::slug($data['name']) . '-' . Str::random(5);
         $data['created_by'] = $user->id;
         $data['updated_by'] = $user->id;
-        $data['is_active']  = $request->boolean('is_active', true);
+        // default true jika tidak diberikan; jika checkbox ada, gunakan nilai boolean
+        $data['is_active']  = $request->has('is_active') ? $request->boolean('is_active') : true;
 
-        Product::create($data);
+        $product = null;
+
+        DB::transaction(function () use ($data, $request, &$product) {
+            $product = Product::create($data);
+
+            $details = $request->input('details', []);
+            if (is_array($details) && !empty($details)) {
+                foreach ($details as $d) {
+                    $label = isset($d['label']) ? trim((string)$d['label']) : null;
+                    $value = isset($d['value']) ? trim((string)$d['value']) : null;
+
+                    // skip jika kedua field kosong
+                    if ($label === '' && $value === '') {
+                        continue;
+                    }
+
+                    // hanya simpan jika minimal ada label atau value
+                    if ($label !== '' || $value !== '') {
+                        ProductDetail::create([
+                            'product_id' => $product->id,
+                            'label'      => $label ?: null,
+                            'value'      => $value ?: null,
+                        ]);
+                    }
+                }
+            }
+        });
 
         return redirect()
             ->route('products.index')
@@ -146,11 +178,15 @@ class ProductController extends Controller
             abort(403, 'Anda tidak berhak menghapus produk ini.');
         }
 
+        // set audit field lalu lakukan soft delete (Model menggunakan SoftDeletes)
+        $product->updated_by = $user->id;
+        $product->save();
+
         $product->delete();
 
         return redirect()
             ->route('products.index')
-            ->with('success', 'Produk berhasil dihapus.');
+            ->with('success', 'Produk berhasil dipindahkan ke sampah.');
     }
 
     /**
