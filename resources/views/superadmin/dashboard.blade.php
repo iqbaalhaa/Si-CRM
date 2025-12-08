@@ -325,9 +325,8 @@
         $totalSuperAdmin = User::role('super-admin')->count();
         $totalAdmin = User::role('admin')->count();
         $totalLeadOperations = User::role('lead-operations')->count();
-        $totalCs = User::role('cs')->count();
 
-        $canSeeCustomers = Auth::user()?->hasAnyRole(['admin', 'marketing', 'cs']);
+        $canSeeCustomers = Auth::user()?->hasAnyRole(['admin', 'lead-operations']);
         $recentCustomers = $canSeeCustomers
             ? Customer::with(['company', 'stage'])
                 ->latest()
@@ -362,8 +361,8 @@
         }
 
         // Role distribution
-        $roleLabels = ['Super Admin', 'Admin', 'Marketing', 'CS'];
-        $roleCounts = [$totalSuperAdmin, $totalAdmin, $totalLeadOperations, $totalCs];
+        $roleLabels = ['Super Admin', 'Admin', 'Lead Operations'];
+        $roleCounts = [$totalSuperAdmin, $totalAdmin, $totalLeadOperations];
         $roleTotal = max(1, array_sum($roleCounts));
 
         $hour = (int) now()->format('H');
@@ -535,10 +534,7 @@
                                 </div>
 
                                 <div class="role-row">
-                                    <div class="role-label">
-                                        <span class="role-dot role-marketing"></span>
-                                        <span>Marketing</span>
-                                    </div>
+
                                     <div class="role-bar">
                                         <div class="role-bar-fill role-marketing"
                                             style="width: {{ ($totalLeadOperations / $roleTotal) * 100 }}%"></div>
@@ -553,9 +549,9 @@
                                     </div>
                                     <div class="role-bar">
                                         <div class="role-bar-fill role-cs"
-                                            style="width: {{ ($totalCs / $roleTotal) * 100 }}%"></div>
+                                            style="width: {{ ($totalLeadOperations / $roleTotal) * 100 }}%"></div>
                                     </div>
-                                    <div class="fw-semibold">{{ $totalCs }}</div>
+                                    <div class="fw-semibold">{{ $totalLeadOperations }}</div>
                                 </div>
                             </div>
                         </div>

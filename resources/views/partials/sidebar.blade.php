@@ -97,15 +97,6 @@
                     </a>
                 </li>
 
-                {{-- Customers (LIST) --}}
-                <li class="sidebar-item {{ request()->is('customers*') ? 'active' : '' }}">
-                    <a href="{{ route('customers.index') }}" class="sidebar-link">
-                        <i class="bi bi-people-fill"></i>
-                        <span>Customers</span>
-                    </a>
-                </li>
-
-                {{-- Customers (LIST) --}}
                 <li class="sidebar-item {{ request()->is('products*') ? 'active' : '' }}">
                     <a href="{{ route('products.index') }}" class="sidebar-link">
                         <i class="bi bi-people-fill"></i>
@@ -130,28 +121,26 @@
             @endrole
 
             @hasanyrole('admin|lead-operations')
-                {{-- CRM --}}
-                <li class="sidebar-title">CRM</li>
-                {{-- Assign To --}}
-                <li class="sidebar-item {{ request()->is('assign*') ? 'active' : '' }}">
-                    <a href="{{ route('assign.index') }}" class="sidebar-link">
-                        <i class="bi bi-hand-index-fill"></i>
-                        <span>Assign To</span>
+                <li class="sidebar-title">Campaign</li>
+                <li class="sidebar-item {{ request()->is('Campaign Create*') ? 'active' : '' }}">
+                    <a href="{{ url('/campaigns/create') }}" class="sidebar-link">
+                        <i class="bi bi-clipboard2-pulse-fill"></i>
+                        <span>Campaign Create</span>
                     </a>
                 </li>
-
-                {{-- Stage / Progression --}}
-                <li class="sidebar-item {{ request()->is('stages*') ? 'active' : '' }}">
-                    <a href="{{ route('stages.index') }}" class="sidebar-link">
-                        <i class="bi bi-graph-up-arrow"></i>
-                        <span>Stage / Progression</span>
+                <li class="sidebar-item {{ request()->is('Campaign Active*') ? 'active' : '' }}">
+                    <a href="{{ url('/campaigns/active') }}" class="sidebar-link">
+                        <i class="bi bi-clipboard2-pulse-fill"></i>
+                        <span>Campaign Active</span>
+                    </a>
+                </li>
+                <li class="sidebar-item {{ request()->is('History Campaign*') ? 'active' : '' }}">
+                    <a href="{{ url('/campaigns/history') }}" class="sidebar-link">
+                        <i class="bi bi-clipboard2-pulse-fill"></i>
+                        <span>History Campaign</span>
                     </a>
                 </li>
             @endhasanyrole
-
-
-
-
 
             @hasanyrole('admin|lead-operations')
                 {{-- Report --}}
@@ -162,9 +151,7 @@
                         <span>Report Customers</span>
                     </a>
                 </li>
-            @endhasanyrole
 
-            @role('admin')
                 <li class="sidebar-item {{ request()->is('report-karyawan*') ? 'active' : '' }}">
                     <a href="{{ route('reports.employees') }}" class="sidebar-link">
                         <i class="bi bi-clipboard2-pulse-fill"></i>
@@ -185,29 +172,7 @@
                         <span>Setting Profile</span>
                     </a>
                 </li>
-            @endrole
-
-            {{-- ///////////////////////////////////////////////////////////////////////////// --}}
-            {{-- campaign --}}
-            <li class="sidebar-title">Campaign</li>
-            <li class="sidebar-item {{ request()->is('Campaign Create*') ? 'active' : '' }}">
-                <a href="{{ url('/campaigns/create') }}" class="sidebar-link">
-                    <i class="bi bi-clipboard2-pulse-fill"></i>
-                    <span>Campaign Create</span>
-                </a>
-            </li>
-            <li class="sidebar-item {{ request()->is('Campaign Active*') ? 'active' : '' }}">
-                <a href="{{ url('/campaigns/active') }}" class="sidebar-link">
-                    <i class="bi bi-clipboard2-pulse-fill"></i>
-                    <span>Campaign Active</span>
-                </a>
-            </li>
-            <li class="sidebar-item {{ request()->is('History Campaign*') ? 'active' : '' }}">
-                <a href="{{ url('/campaigns/history') }}" class="sidebar-link">
-                    <i class="bi bi-clipboard2-pulse-fill"></i>
-                    <span>History Campaign</span>
-                </a>
-            </li>
+            @endhasanyrole
 
             <li class="sidebar-title">Log & Activity</li>
 
