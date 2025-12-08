@@ -8,7 +8,7 @@
         <div>
             <h3>Tasks & To-Do</h3>
             <p class="text-muted mb-0">
-                Kelola tugas follow up, pengiriman proposal, dan PR lain agar tim tidak ada yang terlewat.
+                Kelola tugas follow up dan PR harian tim supaya tidak ada lead yang terlewat.
             </p>
         </div>
         <div class="text-end">
@@ -22,7 +22,7 @@
 
     <div class="page-content">
         <div class="row">
-            {{-- RINGKASAN TASK --}}
+            {{-- RINGKASAN TASK (FULL WIDTH, mirip Ringkasan Aktivitas) --}}
             <div class="col-12">
                 <div class="card mb-3">
                     <div class="card-body">
@@ -64,7 +64,7 @@
                 </div>
             </div>
 
-            {{-- FILTER & LIST --}}
+            {{-- FILTER & LIST TASK --}}
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
@@ -75,7 +75,7 @@
                                 <label class="form-label mb-1">Cari task</label>
                                 <input type="text" class="form-control form-control-sm" placeholder="Judul task, contact, campaign...">
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label class="form-label mb-1">Status</label>
                                 <select class="form-select form-select-sm">
                                     <option value="">Semua</option>
@@ -95,16 +95,36 @@
                                     <option>CS 1</option>
                                 </select>
                             </div>
-                            <div class="col-md-2 d-flex gap-2">
-                                <button type="submit" class="btn btn-brand btn-sm flex-grow-1">
-                                    <i class="bi bi-funnel-fill me-1"></i>Filter
-                                </button>
-                                <button type="button" class="btn btn-light btn-sm"
-                                        onclick="document.getElementById('form-filter-tasks').reset()">
-                                    Reset
-                                </button>
+                            <div class="col-md-3">
+                                <label class="form-label mb-1">Campaign</label>
+                                <select class="form-select form-select-sm">
+                                    <option value="">Semua campaign</option>
+                                    <option>Webinar Magang Nasional Batch 3</option>
+                                    <option>Smart Course - Promo Akhir Tahun</option>
+                                    <option>Depati Akademi - Kelas Laravel Intensif</option>
+                                    <option>Tidak terkait campaign</option>
+                                </select>
                             </div>
                         </form>
+
+                        {{-- LEGEND CAMPAIGN (SAMA DENGAN ACTIVITIES) --}}
+                        <div class="mb-2">
+                            <div class="d-flex flex-wrap align-items-center gap-3 small">
+                                <span class="text-muted me-1">Legenda campaign:</span>
+                                <span class="campaign-legend campaign-mag">
+                                    <span class="legend-dot"></span> Webinar Magang Nasional
+                                </span>
+                                <span class="campaign-legend campaign-smart">
+                                    <span class="legend-dot"></span> Smart Course - Promo Akhir Tahun
+                                </span>
+                                <span class="campaign-legend campaign-laravel">
+                                    <span class="legend-dot"></span> Depati Akademi - Kelas Laravel Intensif
+                                </span>
+                                <span class="campaign-legend campaign-none">
+                                    <span class="legend-dot"></span> Tanpa campaign
+                                </span>
+                            </div>
+                        </div>
 
                         {{-- QUICK TAB: TASK SAYA / SEMUA TASK --}}
                         <ul class="nav nav-pills mb-3 small">
@@ -123,17 +143,16 @@
                                     <tr>
                                         <th style="width: 32px;"></th>
                                         <th>Task</th>
-                                        <th>Relasi</th>
+                                        <th>Terkait</th>
                                         <th>Campaign</th>
-                                        <th>Priority</th>
-                                        <th>Due Date</th>
+                                        <th>Due</th>
                                         <th>PIC</th>
                                         <th>Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {{-- ROW 1 --}}
-                                    <tr class="task-row task-priority-high">
+                                    <tr class="task-row task-priority-high activity-campaign-mag">
                                         <td>
                                             <input type="checkbox" class="form-check-input">
                                         </td>
@@ -146,22 +165,18 @@
                                             </div>
                                         </td>
                                         <td class="small">
-                                            <div>Contact: <strong>Fathiya</strong></div>
+                                            Contact: <strong>Fathiya</strong>
                                         </td>
                                         <td class="small">
                                             <span class="campaign-pill campaign-mag">
                                                 Webinar Magang Nasional Batch 3
                                             </span>
                                         </td>
-                                        <td>
-                                            <span class="badge rounded-pill priority-high">High</span>
-                                        </td>
                                         <td class="small">
                                             <div>Hari ini</div>
                                             <div class="text-danger small">Overdue 3 jam</div>
                                         </td>
                                         <td class="small">
-                                            {{-- UI assign: badge + ikon ganti --}}
                                             <div class="d-flex align-items-center gap-1">
                                                 <span class="avatar-circle">RD</span>
                                                 <button class="btn btn-link btn-sm p-0 small text-muted"
@@ -173,12 +188,17 @@
                                             </div>
                                         </td>
                                         <td>
-                                            <span class="badge rounded-pill status-open">Open</span>
+                                            <button type="button"
+                                                    class="btn btn-sm px-2 py-1 rounded-pill status-badge status-open"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#modal-change-status">
+                                                Open
+                                            </button>
                                         </td>
                                     </tr>
 
                                     {{-- ROW 2 --}}
-                                    <tr class="task-row task-priority-medium">
+                                    <tr class="task-row task-priority-medium activity-campaign-smart">
                                         <td>
                                             <input type="checkbox" class="form-check-input">
                                         </td>
@@ -191,15 +211,12 @@
                                             </div>
                                         </td>
                                         <td class="small">
-                                            <div>Customer: <strong>PT Bonafide Media Pos</strong></div>
+                                            Customer: <strong>PT Bonafide Media Pos</strong>
                                         </td>
                                         <td class="small">
                                             <span class="campaign-pill campaign-smart">
                                                 Smart Course - Promo Akhir Tahun
                                             </span>
-                                        </td>
-                                        <td>
-                                            <span class="badge rounded-pill priority-medium">Medium</span>
                                         </td>
                                         <td class="small">
                                             <div>Besok</div>
@@ -217,12 +234,17 @@
                                             </div>
                                         </td>
                                         <td>
-                                            <span class="badge rounded-pill status-progress">In Progress</span>
+                                            <button type="button"
+                                                    class="btn btn-sm px-2 py-1 rounded-pill status-badge status-progress"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#modal-change-status">
+                                                In Progress
+                                            </button>
                                         </td>
                                     </tr>
 
                                     {{-- ROW 3 --}}
-                                    <tr class="task-row task-priority-low">
+                                    <tr class="task-row task-priority-low activity-campaign-none">
                                         <td>
                                             <input type="checkbox" class="form-check-input">
                                         </td>
@@ -235,15 +257,12 @@
                                             </div>
                                         </td>
                                         <td class="small">
-                                            <div>Segmen: <strong>Alumni Depati Akademi</strong></div>
+                                            Segmen: <strong>Alumni Depati Akademi</strong>
                                         </td>
                                         <td class="small">
                                             <span class="campaign-pill campaign-none">
                                                 Tidak terkait campaign
                                             </span>
-                                        </td>
-                                        <td>
-                                            <span class="badge rounded-pill priority-low">Low</span>
                                         </td>
                                         <td class="small">
                                             <div>7 hari lagi</div>
@@ -261,12 +280,17 @@
                                             </div>
                                         </td>
                                         <td>
-                                            <span class="badge rounded-pill status-open">Open</span>
+                                            <button type="button"
+                                                    class="btn btn-sm px-2 py-1 rounded-pill status-badge status-open"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#modal-change-status">
+                                                Open
+                                            </button>
                                         </td>
                                     </tr>
 
                                     {{-- ROW 4 (Done) --}}
-                                    <tr class="task-row task-priority-medium">
+                                    <tr class="task-row task-priority-medium activity-campaign-mag">
                                         <td>
                                             <input type="checkbox" class="form-check-input" checked>
                                         </td>
@@ -279,15 +303,12 @@
                                             </div>
                                         </td>
                                         <td class="small">
-                                            <div>List: <strong>Peserta Terdaftar Magang</strong></div>
+                                            List: <strong>Peserta Terdaftar Magang</strong>
                                         </td>
                                         <td class="small">
                                             <span class="campaign-pill campaign-mag">
                                                 Webinar Magang Nasional Batch 3
                                             </span>
-                                        </td>
-                                        <td>
-                                            <span class="badge rounded-pill priority-medium">Medium</span>
                                         </td>
                                         <td class="small">
                                             <div>2 hari lalu</div>
@@ -298,7 +319,12 @@
                                             </div>
                                         </td>
                                         <td>
-                                            <span class="badge rounded-pill status-done">Done</span>
+                                            <button type="button"
+                                                    class="btn btn-sm px-2 py-1 rounded-pill status-badge status-done"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#modal-change-status">
+                                                Done
+                                            </button>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -326,28 +352,12 @@
                     <div class="modal-body">
                         <div class="row g-3">
 
-                            {{-- JUDUL TASK --}}
-                            <div class="col-12">
+                            {{-- ROW 1: JUDUL TASK + ASSIGN KE --}}
+                            <div class="col-md-8">
                                 <label class="form-label">Judul Task <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control form-control-sm"
-                                       placeholder="Contoh: Follow up pembayaran Magang Nasional">
+                                    placeholder="Contoh: Follow up pembayaran Magang Nasional">
                             </div>
-
-                            {{-- PRIORITY & DUE DATE --}}
-                            <div class="col-md-4">
-                                <label class="form-label">Priority</label>
-                                <select class="form-select form-select-sm">
-                                    <option>Medium</option>
-                                    <option>High</option>
-                                    <option>Low</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Due Date</label>
-                                <input type="datetime-local" class="form-control form-control-sm">
-                            </div>
-
-                            {{-- ASSIGN KE (INI UI ASSIGN) --}}
                             <div class="col-md-4">
                                 <label class="form-label">Assign ke</label>
                                 <select class="form-select form-select-sm">
@@ -361,7 +371,58 @@
                                 </div>
                             </div>
 
-                            <hr class="mt-3 mb-1">
+                            {{-- ROW 2: PRIORITY & DUE DATE --}}
+                            <div class="col-md-4">
+                                <label class="form-label">Priority</label>
+                                <select class="form-select form-select-sm">
+                                    <option>Medium</option>
+                                    <option>High</option>
+                                    <option>Low</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Due Date</label>
+                                <input type="datetime-local" class="form-control form-control-sm">
+                            </div>
+                            <div class="col-md-4">
+                                {{-- Optional kolom kosong / nanti bisa diisi Reminders --}}
+                            </div>
+
+                            {{-- ROW 3: TERKAIT CAMPAIGN (FULL WIDTH, PILL BUTTON) --}}
+                            <div class="col-12">
+                                <label class="form-label">Terkait Campaign</label>
+                                <div class="d-flex flex-wrap gap-2 small js-campaign-selector">
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-secondary campaign-pill-btn active"
+                                            data-value="">
+                                        Tanpa campaign
+                                    </button>
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-primary campaign-pill-btn"
+                                            data-value="magang">
+                                        Webinar Magang Nasional Batch 3
+                                    </button>
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-warning campaign-pill-btn"
+                                            data-value="smart">
+                                        Smart Course - Promo Akhir Tahun
+                                    </button>
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-danger campaign-pill-btn"
+                                            data-value="laravel">
+                                        Depati Akademi - Kelas Laravel Intensif
+                                    </button>
+                                </div>
+                                <input type="hidden" name="campaign_id" id="campaign_id" value="">
+                                <div class="form-text small">
+                                    Pilih satu context campaign utama untuk task ini.
+                                </div>
+                            </div>
+
+                            {{-- GARIS PEMISAH --}}
+                            <div class="col-12">
+                                <hr class="mt-2 mb-1">
+                            </div>
 
                             {{-- TERKAIT DENGAN APA (RELATION) --}}
                             <div class="col-12">
@@ -382,7 +443,7 @@
                                     <div class="form-check">
                                         <input class="form-check-input" type="radio" name="task_related_type" id="task_rel_campaign">
                                         <label class="form-check-label" for="task_rel_campaign">
-                                            Campaign
+                                            Campaign saja
                                         </label>
                                     </div>
                                     <div class="form-check">
@@ -394,27 +455,18 @@
                                 </div>
                             </div>
 
-                            {{-- CONTACT / CUSTOMER INPUT --}}
-                            <div class="col-md-6">
+                            {{-- CONTACT / CUSTOMER INPUT (Select2 multiple) --}}
+                            <div class="col-12">
                                 <label class="form-label">Pilih Contact / Customer</label>
-                                <input type="text" class="form-control form-control-sm"
-                                       placeholder="Cari nama contact / customer...">
-                                <div class="form-text small">
-                                    Nanti dihubungkan ke master Contact / Customers.
-                                </div>
-                            </div>
-
-                            {{-- CAMPIGN SELECT (HUBUNGAN DENGAN CAMPAIGN) --}}
-                            <div class="col-md-6">
-                                <label class="form-label">Terkait Campaign</label>
-                                <select class="form-select form-select-sm">
-                                    <option value="">Tidak terkait campaign</option>
-                                    <option>Webinar Magang Nasional Batch 3</option>
-                                    <option>Smart Course - Promo Akhir Tahun</option>
-                                    <option>Depati Akademi - Kelas Laravel Intensif</option>
+                                <select class="form-select form-select-sm js-select2-contacts" multiple style="width: 100%;">
+                                    {{-- Nanti diisi dari backend / AJAX --}}
+                                    <option value="1" selected>Fathiya (Contact)</option>
+                                    <option value="2">PT Bonafide Media Pos (Customer)</option>
+                                    <option value="3">Alumni Batch 1 (Segmen)</option>
                                 </select>
                                 <div class="form-text small">
-                                    Jika task ini bagian dari campaign tertentu, pilih di sini.
+                                    Bisa pilih lebih dari satu (misalnya beberapa peserta dalam satu follow up).
+                                    Nanti gunakan <strong>Select2</strong> / autocomplete untuk pencarian cepat.
                                 </div>
                             </div>
 
@@ -422,10 +474,10 @@
                             <div class="col-12">
                                 <label class="form-label">Catatan / Instruksi</label>
                                 <textarea class="form-control form-control-sm" rows="3"
-                                          placeholder="Detail yang perlu dilakukan, skrip telepon, link dokumen, dll."></textarea>
+                                        placeholder="Detail yang perlu dilakukan, skrip telepon, link dokumen, dll."></textarea>
                             </div>
 
-                            {{-- OPSI SINKRON KE ACTIVITIES NANTI (INFO SAJA) --}}
+                            {{-- OPSI SINKRON KE ACTIVITIES --}}
                             <div class="col-12">
                                 <div class="form-check small">
                                     <input class="form-check-input" type="checkbox" id="task_auto_activity" checked>
@@ -448,6 +500,7 @@
             </div>
         </div>
     </div>
+
 
     {{-- MODAL: GANTI ASSIGNEE (UI ASSIGN CEPAT DARI LIST) --}}
     <div class="modal fade" id="modal-change-assignee" tabindex="-1" aria-labelledby="modalChangeAssigneeLabel" aria-hidden="true">
@@ -490,7 +543,60 @@
         </div>
     </div>
 
-    {{-- CSS ringan khusus Tasks --}}
+    {{-- MODAL: UBAH STATUS TASK + CATATAN (LOG KE ACTIVITIES) --}}
+    <div class="modal fade" id="modal-change-status" tabindex="-1" aria-labelledby="modalChangeStatusLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalChangeStatusLabel">Ubah Status Task</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <form action="javascript:void(0)" method="POST">
+                    @csrf
+                    <div class="modal-body">
+                        <div class="mb-2 small">
+                            <div class="text-muted">Task:</div>
+                            <div class="fw-semibold">
+                                {{-- Nanti bisa diisi dinamis pake JS --}}
+                                Follow up pembayaran Magang Nasional
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Status baru</label>
+                            <select class="form-select form-select-sm">
+                                <option>Open</option>
+                                <option>In Progress</option>
+                                <option selected>Done</option>
+                                <option>Cancelled</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Catatan perubahan</label>
+                            <textarea class="form-control form-control-sm" rows="2"
+                                      placeholder="Contoh: Sudah dihubungi, konfirmasi transfer besok pagi."></textarea>
+                        </div>
+
+                        <div class="form-check small">
+                            <input class="form-check-input" type="checkbox" id="logStatusToActivity" checked>
+                            <label class="form-check-label" for="logStatusToActivity">
+                                Catat perubahan ini ke <strong>Activities</strong>.
+                            </label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-brand btn-sm">
+                            <i class="bi bi-check2-circle me-1"></i>Simpan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {{-- CSS ringan Tasks, reuse dari Activities supaya konsisten --}}
     <style>
         .task-row.task-priority-high {
             border-left: 3px solid rgba(220, 53, 69, 0.8);
@@ -501,17 +607,10 @@
         .task-row.task-priority-low {
             border-left: 3px solid rgba(25, 135, 84, 0.7);
         }
-        .priority-high {
-            background-color: rgba(220, 53, 69, 0.08);
-            color: #dc3545;
-        }
-        .priority-medium {
-            background-color: rgba(255, 193, 7, 0.08);
-            color: #fd7e14;
-        }
-        .priority-low {
-            background-color: rgba(25, 135, 84, 0.08);
-            color: #198754;
+
+        .status-badge {
+            border: 0;
+            font-size: 0.75rem;
         }
 
         .status-open {
@@ -527,6 +626,38 @@
             color: #198754;
         }
 
+        .campaign-legend {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 999px;
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .campaign-mag .legend-dot {
+            background-color: #2e65b7;
+        }
+
+        .campaign-smart .legend-dot {
+            background-color: #f39c12;
+        }
+
+        .campaign-laravel .legend-dot {
+            background-color: #c0392b;
+        }
+
+        .campaign-none .legend-dot {
+            background-color: #6c757d;
+        }
+
         .campaign-pill {
             display: inline-flex;
             align-items: center;
@@ -539,16 +670,25 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
+
         .campaign-pill.campaign-mag {
             background-color: rgba(46, 101, 183, 0.06);
             border-color: rgba(46, 101, 183, 0.25);
             color: #2e65b7;
         }
+
         .campaign-pill.campaign-smart {
             background-color: rgba(243, 156, 18, 0.06);
             border-color: rgba(243, 156, 18, 0.25);
             color: #e67e22;
         }
+
+        .campaign-pill.campaign-laravel {
+            background-color: rgba(192, 57, 43, 0.06);
+            border-color: rgba(192, 57, 43, 0.25);
+            color: #c0392b;
+        }
+
         .campaign-pill.campaign-none {
             background-color: rgba(108, 117, 125, 0.04);
             border-color: rgba(108, 117, 125, 0.25);
@@ -570,5 +710,83 @@
         .avatar-circle.avatar-muted {
             background-color: #6c757d;
         }
+
+        /* Campaign selector pills (modal tambah task) */
+        .js-campaign-selector .btn.active {
+            /* Bootstrap sudah kasih style active, ini cuma penguat */
+            box-shadow: 0 0 0 0.1rem rgba(13, 110, 253, 0.15);
+        }
+        /* Campaign selector pills di modal */
+        .campaign-pill-btn {
+            border-radius: 999px;
+            font-size: 0.75rem;
+            padding-inline: 0.75rem;
+        }
+    
+        .js-campaign-selector .campaign-pill-btn.active {
+            box-shadow: 0 0 0 0.1rem rgba(13, 110, 253, 0.15);
+        }
+    
+        /* Styling dasar Select2 multiple biar nyaru dengan form-control-sm */
+        .select2-container--default .select2-selection--multiple {
+            min-height: calc(1.5em + .5rem + 2px);
+            border-color: #ced4da;
+            border-radius: 0.25rem;
+            padding-top: 0.125rem;
+            padding-bottom: 0.125rem;
+            font-size: .875rem;
+        }
+    
+        .select2-container--default .select2-selection--multiple .select2-selection__choice {
+            border-radius: 999px;
+            padding: 0 0.5rem;
+            margin-top: 0.15rem;
+        }
+    
+        .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+            margin-right: 0.25rem;
+        }
     </style>
+    
 @endsection
+
+@push('scripts')
+    {{-- Kalau pakai Select2, pastikan JS-nya sudah dimuat sekali di layout.master --}}
+    {{-- <script src="{{ asset('path/to/select2.min.js') }}"></script> --}}
+
+    <script>
+        (function () {
+            // ========== TOGGLE CAMPAIGN PILL -> #campaign_id ==========
+            const campaignButtons = document.querySelectorAll('#modal-task .js-campaign-selector .campaign-pill-btn');
+            const campaignInput   = document.getElementById('campaign_id');
+
+            if (campaignButtons.length && campaignInput) {
+                campaignButtons.forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        // hapus active di semua
+                        campaignButtons.forEach(function (b) {
+                            b.classList.remove('active');
+                        });
+
+                        // kasih active di yang diklik
+                        this.classList.add('active');
+
+                        // set value hidden input
+                        const val = this.getAttribute('data-value') || '';
+                        campaignInput.value = val;
+                    });
+                });
+            }
+
+            // ========== INIT SELECT2 UNTUK PILIH CONTACT / CUSTOMER ==========
+            // pastikan jQuery & Select2 sudah ada
+            if (window.jQuery && typeof $.fn.select2 !== 'undefined') {
+                $('.js-select2-contacts').select2({
+                    placeholder: 'Cari contact / customer...',
+                    width: '100%',
+                    dropdownParent: $('#modal-task') // penting supaya dropdown nggak keluar modal
+                });
+            }
+        })();
+    </script>
+@endpush
