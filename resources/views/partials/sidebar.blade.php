@@ -175,6 +175,12 @@
             @endhasanyrole
 
             <li class="sidebar-title">Log & Activity</li>
+            <li class="sidebar-item {{ request()->is('tasks*') ? 'active' : '' }}">
+                <a href="{{ url('/tasks') }}" class="sidebar-link">
+                    <i class="bi bi-check2-square"></i>
+                    <span>Tasks</span>
+                </a>
+            </li>
 
             <li class="sidebar-item {{ request()->is('activities*') ? 'active' : '' }}">
                 <a href="{{ url('/activities') }}" class="sidebar-link">
@@ -182,6 +188,7 @@
                     <span>Activities</span>
                 </a>
             </li>
+
             {{-- ///////////////////////////////////////////////////////////////////////////// --}}
 
 
