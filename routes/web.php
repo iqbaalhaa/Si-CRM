@@ -9,6 +9,7 @@ use App\Http\Controllers\CampaignController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ActivitiesController;
+use App\Http\Controllers\TaskController;
 
 // =========================
 // Guest only
@@ -344,6 +345,8 @@ Route::middleware('auth')->group(function () {
     // /////////////////////////////////////////////////////////////////////
     Route::get('/activities', [ActivitiesController::class, 'index'])
         ->name('activities.index');
+    Route::get('/tasks', [TaskController::class, 'index'])
+        ->name('tasks.index');
 
     // /////////////////////////////////////////////////////////////////////
 });
