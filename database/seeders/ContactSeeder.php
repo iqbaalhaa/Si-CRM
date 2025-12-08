@@ -14,22 +14,29 @@ class ContactSeeder extends Seeder
 {
     public function run(): void
     {
-        // Pakai company_id 3 secara default
-        $companyId = 3;
+        // Tentukan company_id secara dinamis: pakai perusahaan pertama yang ada
+        $companyId = \App\Models\Perusahaan::query()->value('id') ?? 1;
 
-        // Pastikan user yang dipakai juga dari company_id 3 (fallback kalau kolom company_id belum ada)
+        // Pastikan user yang dipakai juga dari company_id yang sama (mendukung skema baru via profile)
         $users = [];
-        if (Schema::hasColumn('users', 'company_id')) {
+        if (Schema::hasTable('profiles') && Schema::hasColumn('profiles', 'company_id')) {
+            $users = User::whereHas('profile', function ($q) use ($companyId) {
+                $q->where('company_id', $companyId);
+            })->pluck('id')->all();
+        } elseif (Schema::hasColumn('users', 'company_id')) {
             $users = User::where('company_id', $companyId)->pluck('id')->all();
         } else {
             $users = User::pluck('id')->all();
         }
         if (empty($users)) {
-            $payload = [];
-            if (Schema::hasColumn('users', 'company_id')) {
-                $payload['company_id'] = $companyId;
+            // Buat satu user dan profile agar terhubung ke company
+            $user = User::factory()->create();
+            if (Schema::hasTable('profiles') && Schema::hasColumn('profiles', 'company_id')) {
+                \App\Models\Profile::firstOrCreate(
+                    ['user_id' => $user->id],
+                    ['company_id' => $companyId]
+                );
             }
-            $user = User::factory()->create($payload);
             $users = [$user->id];
         }
 
