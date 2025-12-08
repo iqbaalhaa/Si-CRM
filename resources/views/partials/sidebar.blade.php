@@ -208,6 +208,15 @@
                     <span>History Campaign</span>
                 </a>
             </li>
+
+            <li class="sidebar-title">Log & Activity</li>
+
+            <li class="sidebar-item {{ request()->is('activities*') ? 'active' : '' }}">
+                <a href="{{ url('/activities') }}" class="sidebar-link">
+                    <i class="bi bi-clock-history"></i>
+                    <span>Activities</span>
+                </a>
+            </li>
             {{-- ///////////////////////////////////////////////////////////////////////////// --}}
 
 

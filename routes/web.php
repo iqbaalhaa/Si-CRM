@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\CampaignController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ActivitiesController;
 
 // =========================
 // Guest only
@@ -339,4 +340,10 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/products-import-xlsx', [ProductController::class, 'importXlsx'])
         ->name('products.import.xlsx');
+
+    // /////////////////////////////////////////////////////////////////////
+    Route::get('/activities', [ActivitiesController::class, 'index'])
+        ->name('activities.index');
+
+    // /////////////////////////////////////////////////////////////////////
 });
