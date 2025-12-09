@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('campaigns', function (Blueprint $table) {
             $table->id();
-            $table->string('nama');
+            $table->string('name');
             $table->dateTime('from');
             $table->dateTime('to');
             $table->boolean('is_active')->default(true);
