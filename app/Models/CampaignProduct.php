@@ -20,4 +20,9 @@ class CampaignProduct extends Model
     {
         return $this->belongsTo(Product::class);
     }
+
+    public function productContacts()
+    {
+        return $this->hasMany(CampaignProductContact::class);
+    }
 }

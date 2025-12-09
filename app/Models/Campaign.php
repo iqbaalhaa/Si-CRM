@@ -45,4 +45,9 @@ class Campaign extends Model
     {
         return $this->hasMany(CampaignContact::class);
     }
+    
+    public function productContacts()
+    {
+        return $this->hasManyThrough(CampaignProductContact::class, CampaignProduct::class);
+    }
 }

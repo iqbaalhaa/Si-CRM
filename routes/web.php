@@ -300,6 +300,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/campaigns/create', [CampaignController::class, 'create'])
         ->name('campaign.create');
 
+    Route::post('/campaigns', [CampaignController::class, 'store'])
+        ->name('campaign.store');
+
     Route::get('/campaigns/active', [CampaignController::class, 'active'])
         ->name('campaign.active');
 
@@ -307,7 +310,20 @@ Route::middleware('auth')->group(function () {
         ->name('campaign.history');
 
     Route::get('/campaigns/{id}', [CampaignController::class, 'show'])
+        ->whereNumber('id')
         ->name('campaign.show');
+
+    Route::get('/campaigns/{id}/edit', [CampaignController::class, 'edit'])
+        ->whereNumber('id')
+        ->name('campaign.edit');
+
+    Route::put('/campaigns/{id}', [CampaignController::class, 'update'])
+        ->whereNumber('id')
+        ->name('campaign.update');
+
+    Route::delete('/campaigns/{id}', [CampaignController::class, 'destroy'])
+        ->whereNumber('id')
+        ->name('campaign.destroy');
     // /////////////////////////////////////////////////////////////////////////////
 
     // -------------------------

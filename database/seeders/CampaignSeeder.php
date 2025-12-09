@@ -6,6 +6,7 @@ use App\Models\Campaign;
 use App\Models\CampaignContact;
 use App\Models\CampaignContactHistory;
 use App\Models\CampaignProduct;
+use App\Models\CampaignProductContact;
 use App\Models\CampaignTeam;
 use App\Models\Contact;
 use App\Models\Product;
@@ -17,8 +18,14 @@ class CampaignSeeder extends Seeder
 {
     public function run(): void
     {
-        $companyId = 3;
+        // Loop untuk setiap company (1-5)
+        for ($companyId = 1; $companyId <= 5; $companyId++) {
+            $this->seedCampaignsForCompany($companyId);
+        }
+    }
 
+    private function seedCampaignsForCompany($companyId)
+    {
         $users = User::whereHas('profile', fn ($q) => $q->where('company_id', $companyId))->pluck('id')->all();
         if (empty($users)) {
             $user = User::factory()->create();
@@ -30,18 +37,17 @@ class CampaignSeeder extends Seeder
         $contacts = Contact::where('company_id', $companyId)->limit(50)->pluck('id')->all();
 
         if (empty($products) || empty($contacts)) {
-            $this->command->warn('Produk atau Contact tidak cukup. CampaignSeeder dilewati.');
+            $this->command->warn("Produk atau Contact untuk company $companyId tidak cukup. Dilewati.");
             return;
         }
 
         // Campaign 1: Summer Promo
         $campaign1 = Campaign::updateOrCreate(
-            ['name' => 'Summer Promo 2025'],
+            ['name' => "Summer Promo 2025 - Company $companyId", 'company_id' => $companyId],
             [
                 'from' => now()->subMonths(2),
                 'to' => now()->addMonths(1),
                 'is_active' => true,
-                'company_id' => $companyId,
                 'created_by' => Arr::random($users),
             ]
         );
@@ -53,7 +59,8 @@ class CampaignSeeder extends Seeder
             );
         }
 
-        foreach (array_slice($products, 0, 2) as $productId) {
+        $campaign1Products = array_slice($products, 0, 2);
+        foreach ($campaign1Products as $productId) {
             CampaignProduct::updateOrCreate(
                 ['campaign_id' => $campaign1->id, 'product_id' => $productId],
                 []
@@ -74,16 +81,22 @@ class CampaignSeeder extends Seeder
                 ['campaign_contact_id' => $cc->id, 'status' => $cc->status],
                 ['notes' => 'Initial status', 'changed_by' => Arr::random($users)]
             );
+
+            foreach (CampaignProduct::where('campaign_id', $campaign1->id)->pluck('id') as $cpId) {
+                CampaignProductContact::updateOrCreate(
+                    ['campaign_product_id' => $cpId, 'contact_id' => $contactId],
+                    []
+                );
+            }
         }
 
         // Campaign 2: Year-End Sale
         $campaign2 = Campaign::updateOrCreate(
-            ['name' => 'Year-End Sale 2025'],
+            ['name' => "Year-End Sale 2025 - Company $companyId", 'company_id' => $companyId],
             [
                 'from' => now()->addMonths(6),
                 'to' => now()->addMonths(8),
                 'is_active' => false,
-                'company_id' => $companyId,
                 'created_by' => Arr::random($users),
             ]
         );
@@ -95,7 +108,8 @@ class CampaignSeeder extends Seeder
             );
         }
 
-        foreach (array_slice($products, 2, 3) as $productId) {
+        $campaign2Products = array_slice($products, 2, 3);
+        foreach ($campaign2Products as $productId) {
             CampaignProduct::updateOrCreate(
                 ['campaign_id' => $campaign2->id, 'product_id' => $productId],
                 []
@@ -116,16 +130,22 @@ class CampaignSeeder extends Seeder
                 ['campaign_contact_id' => $cc->id, 'status' => $cc->status],
                 ['notes' => 'Initial status', 'changed_by' => Arr::random($users)]
             );
+
+            foreach (CampaignProduct::where('campaign_id', $campaign2->id)->pluck('id') as $cpId) {
+                CampaignProductContact::updateOrCreate(
+                    ['campaign_product_id' => $cpId, 'contact_id' => $contactId],
+                    []
+                );
+            }
         }
 
         // Campaign 3: Product Launch
         $campaign3 = Campaign::updateOrCreate(
-            ['name' => 'Product Launch - CRM Enterprise'],
+            ['name' => "Product Launch - CRM Enterprise - Company $companyId", 'company_id' => $companyId],
             [
                 'from' => now(),
                 'to' => now()->addMonths(3),
                 'is_active' => true,
-                'company_id' => $companyId,
                 'created_by' => Arr::random($users),
             ]
         );
@@ -163,6 +183,15 @@ class CampaignSeeder extends Seeder
                     'changed_by' => Arr::random($users),
                 ]);
             }
+
+            foreach (CampaignProduct::where('campaign_id', $campaign3->id)->pluck('id') as $cpId) {
+                CampaignProductContact::updateOrCreate(
+                    ['campaign_product_id' => $cpId, 'contact_id' => $contactId],
+                    []
+                );
+            }
         }
+
+        $this->command->info("Campaign seeded untuk company $companyId");
     }
 }
