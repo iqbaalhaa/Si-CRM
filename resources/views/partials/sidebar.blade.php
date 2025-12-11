@@ -165,13 +165,14 @@
                         <span>Report Settings</span>
                     </a>
                 </li>
+                @role('admin')
                 <li class="sidebar-item {{ request()->is('setting-menu*') ? 'active' : '' }}">
-                    {{-- asumsi belum ada named route untuk setting-menu --}}
                     <a href="{{ url('/setting-menu') }}" class="sidebar-link">
                         <i class="bi bi-gear-fill"></i>
                         <span>Setting Profile</span>
                     </a>
                 </li>
+                @endrole
             @endhasanyrole
 
             <li class="sidebar-title">Log & Activity</li>

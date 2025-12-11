@@ -172,6 +172,12 @@ Route::middleware('auth')->group(function () {
 
         Route::post('/contact', [\App\Http\Controllers\ContactController::class, 'store'])
             ->name('contact.store');
+
+        Route::get('/setting-menu', [\App\Http\Controllers\ProfileController::class, 'editSelf'])
+            ->name('settings.profile');
+
+        Route::post('/setting-menu', [\App\Http\Controllers\ProfileController::class, 'updateSelf'])
+            ->name('settings.profile.update');
     });
 
     // Contacts (RESTful)

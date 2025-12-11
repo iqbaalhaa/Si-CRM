@@ -52,7 +52,9 @@ class CustomerController extends Controller
         $customer = Customer::create($data);
 
         // cari semua admin dalam company yang sama
-        $pics = User::where('company_id', auth()->user()->company_id)
+        $pics = User::whereHas('profile', function ($q) {
+                $q->where('company_id', auth()->user()->company_id);
+            })
             ->role(['admin', 'marketing', 'cs'])
             ->get();
 
@@ -173,7 +175,9 @@ class CustomerController extends Controller
             ->get();
 
         // CS / Marketing juga difilter berdasarkan company yang sama
-        $assignableUsers = User::where('company_id', $user->company_id)
+        $assignableUsers = User::whereHas('profile', function ($q) use ($user) {
+                $q->where('company_id', $user->company_id);
+            })
             ->role(['cs', 'marketing'])
             ->orderBy('name')
             ->get();
@@ -202,7 +206,9 @@ class CustomerController extends Controller
         // Kalau diisi, pastikan user yang dipilih juga 1 company & punya role cs/marketing
         $assignedUser = null;
         if (! empty($validated['assigned_to_id'])) {
-            $assignedUser = User::where('company_id', $user->company_id)
+            $assignedUser = User::whereHas('profile', function ($q) use ($user) {
+                    $q->where('company_id', $user->company_id);
+                })
                 ->role(['cs', 'marketing'])
                 ->findOrFail($validated['assigned_to_id']);
         }

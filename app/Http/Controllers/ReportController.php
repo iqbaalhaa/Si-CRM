@@ -32,11 +32,13 @@ class ReportController extends Controller
         $companyId = Auth::user()->company_id;
         $company = Perusahaan::find($companyId);
 
-        // list karyawan yang mau kamu tampilkan di halaman report karyawan
-        $employees = User::where('company_id', $companyId)
+        $employees = User::whereHas('profile', function ($q) use ($companyId) {
+                $q->where('company_id', $companyId);
+            })
             ->whereHas('roles', function ($q) {
                 $q->whereIn('name', ['marketing', 'cs']);
             })
+            ->with('profile')
             ->get();
 
         return view('pages.reports.employees', compact('company', 'employees'));
