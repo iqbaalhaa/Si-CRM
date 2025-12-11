@@ -51,11 +51,11 @@ class CustomerController extends Controller
         // simpan dan ambil model customer-nya
         $customer = Customer::create($data);
 
-        // cari semua admin dalam company yang sama
+        // cari semua admin/lead-operations dalam company yang sama
         $pics = User::whereHas('profile', function ($q) {
                 $q->where('company_id', auth()->user()->company_id);
             })
-            ->role(['admin', 'marketing', 'cs'])
+            ->role(['admin', 'lead-operations'])
             ->get();
 
         // kirim notif ke semua admin
@@ -174,11 +174,11 @@ class CustomerController extends Controller
             ->latest()
             ->get();
 
-        // CS / Marketing juga difilter berdasarkan company yang sama
+        // Lead Operations juga difilter berdasarkan company yang sama
         $assignableUsers = User::whereHas('profile', function ($q) use ($user) {
                 $q->where('company_id', $user->company_id);
             })
-            ->role(['cs', 'marketing'])
+            ->role(['lead-operations'])
             ->orderBy('name')
             ->get();
 
@@ -203,13 +203,13 @@ class CustomerController extends Controller
         $oldAssigned = $customer->assignedTo;
         $oldAssignedId = $oldAssigned?->id;
 
-        // Kalau diisi, pastikan user yang dipilih juga 1 company & punya role cs/marketing
+        // Kalau diisi, pastikan user yang dipilih juga 1 company & punya role lead-operations
         $assignedUser = null;
         if (! empty($validated['assigned_to_id'])) {
             $assignedUser = User::whereHas('profile', function ($q) use ($user) {
                     $q->where('company_id', $user->company_id);
                 })
-                ->role(['cs', 'marketing'])
+                ->role(['lead-operations'])
                 ->findOrFail($validated['assigned_to_id']);
         }
 
