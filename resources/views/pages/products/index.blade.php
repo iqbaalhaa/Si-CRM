@@ -72,14 +72,20 @@
                             class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2 mb-3">
                             <div>
                                 <h5 class="mb-0">Daftar Produk</h5>
-                                <small class="text-muted">
-                                    Centang beberapa produk untuk melakukan update status aktif secara massal,
-                                    atau gunakan menu import / export.
-                                </small>
+                                <small class="text-muted">Centang beberapa produk lalu gunakan aksi massal untuk
+                                    aktif/nonaktif.</small>
                             </div>
 
-                            <div class="d-flex flex-wrap gap-2">
-                                {{-- Import / Export dropdown --}}
+                            <div class="d-flex flex-wrap gap-2 align-items-center">
+                                <div class="btn-group btn-group-sm me-2" role="group" aria-label="Filter produk">
+                                    <button type="button" class="btn btn-outline-primary active filter-products"
+                                        data-filter="all">All</button>
+                                    <button type="button" class="btn btn-outline-success filter-products"
+                                        data-filter="active">Active</button>
+                                    <button type="button" class="btn btn-outline-secondary filter-products"
+                                        data-filter="inactive">Inactive</button>
+                                </div>
+
                                 <div class="dropdown">
                                     <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button"
                                         data-bs-toggle="dropdown">
@@ -160,7 +166,6 @@
                         <form id="massUpdateForm" method="POST" action="{{ route('products.mass-update') }}">
                             @csrf
                             <input type="hidden" name="is_active" id="mass_is_active">
-                            <input type="hidden" name="base_price" id="mass_base_price">
 
                             {{-- Toolbar mass action --}}
                             <div class="d-flex flex-wrap align-items-center justify-content-between mb-2 gap-2">
@@ -209,7 +214,7 @@
                                                     : $product->details;
                                                 $detailPreview = $details->take(3);
                                             @endphp
-                                            <tr>
+                                            <tr data-active="{{ $product->is_active ? 1 : 0 }}">
                                                 <td class="text-center">
                                                     <input type="checkbox" name="ids[]" value="{{ $product->id }}"
                                                         class="row-check">
@@ -250,14 +255,30 @@
                                                 </td>
                                                 <td class="text-nowrap text-center">
                                                     <button type="button"
-                                                        class="btn btn-sm btn-secondary btn-edit-product"
+                                                        class="btn btn-sm btn-outline-info btn-show-product"
+                                                        data-bs-toggle="modal" data-bs-target="#showProductModal"
+                                                        data-id="{{ $product->id }}" data-name="{{ $product->name }}"
+                                                        data-base_price="{{ $product->base_price }}"
+                                                        data-description="{{ $product->description }}"
+                                                        data-photo_path="{{ $product->photo_path }}"
+                                                        data-is_active="{{ $product->is_active ? 1 : 0 }}"
+                                                        data-created_at="{{ optional($product->created_at)->format('d M Y H:i') }}"
+                                                        data-updated_at="{{ optional($product->updated_at)->format('d M Y H:i') }}"
+                                                        data-details="{{ json_encode($product->details->toArray()) }}"
+                                                        title="Lihat Detail">
+                                                        <i class="bi bi-eye"></i>
+                                                    </button>
+
+                                                    <button type="button"
+                                                        class="btn btn-sm btn-outline-secondary btn-edit-product"
                                                         data-bs-toggle="modal" data-bs-target="#editProductModal"
                                                         data-id="{{ $product->id }}" data-name="{{ $product->name }}"
                                                         data-base_price="{{ $product->base_price }}"
                                                         data-description="{{ $product->description }}"
                                                         data-photo_path="{{ $product->photo_path }}"
                                                         data-is_active="{{ $product->is_active ? 1 : 0 }}"
-                                                        data-details="{{ e($product->details->toJson()) }}">
+                                                        data-details="{{ json_encode($product->details->toArray()) }}"
+                                                        title="Edit">
                                                         <i class="bi bi-pencil-square"></i>
                                                     </button>
 
@@ -266,8 +287,8 @@
                                                         data-product-name="{{ $product->name }}">
                                                         @csrf
                                                         @method('DELETE')
-                                                        <button type="submit" class="btn btn-sm btn-warning"
-                                                            title="Hapus Produk Ini?">
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                            title="Pindahkan ke Sampah">
                                                             <i class="bi bi-trash"></i>
                                                         </button>
                                                     </form>
@@ -289,6 +310,8 @@
     @include('pages.products.create')
     {{-- Modal Edit Product --}}
     @include('pages.products.edit')
+    {{-- Modal Show Product --}}
+    @include('pages.products.show')
 @endsection
 
 @push('styles')
@@ -311,7 +334,7 @@
                 ]
             });
 
-            // Sinkron delimiter CSV
+            // CSV delimiter sync
             $('#csv-delimiter-select').on('change', function() {
                 $('#csv-delimiter-input').val($(this).val());
             });
@@ -321,13 +344,19 @@
                 $('.row-check').prop('checked', this.checked);
             });
 
-            $('.row-check').on('change', function() {
-                if (!this.checked) {
-                    $('#check-all').prop('checked', false);
-                }
+            // Filter buttons (All / Active / Inactive)
+            $('.filter-products').on('click', function() {
+                $('.filter-products').removeClass('active');
+                $(this).addClass('active');
+                const filter = $(this).data('filter');
+                $('#table-products tbody tr').each(function() {
+                    const active = $(this).data('active') ? 'active' : 'inactive';
+                    if (filter === 'all' || filter === active) $(this).show();
+                    else $(this).hide();
+                });
             });
 
-            // Apply bulk action
+            // Apply bulk action (only activate/deactivate)
             $('#btn-apply-bulk').on('click', function() {
                 const action = $('#bulk-action').val();
                 const checked = $('.row-check:checked');
@@ -336,130 +365,23 @@
                     alert('Pilih aksi massal terlebih dahulu.');
                     return;
                 }
-
                 if (checked.length === 0) {
                     alert('Pilih minimal satu produk.');
                     return;
                 }
 
-                // Set payload mass update
-                $('#mass_is_active').val('');
-                $('#mass_base_price').val('');
+                const isActive = action === 'activate' ? 1 : 0;
+                if (!confirm('Terapkan aksi massal ke produk terpilih?')) return;
 
-                if (action === 'activate') {
-                    $('#mass_is_active').val(1);
-                } else if (action === 'deactivate') {
-                    $('#mass_is_active').val(0);
-                }
-
-                // Kalau mau extend: set_base_price, dsb.
-
-                // Konfirmasi
-                if (window.Swal) {
-                    Swal.fire({
-                        icon: 'question',
-                        title: 'Terapkan aksi massal?',
-                        text: 'Aksi ini akan mengubah beberapa produk sekaligus.',
-                        showCancelButton: true,
-                        confirmButtonText: 'Ya, lanjutkan',
-                        cancelButtonText: 'Batal'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            $('#massUpdateForm').submit();
-                        }
-                    });
-                } else {
-                    if (confirm('Terapkan aksi massal ke produk terpilih?')) {
-                        $('#massUpdateForm').submit();
-                    }
-                }
+                $('#mass_is_active').val(isActive);
+                $('#massUpdateForm').submit();
             });
 
-            // Konfirmasi delete single product (soft delete)
+            // Confirm soft delete
             $('#table-products').on('submit', '.product-delete-form', function(e) {
                 e.preventDefault();
                 const form = this;
-                const productName = $(form).data('product-name') || 'produk ini';
-
-                if (window.Swal) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Pindahkan produk ke Sampah?',
-                        text: `Produk "${productName}" akan dipindahkan ke sampah dan dapat dipulihkan nanti.`,
-                        showCancelButton: true,
-                        confirmButtonText: 'Ya, pindahkan',
-                        cancelButtonText: 'Batal',
-                        confirmButtonColor: '#f59e0b' // amber / warning
-                    }).then((result) => {
-                        if (result.isConfirmed) form.submit();
-                    });
-                } else {
-                    if (confirm(`Pindahkan ${productName} ke sampah?`)) {
-                        form.submit();
-                    }
-                }
-            });
-
-            // Edit product button click
-            $('.btn-edit-product').on('click', function() {
-                const button = $(this);
-                const modal = $('#editProductModal');
-
-                // Get data attributes from button
-                const id = button.data('id');
-                const name = button.data('name');
-                const base_price = button.data('base_price');
-                const description = button.data('description');
-                const photo_path = button.data('photo_path');
-                const is_active = button.data('is_active');
-                const details = button.data('details');
-
-                // Set form action to update route
-                const form = modal.find('form');
-                form.attr('action', '{{ url('products') }}/' + id);
-
-                // Fill in the form fields
-                modal.find('input[name="name"]').val(name);
-                modal.find('input[name="base_price"]').val(base_price);
-                modal.find('textarea[name="description"]').val(description);
-                modal.find('input[name="photo_path"]').val(photo_path);
-                modal.find('select[name="is_active"]').val(is_active);
-
-                // Clear existing detail rows
-                const detailsContainer = modal.find('.detail-rows');
-                detailsContainer.empty();
-
-                // Add detail rows from product data
-                if (details && details.length > 0) {
-                    details.forEach((detail, index) => {
-                        const row = `
-                            <div class="row g-2 align-items-center mb-2">
-                                <div class="col">
-                                    <input type="text" name="details[${index}][label]" class="form-control form-control-sm"
-                                        placeholder="Label" value="${detail.label}" required>
-                                </div>
-                                <div class="col">
-                                    <input type="text" name="details[${index}][value]" class="form-control form-control-sm"
-                                        placeholder="Value" value="${detail.value}" required>
-                                </div>
-                                <div class="col-auto">
-                                    <button type="button" class="btn btn-sm btn-danger remove-detail-row">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        `;
-                        detailsContainer.append(row);
-                    });
-                }
-
-                // Show the modal
-                modal.modal('show');
-            });
-
-            // Remove detail row
-            $(document).on('click', '.remove-detail-row', function() {
-                $(this).closest('.row').remove();
+                if (confirm('Pindahkan produk ke sampah?')) form.submit();
             });
         });
     </script>

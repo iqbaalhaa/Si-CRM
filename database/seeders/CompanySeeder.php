@@ -9,22 +9,31 @@ class CompanySeeder extends Seeder
 {
     public function run(): void
     {
-        Perusahaan::create([
-            'name' => 'PT Contoh Makmur',
-            'code' => 'CM01',
-            'address' => 'Jl. Mawar No. 123, Bandung',
-            'phone' => '081234567890',
-            'email' => 'info@contoh.com',
-            'status' => 'active',
-        ]);
+        // Perusahaan default utama (dipakai oleh user seed)
+        Perusahaan::firstOrCreate(
+            ['code' => 'MAIN'],
+            [
+                'name'    => 'Perusahaan Utama',
+                'address' => 'Alamat Perusahaan Utama',
+                'phone'   => '080000000000',
+                'email'   => 'info@utama.example',
+                'status'  => 'active',
+            ]
+        );
 
-        Perusahaan::create([
-            'name' => 'CV Suka Jaya',
-            'code' => 'SJ02',
-            'address' => 'Jl. Melati No. 45, Jakarta',
-            'phone' => '081987654321',
-            'email' => 'cs@sukajaya.com',
-            'status' => 'active',
-        ]);
+        // Buat COMP1 .. COMP5 agar UserSeeder bisa memilih random company_id 1..5
+        for ($i = 1; $i <= 5; $i++) {
+            $code = 'COMP' . $i;
+            Perusahaan::firstOrCreate(
+                ['code' => $code],
+                [
+                    'name'    => 'Perusahaan ' . $i,
+                    'address' => "Alamat Perusahaan {$i}",
+                    'phone'   => '0812' . str_pad((string) $i, 8, '0', STR_PAD_LEFT),
+                    'email'   => "company{$i}@example.com",
+                    'status'  => 'active',
+                ]
+            );
+        }
     }
 }

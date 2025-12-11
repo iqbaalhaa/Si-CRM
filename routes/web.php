@@ -24,7 +24,9 @@ Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 
 // Redirect root to login explicitly
-Route::get('/', function () { return redirect()->route('login'); });
+Route::get('/', function () {
+    return redirect()->route('login');
+});
 
 // =========================
 // Auth only
@@ -200,9 +202,9 @@ Route::middleware('auth')->group(function () {
         ->whereNumber('contact')
         ->name('contacts.destroy');
     Route::get('contacts/advanced', [\App\Http\Controllers\ContactController::class, 'advancedIndex'])
-    ->name('contacts.advanced');
+        ->name('contacts.advanced');
     Route::get('contacts/export', [\App\Http\Controllers\ContactController::class, 'export'])
-    ->name('contacts.export');
+        ->name('contacts.export');
     // === IMPORT ===
     Route::get('contacts/template/{type}', [\App\Http\Controllers\ContactController::class, 'downloadTemplate'])
         ->whereIn('type', ['individual', 'company', 'organization'])
