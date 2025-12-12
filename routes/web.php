@@ -1,15 +1,15 @@
 <?php
 
+use App\Http\Controllers\ActivitiesController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerStageHistoryController;
 use App\Http\Controllers\PipelineStageController;
-use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\CampaignController;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
-use App\Http\Controllers\ActivitiesController;
 use App\Http\Controllers\TaskController;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 
 // =========================
 // Guest only
@@ -41,7 +41,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', function () {
         $user = Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             return redirect()->route('login');
         }
 
@@ -78,7 +78,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard/lead-operations', function () {
         return view('lead-operations.dashboard');
     })->middleware('role:lead-operations')->name('dashboard.lead_operations');
-
 
     // -------------------------
     // SUPER ADMIN: Perusahaan & Manage Admin Perusahaan
@@ -213,8 +212,6 @@ Route::middleware('auth')->group(function () {
     Route::post('contacts/import', [\App\Http\Controllers\ContactController::class, 'import'])
         ->name('contacts.import');
 
-
-
     // -------------------------
     // Customers
     // -------------------------
@@ -340,6 +337,10 @@ Route::middleware('auth')->group(function () {
         ->whereNumber('id')
         ->name('campaign.contacts.assign');
 
+    Route::post('/campaigns/{id}/contacts/import', [CampaignController::class, 'importContacts'])
+        ->whereNumber('id')
+        ->name('campaign.contacts.import');
+
     Route::get('/campaigns/{id}/contacts/{ccId}/pipeline', [CampaignController::class, 'pipeline'])
         ->whereNumber('id')
         ->whereNumber('ccId')
@@ -376,8 +377,6 @@ Route::middleware('auth')->group(function () {
 
         return redirect($notif->data['url'] ?? '/');
     })->name('notifications.read');
-
-
 
     // Resource
     Route::resource('products', ProductController::class);
