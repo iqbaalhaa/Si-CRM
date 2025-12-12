@@ -26,7 +26,7 @@
                             <div class="card-body d-flex justify-content-between align-items-center">
                                 <div>
                                     <div class="text-muted small mb-1">Total Campaign Active</div>
-                                    <h4 class="mb-0">3</h4>
+                                    <h4 class="mb-0">{{ $stats['total_active'] ?? 0 }}</h4>
                                     <small class="text-muted">Termasuk WhatsApp, Email, dan Telemarketing.</small>
                                 </div>
                                 <div class="rounded-circle bg-primary bg-opacity-10 p-3">
@@ -40,7 +40,7 @@
                             <div class="card-body d-flex justify-content-between align-items-center">
                                 <div>
                                     <div class="text-muted small mb-1">Total Kontak di Campaign</div>
-                                    <h4 class="mb-0">1.250</h4>
+                                    <h4 class="mb-0">{{ $stats['total_contacts'] ?? 0 }}</h4>
                                     <small class="text-muted">Akumulasi dari semua campaign aktif.</small>
                                 </div>
                                 <div class="rounded-circle bg-secondary bg-opacity-10 p-3">
@@ -54,7 +54,7 @@
                             <div class="card-body d-flex justify-content-between align-items-center">
                                 <div>
                                     <div class="text-muted small mb-1">Perkiraan Closing Rate</div>
-                                    <h4 class="mb-0">18%</h4>
+                                    <h4 class="mb-0">{{ $stats['avg_closing_rate'] ?? 0 }}%</h4>
                                     <small class="text-muted">Estimasi rata-rata dari semua campaign.</small>
                                 </div>
                                 <div class="rounded-circle bg-success bg-opacity-10 p-3">
@@ -65,47 +65,7 @@
                     </div>
                 </div>
 
-                {{-- Filter --}}
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <form class="row g-2 align-items-end" id="form-filter-campaign">
-                            <div class="col-sm-6 col-md-3">
-                                <label class="form-label mb-1 small">Cari Campaign</label>
-                                <input type="text" class="form-control form-control-sm"
-                                       id="filter-search"
-                                       placeholder="Nama campaign / deskripsi">
-                            </div>
-                            <div class="col-sm-6 col-md-3">
-                                <label class="form-label mb-1 small">Channel</label>
-                                <select class="form-select form-select-sm" id="filter-channel">
-                                    <option value="">Semua Channel</option>
-                                    <option value="whatsapp">WhatsApp</option>
-                                    <option value="email">Email</option>
-                                    <option value="telemarketing">Telemarketing</option>
-                                    <option value="social">Social Media</option>
-                                </select>
-                            </div>
-                            <div class="col-sm-6 col-md-3">
-                                <label class="form-label mb-1 small">Periode</label>
-                                <select class="form-select form-select-sm" id="filter-period">
-                                    <option value="">Semua</option>
-                                    <option value="this-month">Bulan ini</option>
-                                    <option value="last-3-months">3 bulan terakhir</option>
-                                    <option value="last-6-months">6 bulan terakhir</option>
-                                </select>
-                            </div>
-                            <div class="col-sm-6 col-md-3">
-                                <label class="form-label mb-1 small">Status</label>
-                                <select class="form-select form-select-sm" id="filter-status">
-                                    <option value="">Aktif & Pause</option>
-                                    <option value="active">Active</option>
-                                    <option value="pause">Pause</option>
-                                    <option value="draft">Draft</option>
-                                </select>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+                
 
                 {{-- Campaign list as cards --}}
                 <div class="card">
@@ -118,240 +78,70 @@
                                 </small>
                             </div>
                             <div class="small text-muted">
-                                <span id="campaign-count">3</span> campaign ditampilkan
+                                <span id="campaign-count">{{ $campaigns->count() }}</span> campaign ditampilkan
                             </div>
                         </div>
 
                         <div class="row g-3" id="campaign-list">
-                            {{-- Campaign 1 --}}
-                            <div class="col-12 col-md-6 col-xl-4">
-                                <div class="campaign-card h-100 p-3"
-                                     data-name="Winter Sale 2025"
-                                     data-desc="Diskon akhir tahun untuk customer lama dan baru"
-                                     data-channel="whatsapp"
-                                     data-status="active"
-                                     data-period="this-month">
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <div>
-                                            <div class="d-flex align-items-center gap-2">
-                                                <h6 class="mb-0">Winter Sale 2025</h6>
-                                                <span class="badge bg-success">Active</span>
-                                            </div>
-                                            <p class="text-muted small mb-1">
-                                                Diskon akhir tahun untuk customer lama & baru.
-                                            </p>
-                                        </div>
-                                        <a href="{{ url('/campaigns/1') }}"
-                                           class="btn btn-sm btn-outline-primary">
-                                            <i class="bi bi-eye"></i>
-                                        </a>
-                                    </div>
-
-                                    <div class="d-flex flex-wrap gap-2 mb-2 small">
-                                        <span class="badge bg-success-subtle text-success">
-                                            <i class="bi bi-whatsapp me-1"></i>WhatsApp Blast
-                                        </span>
-                                        <span class="badge bg-light text-muted">
-                                            <i class="bi bi-calendar-event me-1"></i>01 Dec 2025 - 31 Dec 2025
-                                        </span>
-                                        <span class="badge bg-light text-muted">
-                                            520 kontak
-                                        </span>
-                                    </div>
-
-                                    <div class="d-flex justify-content-between align-items-center mb-2 small">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
-                                                 style="width: 28px; height: 28px;">
-                                                AD
-                                            </div>
+                            @foreach($campaigns as $campaign)
+                                <div class="col-12 col-md-6 col-xl-4">
+                                    <div class="campaign-card h-100 p-3"
+                                         data-name="{{ $campaign->name }}"
+                                         data-status="active">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
                                             <div>
-                                                <div class="fw-semibold small mb-0">Admin Depati</div>
-                                                <div class="text-muted xsmall">Owner Campaign</div>
-                                            </div>
-                                        </div>
-                                        <div class="text-end">
-                                            <div class="xsmall text-muted mb-1">Perkiraan closing</div>
-                                            <div class="progress" style="height: 6px; width: 120px;">
-                                                <div class="progress-bar" role="progressbar" style="width: 20%;"
-                                                     aria-valuenow="20" aria-valuemin="0" aria-valuemax="100">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <h6 class="mb-0">{{ $campaign->name }}</h6>
+                                                    <span class="badge {{ $campaign->is_active ? 'bg-success' : 'bg-secondary' }}">{{ $campaign->is_active ? 'Active' : 'Inactive' }}</span>
                                                 </div>
                                             </div>
-                                            <div class="xsmall text-muted mt-1">~20% closing rate</div>
+                                            <a href="{{ route('campaign.show', $campaign->id) }}"
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
                                         </div>
-                                    </div>
 
-                                    <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
-                                        <div class="d-flex flex-wrap gap-2 xsmall text-muted">
-                                            <span><i class="bi bi-person-lines-fill me-1"></i>Segment: Customer lama & lead baru</span>
+                                        <div class="d-flex flex-wrap gap-2 mb-2 small">
+                                            <span class="badge bg-light text-muted">
+                                                <i class="bi bi-calendar-event me-1"></i>
+                                                {{ optional($campaign->from)->format('d M Y') }} - {{ optional($campaign->to)->format('d M Y') }}
+                                            </span>
+                                            <span class="badge bg-light text-muted">
+                                                {{ $campaign->contacts->count() }} kontak
+                                            </span>
                                         </div>
-                                        <div class="btn-group btn-group-sm">
-                                            <button type="button"
-                                                    class="btn btn-outline-secondary btn-campaign-pause">
-                                                <i class="bi bi-pause-circle"></i>
-                                            </button>
-                                            <button type="button"
-                                                    class="btn btn-outline-secondary btn-campaign-duplicate">
-                                                <i class="bi bi-files"></i>
-                                            </button>
+
+                                        <div class="d-flex justify-content-between align-items-center mb-2 small">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
+                                                     style="width: 28px; height: 28px;">
+                                                    {{ strtoupper(substr($campaign->creator->name ?? 'U',0,1)) }}
+                                                </div>
+                                                <div>
+                                                    <div class="fw-semibold small mb-0">{{ $campaign->creator->name ?? 'Unknown' }}</div>
+                                                    <div class="text-muted xsmall">Owner Campaign</div>
+                                                </div>
+                                            </div>
+                                            <div class="text-end">
+                                                <div class="xsmall text-muted mb-1">Perkiraan closing</div>
+                                                <div class="progress" style="height: 6px; width: 120px;">
+                                                    <div class="progress-bar" role="progressbar" style="width: {{ $stats['avg_closing_rate'] ?? 0 }}%;"
+                                                         aria-valuenow="{{ $stats['avg_closing_rate'] ?? 0 }}" aria-valuemin="0" aria-valuemax="100">
+                                                    </div>
+                                                </div>
+                                                <div class="xsmall text-muted mt-1">~{{ $stats['avg_closing_rate'] ?? 0 }}% closing rate</div>
+                                            </div>
+                                        </div>
+
+                                        <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                                            <div class="d-flex flex-wrap gap-2 xsmall text-muted">
+                                                <span><i class="bi bi-people me-1"></i>Tim: {{ $campaign->teams->count() }}</span>
+                                            </div>
+                                            
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-
-                            {{-- Campaign 2 --}}
-                            <div class="col-12 col-md-6 col-xl-4">
-                                <div class="campaign-card h-100 p-3"
-                                     data-name="Onboarding Client Baru Q1"
-                                     data-desc="Follow up semua lead yang masuk dari iklan"
-                                     data-channel="email"
-                                     data-status="active"
-                                     data-period="last-3-months">
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <div>
-                                            <div class="d-flex align-items-center gap-2">
-                                                <h6 class="mb-0">Onboarding Client Baru Q1</h6>
-                                                <span class="badge bg-success">Active</span>
-                                            </div>
-                                            <p class="text-muted small mb-1">
-                                                Follow up semua lead yang masuk dari iklan.
-                                            </p>
-                                        </div>
-                                        <a href="{{ url('/campaigns/2') }}"
-                                           class="btn btn-sm btn-outline-primary">
-                                            <i class="bi bi-eye"></i>
-                                        </a>
-                                    </div>
-
-                                    <div class="d-flex flex-wrap gap-2 mb-2 small">
-                                        <span class="badge bg-info-subtle text-info">
-                                            <i class="bi bi-envelope me-1"></i>Email Sequence
-                                        </span>
-                                        <span class="badge bg-light text-muted">
-                                            <i class="bi bi-calendar-event me-1"></i>15 Nov 2025 - 15 Jan 2026
-                                        </span>
-                                        <span class="badge bg-light text-muted">
-                                            380 kontak
-                                        </span>
-                                    </div>
-
-                                    <div class="d-flex justify-content-between align-items-center mb-2 small">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center"
-                                                 style="width: 28px; height: 28px;">
-                                                MK
-                                            </div>
-                                            <div>
-                                                <div class="fw-semibold small mb-0">Marketing Team</div>
-                                                <div class="text-muted xsmall">Owner Campaign</div>
-                                            </div>
-                                        </div>
-                                        <div class="text-end">
-                                            <div class="xsmall text-muted mb-1">Perkiraan closing</div>
-                                            <div class="progress" style="height: 6px; width: 120px;">
-                                                <div class="progress-bar" role="progressbar" style="width: 22%;"
-                                                     aria-valuenow="22" aria-valuemin="0" aria-valuemax="100">
-                                                </div>
-                                            </div>
-                                            <div class="xsmall text-muted mt-1">~22% closing rate</div>
-                                        </div>
-                                    </div>
-
-                                    <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
-                                        <div class="d-flex flex-wrap gap-2 xsmall text-muted">
-                                            <span><i class="bi bi-funnel me-1"></i>Segment: Lead inbound dari Ads</span>
-                                        </div>
-                                        <div class="btn-group btn-group-sm">
-                                            <button type="button"
-                                                    class="btn btn-outline-secondary btn-campaign-pause">
-                                                <i class="bi bi-pause-circle"></i>
-                                            </button>
-                                            <button type="button"
-                                                    class="btn btn-outline-secondary btn-campaign-duplicate">
-                                                <i class="bi bi-files"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {{-- Campaign 3 --}}
-                            <div class="col-12 col-md-6 col-xl-4">
-                                <div class="campaign-card h-100 p-3"
-                                     data-name="Upsell Paket Premium"
-                                     data-desc="Naikkan ARPU dari customer aktif"
-                                     data-channel="telemarketing"
-                                     data-status="active"
-                                     data-period="last-6-months">
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <div>
-                                            <div class="d-flex align-items-center gap-2">
-                                                <h6 class="mb-0">Upsell Paket Premium</h6>
-                                                <span class="badge bg-success">Active</span>
-                                            </div>
-                                            <p class="text-muted small mb-1">
-                                                Naikkan ARPU dari customer aktif.
-                                            </p>
-                                        </div>
-                                        <a href="{{ url('/campaigns/3') }}"
-                                           class="btn btn-sm btn-outline-primary">
-                                            <i class="bi bi-eye"></i>
-                                        </a>
-                                    </div>
-
-                                    <div class="d-flex flex-wrap gap-2 mb-2 small">
-                                        <span class="badge bg-warning-subtle text-warning">
-                                            <i class="bi bi-telephone-outbound me-1"></i>Telemarketing
-                                        </span>
-                                        <span class="badge bg-light text-muted">
-                                            <i class="bi bi-calendar-event me-1"></i>01 Oct 2025 - 31 Dec 2025
-                                        </span>
-                                        <span class="badge bg-light text-muted">
-                                            350 kontak
-                                        </span>
-                                    </div>
-
-                                    <div class="d-flex justify-content-between align-items-center mb-2 small">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center"
-                                                 style="width: 28px; height: 28px;">
-                                                CS
-                                            </div>
-                                            <div>
-                                                <div class="fw-semibold small mb-0">CS Team</div>
-                                                <div class="text-muted xsmall">Owner Campaign</div>
-                                            </div>
-                                        </div>
-                                        <div class="text-end">
-                                            <div class="xsmall text-muted mb-1">Perkiraan closing</div>
-                                            <div class="progress" style="height: 6px; width: 120px;">
-                                                <div class="progress-bar" role="progressbar" style="width: 15%;"
-                                                     aria-valuenow="15" aria-valuemin="0" aria-valuemax="100">
-                                                </div>
-                                            </div>
-                                            <div class="xsmall text-muted mt-1">~15% closing rate</div>
-                                        </div>
-                                    </div>
-
-                                    <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
-                                        <div class="d-flex flex-wrap gap-2 xsmall text-muted">
-                                            <span><i class="bi bi-stars me-1"></i>Segment: Customer aktif (upsell)</span>
-                                        </div>
-                                        <div class="btn-group btn-group-sm">
-                                            <button type="button"
-                                                    class="btn btn-outline-secondary btn-campaign-pause">
-                                                <i class="bi bi-pause-circle"></i>
-                                            </button>
-                                            <button type="button"
-                                                    class="btn btn-outline-secondary btn-campaign-duplicate">
-                                                <i class="bi bi-files"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {{-- Jika nanti kosong, bisa tambahkan state empty di JS --}}
+                            @endforeach
                         </div>
 
                     </div>

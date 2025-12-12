@@ -5,22 +5,12 @@
 @section('content')
     <div class="page-heading mb-3 d-flex justify-content-between align-items-center">
         <div>
-            <h3>Winter Sale 2025</h3>
+            <h3>{{ $campaign->name }}</h3>
             <p class="text-muted mb-0">
                 Detail campaign, daftar contact, product, dan kolaborasi tim.
             </p>
         </div>
-        <div class="d-flex gap-2">
-            <button class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-pencil-square me-1"></i>Edit
-            </button>
-            <button class="btn btn-outline-secondary btn-sm btn-download-doc">
-                <i class="bi bi-download me-1"></i>Download Dokumen
-            </button>
-            <button class="btn btn-outline-danger btn-sm">
-                <i class="bi bi-stop-circle me-1"></i>Akhiri Campaign
-            </button>
-        </div>
+        
     </div>
 
     <div class="page-content">
@@ -33,18 +23,19 @@
                         <div class="d-flex flex-column flex-md-row justify-content-between gap-3">
                             <div>
                                 <div class="d-flex align-items-center gap-2 mb-1">
-                                    <h5 class="mb-0">Winter Sale 2025</h5>
-                                    <span class="badge bg-success">Active</span>
+                                    <h5 class="mb-0">{{ $campaign->name }}</h5>
+                                    <span class="badge {{ $campaign->is_active ? 'bg-success' : 'bg-secondary' }}">{{ $campaign->is_active ? 'Active' : 'Inactive' }}</span>
                                 </div>
                                 <div class="small text-muted mb-1">
                                     <i class="bi bi-calendar-event me-1"></i>
-                                    01 Dec 2025 - 31 Dec 2025
+                                    {{ optional($campaign->from)->format('d M Y') }} - {{ optional($campaign->to)->format('d M Y') }}
                                     <span class="mx-2">•</span>
-                                    <i class="bi bi-megaphone me-1"></i> WhatsApp Blast
+                                    <i class="bi bi-megaphone me-1"></i>
+                                    {{ $campaign->products->count() > 0 ? 'Product Campaign' : 'Tanpa Product' }}
                                 </div>
                                 <div class="small text-muted">
-                                    Target: <strong>500 kontak</strong> • Goal: <strong>50 closing</strong> • Owner:
-                                    <strong>Admin Depati</strong>
+                                    Owner:
+                                    <strong>{{ $campaign->creator->name ?? 'Unknown' }}</strong>
                                 </div>
                             </div>
                             <div class="text-md-end">
@@ -66,67 +57,35 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <div>
-                                <h6 class="mb-1">Tim Campaign</h6>
-                                <p class="small text-muted mb-0">
-                                    Klik avatar untuk melihat detail peran & akses.
-                                </p>
+                                <h6 class="mb-1">Pengaturan Tim</h6>
+                                <p class="small text-muted mb-0">Atur leader dan anggota campaign.</p>
                             </div>
-                            <button class="btn btn-sm btn-outline-primary"
-                                    data-bs-toggle="modal" data-bs-target="#modal-invite-team">
-                                <i class="bi bi-person-plus me-1"></i>Invite
-                            </button>
                         </div>
-            
-                        <div class="d-flex flex-wrap align-items-center gap-2">
-                            {{-- Owner --}}
-                            <button type="button"
-                                    class="btn p-0 border-0 bg-transparent team-member-avatar"
-                                    data-bs-toggle="modal" data-bs-target="#modal-team-member"
-                                    data-name="Admin Depati"
-                                    data-role="Owner Campaign"
-                                    data-email="admin@depati.co.id"
-                                    data-notes="Mengatur strategi & keputusan utama campaign."
-                                    data-permissions="Full access, manage contact, manage team, export data">
-                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
-                                    style="width: 36px; height: 36px;">
-                                    AD
-                                </div>
-                            </button>
-            
-                            {{-- Marketing --}}
-                            <button type="button"
-                                    class="btn p-0 border-0 bg-transparent team-member-avatar"
-                                    data-bs-toggle="modal" data-bs-target="#modal-team-member"
-                                    data-name="Tim Marketing"
-                                    data-role="Marketing"
-                                    data-email="marketing@depati.co.id"
-                                    data-notes="Fokus di follow up awal, blast campaign, dan nurture lead."
-                                    data-permissions="Edit contact, ubah stage, tambah contact ke campaign">
-                                <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center"
-                                    style="width: 36px; height: 36px;">
-                                    MK
-                                </div>
-                            </button>
-            
-                            {{-- CS --}}
-                            <button type="button"
-                                    class="btn p-0 border-0 bg-transparent team-member-avatar"
-                                    data-bs-toggle="modal" data-bs-target="#modal-team-member"
-                                    data-name="Tim CS"
-                                    data-role="Customer Service"
-                                    data-email="cs@depati.co.id"
-                                    data-notes="Handle closing, onboarding, dan after sales."
-                                    data-permissions="Edit contact, ubah stage, lihat riwayat campaign">
-                                <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center"
-                                    style="width: 36px; height: 36px;">
-                                    CS
-                                </div>
-                            </button>
-            
-                            {{-- Kalau mau indikator tambahan member lain --}}
-                            <span class="badge bg-light text-muted small">
-                                + 2 anggota lain
-                            </span>
+                        @php
+                            $leaderId = optional($campaign->teams->firstWhere('role', 'leader'))->user_id;
+                            $memberIds = $campaign->teams->where('role','member')->pluck('user_id')->all();
+                        @endphp
+                        <div class="mb-2">
+                            <label class="form-label mb-1 small">Leader</label>
+                            <select id="team-leader" class="form-select form-select-sm">
+                                @foreach($companyUsers as $u)
+                                    <option value="{{ $u->id }}" {{ $leaderId===$u->id ? 'selected' : '' }}>{{ $u->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label mb-1 small">Members</label>
+                            <div class="border rounded p-2" style="max-height: 160px; overflow: auto;">
+                                @foreach($companyUsers as $u)
+                                    <div class="form-check">
+                                        <input class="form-check-input team-member" type="checkbox" value="{{ $u->id }}" id="mem_{{ $u->id }}" {{ in_array($u->id, $memberIds) ? 'checked' : '' }}>
+                                        <label class="form-check-label small" for="mem_{{ $u->id }}">{{ $u->name }}</label>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <button type="button" id="btn-save-team" class="btn btn-sm btn-primary">Simpan Tim</button>
                         </div>
                     </div>
                 </div>
@@ -134,18 +93,29 @@
             <div class="col-lg-4">
                 <div class="card mb-3">
                     <div class="card-body">
-                        <h6 class="mb-2">Catatan Campaign</h6>
-                        <textarea class="form-control form-control-sm mb-2" rows="3"
-                            placeholder="Catatan singkat untuk tim, misalnya skrip WA, keberatan umum, dll."></textarea>
-                        <button class="btn btn-sm btn-outline-secondary w-100 mb-2">
-                            <i class="bi bi-save me-1"></i>Simpan Catatan (UI Only)
-                        </button>
-                        <div class="small text-muted mb-1">Aktivitas Terakhir (mockup):</div>
-                        <ul class="small mb-0 ps-3">
-                            <li>Admin Depati mengubah stage 20 kontak menjadi <strong>Follow Up</strong>.</li>
-                            <li>Tim CS menandai 5 kontak sebagai <strong>Deal</strong>.</li>
-                            <li>Tim Marketing menambahkan 50 kontak dari <strong>Facebook Ads</strong>.</li>
-                        </ul>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <h6 class="mb-1">Assign Contact ke Campaign</h6>
+                                <p class="small text-muted mb-0">Hanya contact milik Anda.</p>
+                            </div>
+                        </div>
+                        @php $assignedIds = $campaign->contacts->pluck('contact_id')->all(); @endphp
+                        <div class="mb-2">
+                            <input type="text" id="assign-search" class="form-control form-control-sm" placeholder="Cari contact">
+                        </div>
+                        <div id="assign-list" class="border rounded p-2" style="max-height: 220px; overflow: auto;">
+                            @foreach($availableContacts as $c)
+                                @if(!in_array($c->id, $assignedIds))
+                                    <div class="form-check">
+                                        <input class="form-check-input assign-contact" type="checkbox" value="{{ $c->id }}" id="ac_{{ $c->id }}">
+                                        <label class="form-check-label small" for="ac_{{ $c->id }}">{{ $c->name }}</label>
+                                    </div>
+                                @endif
+                            @endforeach
+                        </div>
+                        <div class="text-end mt-2">
+                            <button type="button" id="btn-assign-contacts" class="btn btn-sm btn-primary">Assign</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -162,105 +132,14 @@
                                     Ubah stage & product per contact, atau sekaligus untuk banyak contact.
                                 </small>
                             </div>
-                            <div class="d-flex flex-wrap gap-2">
-                                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
-                                    data-bs-target="#modal-add-contact">
-                                    <i class="bi bi-person-plus me-1"></i>Tambah Manual
-                                </button>
-                                <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal"
-                                    data-bs-target="#modal-import-csv">
-                                    <i class="bi bi-upload me-1"></i>Import CSV
-                                </button>
-                                <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal"
-                                    data-bs-target="#modal-select-contact">
-                                    <i class="bi bi-database-down me-1"></i>Ambil dari Contact
-                                </button>
-                            </div>
+                            
                         </div>
 
                         {{-- Bulk tools (1 blok kecil supaya tidak crowded) --}}
-                        <div class="border rounded p-2 p-md-3 mb-3 bg-light">
-                            <div class="row g-2 align-items-center">
-                                <div class="col-md-6">
-                                    <div class="small mb-1 fw-semibold">
-                                        Bulk Update Stage
-                                    </div>
-                                    <div class="d-flex flex-wrap gap-2">
-                                        <select id="bulk-stage-select" class="form-select form-select-sm"
-                                            style="max-width: 220px;">
-                                            <option value="">Pilih stage baru</option>
-                                            <option value="New">New</option>
-                                            <option value="Contacted">Contacted</option>
-                                            <option value="Follow Up">Follow Up</option>
-                                            <option value="Deal">Deal</option>
-                                            <option value="Loss">Loss</option>
-                                            <option value="No Response">No Response</option>
-                                        </select>
-                                        <button id="btn-set-selected" class="btn btn-sm btn-primary">
-                                            Untuk yang dipilih
-                                        </button>
-                                        <button id="btn-set-all" class="btn btn-sm btn-outline-primary">
-                                            Untuk semua
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="small mb-1 fw-semibold">
-                                        Product Campaign
-                                        <small class="text-muted">(opsional)</small>
-                                    </div>
-                                
-                                    <div class="small text-muted mb-2">
-                                        Pilih product yang akan ditempel ke banyak contact sekaligus.
-                                    </div>
-                                
-                                    {{-- Chip product campaign --}}
-                                    <div id="bulk-product-chip-container" class="d-flex flex-wrap gap-2 mb-2">
-                                        <button type="button"
-                                                class="btn btn-sm btn-outline-primary bulk-product-chip"
-                                                data-product="Paket Winter Class">
-                                            Paket Winter Class
-                                        </button>
-                                        <button type="button"
-                                                class="btn btn-sm btn-outline-primary bulk-product-chip"
-                                                data-product="Add-on Support 3 Bulan">
-                                            Add-on Support 3 Bulan
-                                        </button>
-                                        <button type="button"
-                                                class="btn btn-sm btn-outline-primary bulk-product-chip"
-                                                data-product="Paket Premium">
-                                            Paket Premium
-                                        </button>
-                                        <button type="button"
-                                                class="btn btn-sm btn-outline-primary bulk-product-chip"
-                                                data-product="Kelas Online Mandiri">
-                                            Kelas Online Mandiri
-                                        </button>
-                                    </div>
-                                
-                                    <div class="d-flex flex-wrap gap-2 mb-2">
-                                        <input type="text"
-                                               class="form-control form-control-sm"
-                                               id="bulk-product-new-input"
-                                               placeholder="Tambah product baru lalu Enter"
-                                               style="max-width: 260px;">
-                                        <button id="btn-product-all" class="btn btn-sm btn-outline-secondary">
-                                            Terapkan ke semua
-                                        </button>
-                                        <button id="btn-product-clear-all" class="btn btn-sm btn-outline-secondary">
-                                            Clear semua
-                                        </button>
-                                    </div>
-                                
-                                    <small class="text-muted">
-                                        Biru = product terpilih. Tombol <strong>Terapkan ke semua</strong> akan mengganti product di semua contact.
-                                    </small>
-                                </div>
-                            </div>
-                        </div>
+                        
 
                         {{-- TABEL: pusat perhatian --}}
-                        <div class="table-responsive">
+                                <div class="table-responsive" data-campaign-id="{{ $campaign->id }}">
                             <table class="table table-striped align-middle" id="table-campaign-contacts">
                                 <thead>
                                     <tr class="text-center">
@@ -277,137 +156,64 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {{-- Dummy rows --}}
-                                    <tr>
-                                        <td class="text-center">
-                                            <input type="checkbox" class="row-check">
-                                        </td>
-                                        <td>
-                                            <strong>Ahmad Fauzi</strong><br>
-                                            <small class="text-muted">Lead dari iklan Facebook</small>
-                                        </td>
-                                        <td>PT Sejahtera Jaya</td>
-                                        <td>0812-3456-7890</td>
-                                        <td>
-                                            <div class="d-flex flex-wrap gap-1 align-items-center">
-                                                <span class="badge bg-primary-subtle text-primary small product-badge"
-                                                      data-product="Paket Winter Class">
-                                                    Paket Winter Class
-                                                </span>
-                                                <button type="button"
-                                                        class="btn btn-xs btn-outline-secondary btn-sm btn-manage-product"
-                                                        data-contact="Ahmad Fauzi">
-                                                    <i class="bi bi-sliders"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                        <td class="text-center">
-                                            <span class="badge bg-info-subtle text-info">Facebook Ads</span>
-                                        </td>
-                                        <td>
-                                            <select class="form-select form-select-sm stage-select">
-                                                <option value="New">New</option>
-                                                <option value="Contacted" selected>Contacted</option>
-                                                <option value="Follow Up">Follow Up</option>
-                                                <option value="Deal">Deal</option>
-                                                <option value="Loss">Loss</option>
-                                                <option value="No Response">No Response</option>
-                                            </select>
-                                        </td>
-                                        <td class="text-center">
-                                            <button class="btn btn-sm btn-outline-secondary" title="Chat / Activity">
-                                                <i class="bi bi-chat-dots"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="text-center">
-                                            <input type="checkbox" class="row-check">
-                                        </td>
-                                        <td>
-                                            <strong>Siti Rahma</strong><br>
-                                            <small class="text-muted">Customer lama (repeat order)</small>
-                                        </td>
-                                        <td>CV Makmur Sentosa</td>
-                                        <td>0821-2345-6789</td>
-                                        <td>
-                                            <div class="d-flex flex-wrap gap-1 align-items-center">
-                                                <span class="badge bg-primary-subtle text-primary small product-badge"
-                                                      data-product="Paket Winter Class">
-                                                    Paket Winter Class
-                                                </span>
-                                                <span class="badge bg-primary-subtle text-primary small product-badge"
-                                                      data-product="Add-on Support 3 Bulan">
-                                                    Add-on Support 3 Bulan
-                                                </span>
-                                                <button type="button"
-                                                        class="btn btn-xs btn-outline-secondary btn-sm btn-manage-product"
-                                                        data-contact="Siti Rahma">
-                                                    <i class="bi bi-sliders"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                        <td class="text-center">
-                                            <span class="badge bg-success-subtle text-success">Existing Customer</span>
-                                        </td>
-                                        <td>
-                                            <select class="form-select form-select-sm stage-select">
-                                                <option value="New">New</option>
-                                                <option value="Contacted">Contacted</option>
-                                                <option value="Follow Up">Follow Up</option>
-                                                <option value="Deal" selected>Deal</option>
-                                                <option value="Loss">Loss</option>
-                                                <option value="No Response">No Response</option>
-                                            </select>
-                                        </td>
-                                        <td class="text-center">
-                                            <button class="btn btn-sm btn-outline-secondary">
-                                                <i class="bi bi-chat-dots"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="text-center">
-                                            <input type="checkbox" class="row-check">
-                                        </td>
-                                        <td>
-                                            <strong>Budi Santoso</strong><br>
-                                            <small class="text-muted">Database lama (belum pernah follow up)</small>
-                                        </td>
-                                        <td>-</td>
-                                        <td>0878-1234-5678</td>
-                                        <td>
-                                            <div class="d-flex flex-wrap gap-1 align-items-center">
-                                                <span
-                                                    class="badge bg-secondary-subtle text-secondary small placeholder-product">
-                                                    Belum ada product
-                                                </span>
-                                                <button type="button"
-                                                        class="btn btn-xs btn-outline-secondary btn-sm btn-manage-product"
-                                                        data-contact="Budi Santoso">
-                                                    <i class="bi bi-sliders"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                        <td class="text-center">
-                                            <span class="badge bg-secondary-subtle text-secondary">Old DB</span>
-                                        </td>
-                                        <td>
-                                            <select class="form-select form-select-sm stage-select">
-                                                <option value="New" selected>New</option>
-                                                <option value="Contacted">Contacted</option>
-                                                <option value="Follow Up">Follow Up</option>
-                                                <option value="Deal">Deal</option>
-                                                <option value="Loss">Loss</option>
-                                                <option value="No Response">No Response</option>
-                                            </select>
-                                        </td>
-                                        <td class="text-center">
-                                            <button class="btn btn-sm btn-outline-secondary">
-                                                <i class="bi bi-chat-dots"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
+                                    @foreach($campaign->contacts as $cc)
+                                        <tr data-cc-id="{{ $cc->id }}" data-contact-id="{{ $cc->contact_id }}">
+                                            <td class="text-center">
+                                                <input type="checkbox" class="row-check">
+                                            </td>
+                                            <td>
+                                                <strong>{{ $cc->contact->name ?? 'Unknown' }}</strong><br>
+                                                <small class="text-muted">ID: {{ $cc->contact_id }}</small>
+                                            </td>
+                                            <td>-</td>
+                                            <td>-</td>
+                                            <td>
+                                                <div class="d-flex flex-column gap-1">
+                                                    @php
+                                                        $assigned = $campaign->productContacts
+                                                            ->where('contact_id', $cc->contact_id)
+                                                            ->map(function($pc){ return optional($pc->campaignProduct)->product_id; })
+                                                            ->filter()
+                                                            ->values()
+                                                            ->all();
+                                                    @endphp
+                                                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                                                        @forelse($campaign->products as $cp)
+                                                            <div class="form-check form-check-sm">
+                                                                <input class="form-check-input contact-product"
+                                                                       type="checkbox"
+                                                                       value="{{ $cp->product_id }}"
+                                                                       {{ in_array($cp->product_id, $assigned) ? 'checked' : '' }}>
+                                                                <label class="form-check-label small">{{ $cp->product->name ?? 'Product' }}</label>
+                                                            </div>
+                                                        @empty
+                                                            <span class="badge bg-secondary-subtle text-secondary small">Belum ada product campaign</span>
+                                                        @endforelse
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">-</td>
+                                            <td>
+                                                <select class="form-select form-select-sm contact-stage">
+                                                    @php $stage = $cc->status ?? 'New'; @endphp
+                                                    <option value="New" {{ $stage==='New' ? 'selected' : '' }}>New</option>
+                                                    <option value="Contacted" {{ $stage==='Contacted' ? 'selected' : '' }}>Contacted</option>
+                                                    <option value="Follow Up" {{ $stage==='Follow Up' ? 'selected' : '' }}>Follow Up</option>
+                                                    <option value="Deal" {{ $stage==='Deal' ? 'selected' : '' }}>Deal</option>
+                                                    <option value="Loss" {{ $stage==='Loss' ? 'selected' : '' }}>Loss</option>
+                                                    <option value="No Response" {{ $stage==='No Response' ? 'selected' : '' }}>No Response</option>
+                                                </select>
+                                            </td>
+                                            <td class="text-center">
+                                                <a class="btn btn-sm btn-outline-secondary" title="Chat / Activity" href="{{ route('campaign.contacts.pipeline', [$campaign->id, $cc->id]) }}">
+                                                    <i class="bi bi-chat-dots"></i>
+                                                </a>
+                                                <a class="btn btn-sm btn-outline-secondary" title="Riwayat Stage" href="{{ route('campaign.contacts.pipeline', [$campaign->id, $cc->id]) }}">
+                                                    <i class="bi bi-clock-history"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    @endforeach
                                 </tbody>
                             </table>
                         </div>
@@ -920,8 +726,81 @@
         </div>
         </div>
     </div>
-
 @endsection
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const table = document.getElementById('table-campaign-contacts');
+            const wrap = table.closest('[data-campaign-id]');
+            const campaignId = wrap.getAttribute('data-campaign-id');
+
+            const token = '{{ csrf_token() }}';
+
+            function updateProductsForContact(row) {
+                const contactId = row.getAttribute('data-contact-id');
+                const checked = Array.from(row.querySelectorAll('.contact-product:checked')).map(el => parseInt(el.value, 10));
+                fetch(`{{ url('/campaigns') }}/${campaignId}/contacts/${contactId}/products`, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': token, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ products: checked })
+                }).catch(() => {});
+            }
+
+            table.addEventListener('change', function (e) {
+                const target = e.target;
+                const row = target.closest('tr');
+                if (target.classList.contains('contact-product')) {
+                    updateProductsForContact(row);
+                }
+                if (target.classList.contains('contact-stage')) {
+                    const ccId = row.getAttribute('data-cc-id');
+                    const status = target.value;
+                    const notes = prompt('Catat notes perubahan stage (opsional):');
+                    fetch(`{{ url('/campaigns') }}/${campaignId}/contacts/${ccId}/stage`, {
+                        method: 'POST',
+                        headers: { 'X-CSRF-TOKEN': token, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status, notes })
+                    }).catch(() => {});
+                }
+            });
+
+            const btnSaveTeam = document.getElementById('btn-save-team');
+            if (btnSaveTeam) {
+                btnSaveTeam.addEventListener('click', function () {
+                    const leaderId = parseInt(document.getElementById('team-leader').value, 10);
+                    const members = Array.from(document.querySelectorAll('.team-member:checked')).map(el => parseInt(el.value, 10));
+                    fetch(`{{ url('/campaigns') }}/${campaignId}/team`, {
+                        method: 'POST',
+                        headers: { 'X-CSRF-TOKEN': token, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ leader_id: leaderId, members })
+                    }).catch(() => {});
+                });
+            }
+
+            const assignSearch = document.getElementById('assign-search');
+            const assignList = document.getElementById('assign-list');
+            const btnAssign = document.getElementById('btn-assign-contacts');
+            if (assignSearch && assignList && btnAssign) {
+                assignSearch.addEventListener('input', function(){
+                    const q = this.value.toLowerCase();
+                    assignList.querySelectorAll('.form-check').forEach(item => {
+                        const text = item.querySelector('label').innerText.toLowerCase();
+                        item.style.display = text.includes(q) ? '' : 'none';
+                    });
+                });
+                btnAssign.addEventListener('click', function(){
+                    const ids = Array.from(document.querySelectorAll('.assign-contact:checked')).map(el => parseInt(el.value, 10));
+                    fetch(`{{ route('campaign.contacts.assign', $campaign->id) }}`, {
+                        method: 'POST',
+                        headers: { 'X-CSRF-TOKEN': token, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ contacts: ids })
+                    }).then(() => { location.reload(); }).catch(() => {});
+                });
+            }
+        });
+    </script>
+@endpush
 
 @push('styles')
     <link rel="stylesheet"
@@ -1347,5 +1226,3 @@
         });
     </script>
 @endpush
-
-

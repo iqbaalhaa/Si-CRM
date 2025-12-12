@@ -309,6 +309,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/campaigns', [CampaignController::class, 'store'])
         ->name('campaign.store');
 
+    Route::post('/campaigns/preview', [CampaignController::class, 'preview'])
+        ->name('campaign.preview');
+
     Route::get('/campaigns/active', [CampaignController::class, 'active'])
         ->name('campaign.active');
 
@@ -318,6 +321,29 @@ Route::middleware('auth')->group(function () {
     Route::get('/campaigns/{id}', [CampaignController::class, 'show'])
         ->whereNumber('id')
         ->name('campaign.show');
+
+    Route::post('/campaigns/{id}/contacts/{ccId}/stage', [CampaignController::class, 'updateContactStage'])
+        ->whereNumber('id')
+        ->whereNumber('ccId')
+        ->name('campaign.contacts.stage');
+
+    Route::post('/campaigns/{id}/contacts/{contactId}/products', [CampaignController::class, 'updateContactProducts'])
+        ->whereNumber('id')
+        ->whereNumber('contactId')
+        ->name('campaign.contacts.products');
+
+    Route::post('/campaigns/{id}/team', [CampaignController::class, 'updateTeam'])
+        ->whereNumber('id')
+        ->name('campaign.team.update');
+
+    Route::post('/campaigns/{id}/contacts/assign', [CampaignController::class, 'assignContacts'])
+        ->whereNumber('id')
+        ->name('campaign.contacts.assign');
+
+    Route::get('/campaigns/{id}/contacts/{ccId}/pipeline', [CampaignController::class, 'pipeline'])
+        ->whereNumber('id')
+        ->whereNumber('ccId')
+        ->name('campaign.contacts.pipeline');
 
     Route::get('/campaigns/{id}/edit', [CampaignController::class, 'edit'])
         ->whereNumber('id')
