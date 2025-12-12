@@ -418,7 +418,23 @@ class ContactController extends Controller
             $parts = array_map('trim', explode(',', $raw));
             $keywords = array_filter($parts, fn ($v) => $v !== '');
 
+            $generalKeywords = [];
             foreach ($keywords as $kw) {
+                $kwLower = strtolower($kw);
+                // rentang umur: "umur 20-30", "umur:20-30", atau "umur 20 sampai 30"
+                if (preg_match('/^umur\s*(?::\s*)?(\d{1,3})\s*(?:-|sampai)\s*(\d{1,3})$/i', $kw, $m)) {
+                    $min = (int) $m[1];
+                    $max = (int) $m[2];
+                    if ($min > $max) { [$min, $max] = [$max, $min]; }
+                    $now = now();
+                    $lower = $now->copy()->subYears($max)->toDateString();
+                    $upper = $now->copy()->subYears($min)->toDateString();
+                    $query->whereHas('details', function ($q) use ($lower, $upper) {
+                        $q->where('label', 'tanggal_lahir')
+                          ->whereBetween('value', [$lower, $upper]);
+                    });
+                    continue;
+                }
                 // dukung pencarian umur: "umur:25", "umur 25", "umur>30", "umur<=40"
                 if (preg_match('/^umur\s*(?:(>=|<=|>|<|:)?\s*)?(\d{1,3})$/i', $kw, $m)) {
                     $op = $m[1] ?: ':';
@@ -458,15 +474,33 @@ class ContactController extends Controller
                     }
                     continue;
                 }
-
-                $query->where(function ($sub) use ($kw) {
-                    $sub->where('name', 'like', "%{$kw}%")
-                        ->orWhereHas('details', function ($q) use ($kw) {
-                            $q->where('value', 'like', "%{$kw}%");
-                        })
-                        ->orWhereHas('channels', function ($q) use ($kw) {
-                            $q->where('value', 'like', "%{$kw}%");
-                        });
+                if (in_array($kwLower, ['perempuan','wanita','female','cewek','putri','p'], true)) {
+                    $query->whereHas('details', function ($q) {
+                        $q->where('label', 'jenis_kelamin')
+                          ->whereIn('value', ['P','p','Perempuan','perempuan','Wanita','wanita','Female','female']);
+                    });
+                    continue;
+                }
+                if (in_array($kwLower, ['laki-laki','pria','lelaki','male','cowok','putra','l'], true)) {
+                    $query->whereHas('details', function ($q) {
+                        $q->where('label', 'jenis_kelamin')
+                          ->whereIn('value', ['L','l','Laki-laki','laki-laki','Pria','pria','Male','male']);
+                    });
+                    continue;
+                }
+                $generalKeywords[] = $kw;
+            }
+            if (!empty($generalKeywords)) {
+                $query->where(function ($sub) use ($generalKeywords) {
+                    foreach ($generalKeywords as $gk) {
+                        $sub->orWhere('name', 'like', "%{$gk}%")
+                            ->orWhereHas('details', function ($q) use ($gk) {
+                                $q->where('value', 'like', "%{$gk}%");
+                            })
+                            ->orWhereHas('channels', function ($q) use ($gk) {
+                                $q->where('value', 'like', "%{$gk}%");
+                            });
+                    }
                 });
             }
         }
@@ -597,7 +631,7 @@ class ContactController extends Controller
         }
 
         if ($format === 'xlsx') {
-            return $this->streamXlsx($rows, 'contacts_' . now()->format('Ymd_His') . '.xlsx');
+            return $this->streamXlsx($rows, 'contacts_' . now()->format('Ymd_His') . '.xlsx', ['styled' => true]);
         }
 
         $filename = 'contacts_' . now()->format('Ymd_His') . '.csv';
@@ -924,7 +958,7 @@ class ContactController extends Controller
             $lastColLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($headerColumnCount);
             $sheet->getStyle("A1:{$lastColLetter}1")->getFont()->setBold(true);
 
-            if (!empty($options['template'])) {
+            if (!empty($options['template']) || !empty($options['styled'])) {
                 $headers = $rows[0] ?? [];
                 for ($col = 1; $col <= $headerColumnCount; $col++) {
                     $label = strtolower((string) ($headers[$col - 1] ?? ''));
@@ -946,6 +980,18 @@ class ContactController extends Controller
                     elseif ($label === 'tipe_organisasi') $width = 20;
                     elseif ($label === 'bidang_kegiatan') $width = 24;
                     elseif ($label === 'jumlah_anggota') $width = 16;
+                    elseif ($label === 'contact_id') $width = 12;
+                    elseif ($label === 'company_id') $width = 12;
+                    elseif ($label === 'type') $width = 14;
+                    elseif ($label === 'is_active') $width = 10;
+                    elseif ($label === 'umur') $width = 10;
+                    elseif ($label === 'created_at' || $label === 'updated_at') $width = 20;
+                    elseif ($label === 'email_primary') $width = 28;
+                    elseif ($label === 'phone_primary') $width = 18;
+                    elseif ($label === 'whatsapp_primary') $width = 18;
+                    elseif ($label === 'emails') $width = 30;
+                    elseif ($label === 'phones') $width = 26;
+                    elseif ($label === 'whatsapps') $width = 26;
                     $letter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col);
                     $sheet->getColumnDimension($letter)->setWidth($width);
                 }
@@ -956,16 +1002,18 @@ class ContactController extends Controller
                     'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
                     'borders' => ['bottom' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'FF9C00']]]
                 ]);
-
-                $sheet->getStyle("A2:{$lastColLetter}2")->applyFromArray([
-                    'font' => ['italic' => true, 'color' => ['rgb' => '8A5A00']],
-                    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFF6E5']],
-                    'alignment' => ['wrapText' => true, 'vertical' => Alignment::VERTICAL_TOP]
-                ]);
-
                 $sheet->getRowDimension(1)->setRowHeight(24);
-                $sheet->getRowDimension(2)->setRowHeight(34);
-                $sheet->freezePane('A3');
+                if (!empty($options['template'])) {
+                    $sheet->getStyle("A2:{$lastColLetter}2")->applyFromArray([
+                        'font' => ['italic' => true, 'color' => ['rgb' => '8A5A00']],
+                        'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFF6E5']],
+                        'alignment' => ['wrapText' => true, 'vertical' => Alignment::VERTICAL_TOP]
+                    ]);
+                    $sheet->getRowDimension(2)->setRowHeight(34);
+                    $sheet->freezePane('A3');
+                } else {
+                    $sheet->freezePane('A2');
+                }
                 $sheet->setAutoFilter("A1:{$lastColLetter}1");
             }
         }

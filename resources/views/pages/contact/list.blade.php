@@ -36,6 +36,16 @@
                     </div>
                 </div>
             </form>
+            <div class="mt-2">
+                <span class="text-uppercase text-muted small fw-semibold">Petunjuk Pencarian</span>
+                <ul class="text-muted small mb-0 ps-3">
+                    <li>Umur: gunakan <code>umur:25</code>, <code>umur&gt;20</code>, <code>umur&lt;=30</code>, atau rentang <code>umur 20-35</code>/<code>umur 20 sampai 35</code>.</li>
+                    <li>Gender: <code>perempuan</code>/<code>wanita</code>/<code>p</code> atau <code>laki-laki</code>/<code>pria</code>/<code>l</code>.</li>
+                    <li>Banyak daerah: pisahkan dengan koma, misal <code>kerinci, sungai penuh, tebo</code>.</li>
+                    <li>Kata kunci dicari di nama, detail, dan channel kontak.</li>
+                    <li>Gunakan filter <code>Tipe</code> dan <code>Hanya yang aktif</code> untuk mempersempit hasil.</li>
+                </ul>
+            </div>
         </div>
     </div>
 
