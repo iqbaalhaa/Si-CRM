@@ -7,11 +7,34 @@
                 <i class="bi bi-justify fs-3"></i>
             </a>
 
-            <div>
-                <h5 class="mb-0">@yield('title', 'Dashboard')</h5>
-                <small class="text-muted d-none d-md-inline">
-                    Admin: {{ $adminName ?? (Auth::user()->name ?? 'User') }}
-                </small>
+            @php
+                $companyId   = Auth::user()->company_id ?? null;
+                $companyName = optional(\App\Models\Perusahaan::find($companyId))->name;
+                $logoUrl     = null;
+                if ($companyId) {
+                    $candidates = [
+                        "company-logos/{$companyId}.png",
+                        "company-logos/{$companyId}.jpg",
+                        "company-logos/{$companyId}.jpeg",
+                        "company-logos/{$companyId}.svg",
+                    ];
+                    foreach ($candidates as $p) {
+                        if (Illuminate\Support\Facades\Storage::disk('public')->exists($p)) {
+                            $logoUrl = Illuminate\Support\Facades\Storage::url($p);
+                            break;
+                        }
+                    }
+                }
+            @endphp
+            <div class="d-flex align-items-center gap-2">
+                @if ($logoUrl)
+                    <img src="{{ $logoUrl }}" alt="{{ $companyName ?? 'Logo' }}" style="height:32px; width:auto; object-fit:contain">
+                @else
+                    <h5 class="mb-0">@yield('title', 'Dashboard')</h5>
+                @endif
+                <span class="d-none d-md-inline fs-5 fw-semibold">
+                    {{ $companyName ?? 'Perusahaan' }}
+                </span>
             </div>
         </div>
 
