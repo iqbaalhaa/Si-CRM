@@ -150,7 +150,7 @@
                         </div>
 
                         <div class="card-grow border rounded-3 overflow-hidden">
-                            <div id="assign-list" class="p-2 scroll-area d-none" style="height: 100%;">
+                            <div id="assign-list" class="p-2 scroll-area d-none" style="max-height: 160px; overflow: auto;">
                                 @forelse($availableContacts as $c)
                                     @if(!in_array($c->id, $assignedIds))
                                         <label class="d-flex align-items-center gap-2 py-2 px-2 rounded-2 hover-soft w-100 mb-1" style="cursor:pointer;">
@@ -809,31 +809,46 @@
         const assignSearch = document.getElementById('assign-search');
         const assignList = document.getElementById('assign-list');
         const btnAssign = document.getElementById('btn-assign-contacts');
-        if (assignSearch && assignList && btnAssign) {
-            const labels = Array.from(assignList.querySelectorAll('label'));
-            let filterTimer = null;
-            function applyFilter(q) {
-                const qq = (q || '').trim().toLowerCase();
-                labels.forEach(el => {
-                    const text = (el.querySelector('span')?.innerText || '').toLowerCase();
-                    const show = qq === '' || text.includes(qq);
-                    el.style.display = show ? '' : 'none';
+            if (assignSearch && assignList && btnAssign) {
+                const labels = Array.from(assignList.querySelectorAll('label'));
+                let filterTimer = null;
+                let filtered = labels;
+                const PAGE_SIZE = 5;
+                let visibleCount = 0;
+                function loadMore() {
+                    const next = filtered.slice(visibleCount, visibleCount + PAGE_SIZE);
+                    next.forEach(el => { el.style.display = ''; });
+                    visibleCount += next.length;
+                }
+                function render(q) {
+                    const qq = (q || '').trim().toLowerCase();
+                    filtered = labels.filter(el => {
+                        const text = (el.querySelector('span')?.innerText || '').toLowerCase();
+                        return qq === '' || text.includes(qq);
+                    });
+                    labels.forEach(el => { el.style.display = 'none'; });
+                    visibleCount = 0;
+                    loadMore();
+                }
+                let suppressHide = false;
+                assignList.addEventListener('mousedown', function(){ suppressHide = true; setTimeout(function(){ suppressHide = false; }, 0); });
+                assignSearch.addEventListener('focus', function(){ assignList.classList.remove('d-none'); render(this.value); });
+                assignSearch.addEventListener('blur', function(){ if (suppressHide) return; if ((this.value || '').trim() === '') assignList.classList.add('d-none'); });
+                assignSearch.addEventListener('input', function(){
+                    clearTimeout(filterTimer);
+                    const val = this.value;
+                    filterTimer = setTimeout(() => render(val), 120);
                 });
-            }
-            let suppressHide = false;
-            assignList.addEventListener('mousedown', function(){ suppressHide = true; setTimeout(function(){ suppressHide = false; }, 0); });
-            assignSearch.addEventListener('focus', function(){ assignList.classList.remove('d-none'); });
-            assignSearch.addEventListener('blur', function(){ if (suppressHide) return; if ((this.value || '').trim() === '') assignList.classList.add('d-none'); });
-            assignSearch.addEventListener('input', function(){
-                clearTimeout(filterTimer);
-                const val = this.value;
-                filterTimer = setTimeout(() => applyFilter(val), 120);
-            });
-            btnAssign.addEventListener('click', function(){
-                const ids = Array.from(document.querySelectorAll('.assign-contact:checked')).map(el => parseInt(el.value, 10));
-                fetch(`{{ route('campaign.contacts.assign', $campaign->id) }}`, {
-                    method: 'POST',
-                    headers: { 'X-CSRF-TOKEN': token, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                assignList.addEventListener('scroll', function(){
+                    if (assignList.scrollTop + assignList.clientHeight >= assignList.scrollHeight - 8) {
+                        loadMore();
+                    }
+                });
+                btnAssign.addEventListener('click', function(){
+                    const ids = Array.from(document.querySelectorAll('.assign-contact:checked')).map(el => parseInt(el.value, 10));
+                    fetch(`{{ route('campaign.contacts.assign', $campaign->id) }}`, {
+                        method: 'POST',
+                        headers: { 'X-CSRF-TOKEN': token, 'Accept': 'application/json', 'Content-Type': 'application/json' },
                     body: JSON.stringify({ contacts: ids })
                 }).then(() => { location.reload(); }).catch(() => {});
             });
