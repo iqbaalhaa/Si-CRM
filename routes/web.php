@@ -9,6 +9,7 @@ use App\Http\Controllers\PipelineStageController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\TaskController;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
 // =========================
@@ -67,17 +68,17 @@ Route::middleware('auth')->group(function () {
         return redirect()->route('dashboard.admin');
     })->name('dashboard');
 
-    Route::get('/dashboard/superadmin', function () {
-        return view('superadmin.dashboard');
-    })->middleware('role:super-admin')->name('dashboard.superadmin');
+    Route::get('/dashboard/superadmin', [DashboardController::class, 'superadmin'])
+        ->middleware('role:super-admin')
+        ->name('dashboard.superadmin');
 
-    Route::get('/dashboard/admin', function () {
-        return view('admin.dashboard');
-    })->middleware('role:admin')->name('dashboard.admin');
+    Route::get('/dashboard/admin', [DashboardController::class, 'admin'])
+        ->middleware('role:admin')
+        ->name('dashboard.admin');
 
-    Route::get('/dashboard/lead-operations', function () {
-        return view('lead-operations.dashboard');
-    })->middleware('role:lead-operations')->name('dashboard.lead_operations');
+    Route::get('/dashboard/lead-operations', [DashboardController::class, 'leadOperations'])
+        ->middleware('role:lead-operations')
+        ->name('dashboard.lead_operations');
 
     // -------------------------
     // SUPER ADMIN: Perusahaan & Manage Admin Perusahaan
@@ -212,34 +213,7 @@ Route::middleware('auth')->group(function () {
     Route::post('contacts/import', [\App\Http\Controllers\ContactController::class, 'import'])
         ->name('contacts.import');
 
-    // -------------------------
-    // Customers
-    // -------------------------
-    Route::middleware('permission:read customers')->group(function () {
-        Route::get('/customers', [CustomerController::class, 'index'])
-            ->name('customers.index');
-    });
-
-    Route::middleware('permission:create customers')->group(function () {
-        Route::get('/customers/create', [CustomerController::class, 'create'])
-            ->name('customers.create');
-
-        Route::post('/customers', [CustomerController::class, 'store'])
-            ->name('customers.store');
-    });
-
-    Route::middleware('permission:update customers')->group(function () {
-        Route::get('/customers/{customer}/edit', [CustomerController::class, 'edit'])
-            ->name('customers.edit');
-
-        Route::put('/customers/{customer}', [CustomerController::class, 'update'])
-            ->name('customers.update');
-    });
-
-    Route::middleware('permission:delete customers')->group(function () {
-        Route::delete('/customers/{customer}', [CustomerController::class, 'destroy'])
-            ->name('customers.destroy');
-    });
+     
 
     // -------------------------
     // Pipeline Stages (CRUD per permission)

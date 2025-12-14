@@ -311,68 +311,7 @@
         <h3>Dashboard</h3>
     </div>
 
-    @php
-        use App\Models\Perusahaan;
-        use App\Models\Customer;
-        use App\Models\User;
-        use Illuminate\Support\Facades\Auth;
-        use Carbon\Carbon;
-        use Carbon\CarbonPeriod;
-
-        $totalPerusahaan = Perusahaan::count();
-        $totalCustomers = Customer::count();
-        $totalUsers = User::count();
-        $totalSuperAdmin = User::role('super-admin')->count();
-        $totalAdmin = User::role('admin')->count();
-        $totalLeadOperations = User::role('lead-operations')->count();
-
-        $canSeeCustomers = Auth::user()?->hasAnyRole(['admin', 'lead-operations']);
-        $recentCustomers = $canSeeCustomers
-            ? Customer::with(['company', 'stage'])
-                ->latest()
-                ->take(10)
-                ->get()
-            : collect();
-
-        $activeAdmins = User::role('admin')->where('is_active', true)->count();
-        $inactiveAdmins = User::role('admin')->where('is_active', false)->count();
-
-        $recentCompanies = Perusahaan::latest()->take(8)->get();
-        $recentAdmins = User::role('admin')->latest()->take(8)->get();
-        $companiesMap = Perusahaan::pluck('name', 'id');
-
-        // Perusahaan per bulan (tahun berjalan)
-        $period = CarbonPeriod::create(
-            Carbon::now()->startOfYear()->startOfMonth(),
-            '1 month',
-            Carbon::now()->startOfMonth(),
-        );
-        $monthlyCountsRaw = Perusahaan::selectRaw('DATE_FORMAT(created_at, "%Y-%m") as ym, COUNT(*) as total')
-            ->whereBetween('created_at', [Carbon::now()->startOfYear()->startOfMonth(), Carbon::now()->endOfMonth()])
-            ->groupBy('ym')
-            ->orderBy('ym')
-            ->pluck('total', 'ym');
-        $companyMonthlyLabels = [];
-        $companyMonthlyCounts = [];
-        foreach ($period as $month) {
-            $ym = $month->format('Y-m');
-            $companyMonthlyLabels[] = $month->format('M Y');
-            $companyMonthlyCounts[] = (int) ($monthlyCountsRaw[$ym] ?? 0);
-        }
-
-        // Role distribution
-        $roleLabels = ['Super Admin', 'Admin', 'Lead Operations'];
-        $roleCounts = [$totalSuperAdmin, $totalAdmin, $totalLeadOperations];
-        $roleTotal = max(1, array_sum($roleCounts));
-
-        $hour = (int) now()->format('H');
-        $greet = $hour < 5 ? 'malam' : ($hour < 11 ? 'pagi' : ($hour < 15 ? 'siang' : ($hour < 19 ? 'sore' : 'malam')));
-        $userName = Auth::user()->name ?? 'Super Admin';
-        $icon = $hour < 5 || $hour >= 19 ? 'moon-stars' : ($hour < 11 ? 'sunrise' : ($hour < 15 ? 'sun' : 'cloud-sun'));
-        $today = now()->translatedFormat('l, d F Y');
-
-        $userRoles = Auth::user()?->getRoleNames()->toArray() ?? [];
-    @endphp
+     
 
     <div class="page-content">
         {{-- HERO GREETING --}}
@@ -537,9 +476,9 @@
 
                                     <div class="role-bar">
                                         <div class="role-bar-fill role-marketing"
-                                            style="width: {{ ($totalLeadOperations / $roleTotal) * 100 }}%"></div>
+                                            style="width: {{ ($totalLeadOps / $roleTotal) * 100 }}%"></div>
                                     </div>
-                                    <div class="fw-semibold">{{ $totalLeadOperations }}</div>
+                                    <div class="fw-semibold">{{ $totalLeadOps }}</div>
                                 </div>
 
                                 <div class="role-row">
@@ -549,9 +488,9 @@
                                     </div>
                                     <div class="role-bar">
                                         <div class="role-bar-fill role-cs"
-                                            style="width: {{ ($totalLeadOperations / $roleTotal) * 100 }}%"></div>
+                                            style="width: {{ ($totalLeadOps / $roleTotal) * 100 }}%"></div>
                                     </div>
-                                    <div class="fw-semibold">{{ $totalLeadOperations }}</div>
+                                    <div class="fw-semibold">{{ $totalLeadOps }}</div>
                                 </div>
                             </div>
                         </div>
@@ -564,8 +503,8 @@
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-header">
-                                    <span>Customers Terbaru</span>
-                                    <span class="sub-text">10 data terakhir</span>
+                                <span>Contacts Terbaru</span>
+                                <span class="sub-text">10 data terakhir</span>
                                 </div>
                                 <div class="card-body">
                                     <div class="table-responsive">
@@ -575,8 +514,8 @@
                                                     <th>No</th>
                                                     <th>Nama</th>
                                                     <th>Perusahaan</th>
-                                                    <th>Stage</th>
-                                                    <th>Email</th>
+                                                    <th>Jenis</th>
+                                                    <th>Tanggal</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -585,8 +524,8 @@
                                                         <td>{{ $loop->iteration }}</td>
                                                         <td>{{ $c->name }}</td>
                                                         <td>{{ optional($c->company)->name ?? '-' }}</td>
-                                                        <td>{{ optional($c->stage)->name ?? '-' }}</td>
-                                                        <td>{{ $c->email }}</td>
+                                                        <td>{{ $c->type ?? '-' }}</td>
+                                                        <td>{{ $c->created_at?->format('d M Y') }}</td>
                                                     </tr>
                                                 @empty
                                                     <tr>

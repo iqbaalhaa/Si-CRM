@@ -23,30 +23,7 @@
 @section('title', 'Dashboard')
 
 @section('content')
-    @php
-        use Illuminate\Support\Facades\Auth;
-        use App\Models\Customer;
-        use App\Models\PipelineStage;
-        $companyId = Auth::user()->company_id;
-        $userId = Auth::id();
-        $companyCustomers = Customer::where('company_id', $companyId);
-        $myAssigned = Customer::where('company_id', $companyId)->where('assigned_to_id', $userId);
-        $totalCustomers = $companyCustomers->count();
-        $myAssignedCount = $myAssigned->count();
-        $stagesCount = PipelineStage::where('company_id', $companyId)->count();
-        $last7DaysCount = Customer::where('company_id', $companyId)
-            ->where('created_at', '>=', now()->subDays(7))
-            ->count();
-        $daily = $myAssigned->clone()
-            ->where('created_at', '>=', now()->subDays(7))
-            ->selectRaw('DATE(created_at) d, COUNT(*) c')
-            ->groupBy('d')
-            ->orderBy('d')
-            ->get();
-        $chartLabels = $daily->pluck('d')->map(fn($d) => \Carbon\Carbon::parse($d)->format('d M'));
-        $chartSeries = $daily->pluck('c');
-        $myRecentCustomers = $myAssigned->latest()->take(8)->get(['name','email','source','created_at']);
-    @endphp
+     
 
     <div class="page-heading d-flex justify-content-between align-items-center">
         <div>
@@ -132,7 +109,7 @@
                                 <thead>
                                     <tr>
                                         <th>Nama</th>
-                                        <th>Email</th>
+                                        <th>Jenis</th>
                                         <th>Tanggal</th>
                                     </tr>
                                 </thead>
@@ -140,7 +117,7 @@
                                     @forelse($myRecentCustomers as $c)
                                         <tr>
                                             <td>{{ $c->name }}</td>
-                                            <td>{{ $c->email }}</td>
+                                            <td>{{ $c->type ?? '-' }}</td>
                                             <td>{{ $c->created_at?->format('d M Y') }}</td>
                                         </tr>
                                     @empty

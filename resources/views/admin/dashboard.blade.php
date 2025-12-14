@@ -58,8 +58,13 @@
     .badge{border-radius:999px}
 
     /* Charts */
-    .chart-card .card-body{height:clamp(260px,34vh,440px)}
-    .chart-container{width:100%;height:100%;min-height:260px}
+.chart-card .card-body{height:clamp(260px,34vh,440px)}
+.chart-container{width:100%;height:100%;min-height:260px}
+@media (min-width: 992px){
+    .chart-card .card-body{height:340px}
+}
+.card-equal{display:flex;flex-direction:column}
+.card-equal .card-body{flex:1}
 
     /* Nav pills small */
     .nav-pills.nav-sm .nav-link{padding:.35rem .6rem;font-size:.85rem;border-radius:999px}
@@ -79,163 +84,7 @@
 @section('title', 'Dashboard')
 
 @section('content')
-@php
-    use Illuminate\Support\Facades\DB;
-    use Illuminate\Support\Facades\Schema;
-    use Carbon\Carbon;
-    use Carbon\CarbonPeriod;
-
-    $companyId   = Auth::user()->company_id;
-    $companyName = optional(\App\Models\Perusahaan::find($companyId))->name;
-
-    $today       = now()->startOfDay();
-    $tomorrow    = now()->addDay()->startOfDay();
-    $start7      = now()->subDays(6)->startOfDay(); // 7 hari termasuk hari ini
-    $startMonth  = now()->startOfMonth();
-    $endMonth    = now()->endOfMonth();
-
-    $qCustomers = \App\Models\Customer::query()->where('company_id', $companyId);
-
-    /**
-     * SCHEMA FLAGS (di-cache biar tidak cek metadata tiap request)
-     * kalau struktur tabel kamu sudah fix, ini bisa kamu hapus dan set true/false manual.
-     */
-    $hasStageIdOnCustomer = cache()->remember('schema_customers_pipeline_stage_id', 3600, fn() =>
-        Schema::hasColumn('customers', 'pipeline_stage_id')
-    );
-    $hasNextFollowUp = cache()->remember('schema_customers_next_follow_up_at', 3600, fn() =>
-        Schema::hasColumn('customers', 'next_follow_up_at')
-    );
-    $hasOwnerId = cache()->remember('schema_customers_owner_id', 3600, fn() =>
-        Schema::hasColumn('customers', 'owner_id')
-    );
-
-    // --- KPI dalam 1 query (lebih ringan) ---
-    $kpi = (clone $qCustomers)->selectRaw("
-        COUNT(*) as customers_total,
-        SUM(created_at >= ? AND created_at < ?) as leads_today,
-        SUM(created_at >= ?) as leads_7days,
-        SUM(created_at >= ? AND created_at <= ?) as leads_month
-    ", [$today, $tomorrow, $start7, $startMonth, $endMonth])->first();
-
-    $customersTotal   = (int) ($kpi->customers_total ?? 0);
-    $leadsToday       = (int) ($kpi->leads_today ?? 0);
-    $leads7Days       = (int) ($kpi->leads_7days ?? 0);
-    $leadsMonth       = (int) ($kpi->leads_month ?? 0);
-
-    // --- Follow up counts (1 query) + lists (2 query) ---
-    $overdueCount = 0;
-    $dueTodayCount = 0;
-    $overdueFollowUps = collect();
-    $dueTodayFollowUps = collect();
-
-    if ($hasNextFollowUp) {
-        $fu = (clone $qCustomers)->selectRaw("
-            SUM(next_follow_up_at IS NOT NULL AND next_follow_up_at < ?) as overdue,
-            SUM(next_follow_up_at IS NOT NULL AND next_follow_up_at >= ? AND next_follow_up_at < ?) as due_today
-        ", [$today, $today, $tomorrow])->first();
-
-        $overdueCount  = (int) ($fu->overdue ?? 0);
-        $dueTodayCount = (int) ($fu->due_today ?? 0);
-
-        $cols = ['id','name','email','source','next_follow_up_at'];
-
-        $overdueFollowUps = (clone $qCustomers)
-            ->whereNotNull('next_follow_up_at')
-            ->where('next_follow_up_at', '<', $today)
-            ->orderBy('next_follow_up_at', 'asc')
-            ->limit(8)
-            ->get($cols);
-
-        $dueTodayFollowUps = (clone $qCustomers)
-            ->whereNotNull('next_follow_up_at')
-            ->whereBetween('next_follow_up_at', [$today, $tomorrow])
-            ->orderBy('next_follow_up_at', 'asc')
-            ->limit(8)
-            ->get($cols);
-    }
-
-    // --- Greeting ---
-    $hour = (int) now()->format('H');
-    $greet = $hour < 5 ? 'malam' : ($hour < 11 ? 'pagi' : ($hour < 15 ? 'siang' : ($hour < 19 ? 'sore' : 'malam')));
-    $userName = Auth::user()->name ?? 'Admin';
-    $todayText = now()->translatedFormat('l, d F Y');
-    $icon = $hour < 5 || $hour >= 19 ? 'moon-stars' : ($hour < 11 ? 'sunrise' : ($hour < 15 ? 'sun' : 'cloud-sun'));
-
-    // --- Recent customers ---
-    $recentCustomers = (clone $qCustomers)->latest()->take(8)->get(['name','email','source','created_at']);
-
-    // --- Leads chart 14 hari (zero-fill biar tidak bolong) ---
-    $dailyAgg = (clone $qCustomers)
-        ->where('created_at', '>=', now()->subDays(13)->startOfDay())
-        ->selectRaw('DATE(created_at) d, COUNT(*) c')
-        ->groupBy('d')
-        ->orderBy('d')
-        ->pluck('c','d'); // ['2025-12-01' => 3, ...]
-
-    $period14 = CarbonPeriod::create(now()->subDays(13)->startOfDay(), now()->startOfDay());
-    $chartLabels = [];
-    $chartSeries = [];
-
-    foreach ($period14 as $date) {
-        $key = $date->format('Y-m-d');
-        $chartLabels[] = $date->format('d M');
-        $chartSeries[] = (int) ($dailyAgg[$key] ?? 0);
-    }
-
-    // --- Insight: sumber lead (donut) ---
-    $sourceAgg = (clone $qCustomers)
-        ->selectRaw('COALESCE(NULLIF(source,""), "Unknown") as src, COUNT(*) as c')
-        ->groupBy('src')
-        ->orderByDesc('c')
-        ->take(7)
-        ->get();
-
-    $sourceLabels = $sourceAgg->pluck('src');
-    $sourceSeries = $sourceAgg->pluck('c');
-
-    // --- Pipeline stages + snapshot (anti N+1) ---
-    $stagesCount = \App\Models\PipelineStage::where('company_id', $companyId)->count();
-    $stageSummary = collect();
-
-    if ($hasStageIdOnCustomer) {
-        $stageCounts = (clone $qCustomers)
-            ->selectRaw('pipeline_stage_id, COUNT(*) c')
-            ->whereNotNull('pipeline_stage_id')
-            ->groupBy('pipeline_stage_id')
-            ->pluck('c','pipeline_stage_id'); // [id => count]
-
-        $stages = \App\Models\PipelineStage::where('company_id', $companyId)
-            ->orderBy('sort_order')
-            ->get(['id','name']);
-
-        $stageSummary = $stages->map(fn($s)=>(object)[
-            'id'=>$s->id,
-            'name'=>$s->name,
-            'count'=>(int)($stageCounts[$s->id] ?? 0),
-        ]);
-    }
-
-    // --- Performa tim (join users, anti N+1) ---
-    $teamPerf = collect();
-    if ($hasOwnerId) {
-        $teamPerf = DB::table('customers as c')
-            ->join('users as u', 'u.id', '=', 'c.owner_id')
-            ->where('c.company_id', $companyId)
-            ->whereNotNull('c.owner_id')
-            ->selectRaw('u.name, COUNT(*) as leads')
-            ->groupBy('u.name')
-            ->orderByDesc('leads')
-            ->limit(6)
-            ->get();
-    }
-
-    // --- Quick action URLs (ganti sesuai modulmu) ---
-    $urlCreateLead  = url('/contact/create'); // <-- ganti bila perlu
-    $urlDueToday    = url('/contact?filter=due_today'); // <-- ganti bila perlu
-    $urlOverdue     = url('/contact?filter=overdue'); // <-- ganti bila perlu
-    $urlPipeline    = url('/pipeline'); // <-- ganti bila perlu
-@endphp
+ 
 
 <div class="page-heading d-flex justify-content-between align-items-center mb-3">
     <div>
@@ -368,192 +217,67 @@
             </div>
         </div>
 
-        {{-- ROW: Action Center + Pipeline Snapshot --}}
-        <div class="col-12 col-lg-8">
-            <div class="card">
-                <div class="card-header">
-                    <span>Daftar Prioritas</span>
-                    <span class="mini-muted">Action Center</span>
-                </div>
-                <div class="card-body">
-
-                    @if(!$hasNextFollowUp)
-                        <div class="empty-box">
-                            <div class="fw-semibold mb-1">Fitur follow up belum aktif</div>
-                            <div class="mini-muted mb-2">
-                                Tambahkan kolom <code>next_follow_up_at</code> di tabel <code>customers</code> untuk due/overdue.
-                            </div>
-                            <a href="{{ $urlPipeline }}" class="btn btn-primary btn-sm">
-                                <i class="bi bi-gear me-1"></i> Buka Pengaturan
-                            </a>
-                        </div>
-                    @else
-
-                        <ul class="nav nav-pills nav-sm mb-3" role="tablist">
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-overdue" type="button" role="tab">
-                                    Overdue <span class="badge bg-danger ms-1">{{ number_format($overdueCount) }}</span>
-                                </button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-today" type="button" role="tab">
-                                    Hari ini <span class="badge bg-warning text-dark ms-1">{{ number_format($dueTodayCount) }}</span>
-                                </button>
-                            </li>
-                        </ul>
-
-                        <div class="tab-content">
-                            {{-- Overdue --}}
-                            <div class="tab-pane fade show active" id="tab-overdue" role="tabpanel">
-                                @if($overdueFollowUps->isEmpty())
-                                    <div class="empty-box">
-                                        <div class="fw-semibold mb-1">Aman, tidak ada overdue</div>
-                                        <div class="mini-muted">Lanjutkan ke follow up hari ini.</div>
-                                    </div>
-                                @else
-                                    <div class="table-responsive">
-                                        <table class="table table-sm align-middle mb-0">
-                                            <thead>
-                                                <tr>
-                                                    <th>Nama</th>
-                                                    <th>Source</th>
-                                                    <th>Jatuh Tempo</th>
-                                                    <th class="text-end">Aksi</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach($overdueFollowUps as $c)
-                                                    <tr>
-                                                        <td class="fw-semibold">
-                                                            {{ $c->name }}
-                                                            <div class="mini-muted">{{ $c->email ?? '-' }}</div>
-                                                        </td>
-                                                        <td><span class="badge bg-light text-dark border">{{ $c->source ?: 'Unknown' }}</span></td>
-                                                        <td>
-                                                            <span class="badge bg-danger-subtle text-danger border">Overdue</span>
-                                                            <div class="mini-muted">{{ \Carbon\Carbon::parse($c->next_follow_up_at)->format('d M Y H:i') }}</div>
-                                                        </td>
-                                                        <td class="text-end">
-                                                            <a href="{{ url('/contact/'.$c->id) }}" class="btn btn-outline-primary btn-sm">
-                                                                Tindak
-                                                            </a>
-                                                        </td>
-                                                    </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                @endif
-                            </div>
-
-                            {{-- Due Today --}}
-                            <div class="tab-pane fade" id="tab-today" role="tabpanel">
-                                @if($dueTodayFollowUps->isEmpty())
-                                    <div class="empty-box">
-                                        <div class="fw-semibold mb-1">Tidak ada follow up hari ini</div>
-                                        <div class="mini-muted">Kamu bisa fokus cari lead baru atau rapikan pipeline.</div>
-                                    </div>
-                                @else
-                                    <div class="table-responsive">
-                                        <table class="table table-sm align-middle mb-0">
-                                            <thead>
-                                                <tr>
-                                                    <th>Nama</th>
-                                                    <th>Source</th>
-                                                    <th>Waktu</th>
-                                                    <th class="text-end">Aksi</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach($dueTodayFollowUps as $c)
-                                                    <tr>
-                                                        <td class="fw-semibold">
-                                                            {{ $c->name }}
-                                                            <div class="mini-muted">{{ $c->email ?? '-' }}</div>
-                                                        </td>
-                                                        <td><span class="badge bg-light text-dark border">{{ $c->source ?: 'Unknown' }}</span></td>
-                                                        <td>
-                                                            <span class="badge bg-warning-subtle text-warning border">Hari ini</span>
-                                                            <div class="mini-muted">{{ \Carbon\Carbon::parse($c->next_follow_up_at)->format('H:i') }}</div>
-                                                        </td>
-                                                        <td class="text-end">
-                                                            <a href="{{ url('/contact/'.$c->id) }}" class="btn btn-outline-primary btn-sm">
-                                                                Tindak
-                                                            </a>
-                                                        </td>
-                                                    </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
-
-                    @endif
-
-                </div>
-            </div>
-        </div>
+        {{-- ROW: Action Center dihapus (belum ada fitur follow up) --}}
 
         {{-- Pipeline Snapshot --}}
-        <div class="col-12 col-lg-4">
-            <div class="card">
+        <div class="col-12 col-lg-6">
+            <div class="card card-equal">
                 <div class="card-header">
-                    <span>Ringkasan Pipeline</span>
+                    <span><i class="bi bi-diagram-3 me-1"></i> Ringkasan Pipeline</span>
                     <span class="mini-muted">Stages: {{ number_format($stagesCount) }}</span>
                 </div>
                 <div class="card-body">
-                    @if(!$hasStageIdOnCustomer)
+                    @if(empty($pipelineSummary) || $pipelineSummary->isEmpty())
                         <div class="empty-box">
-                            <div class="fw-semibold mb-1">Pipeline belum bisa dihitung</div>
-                            <div class="mini-muted mb-2">
-                                Tambahkan kolom <code>pipeline_stage_id</code> di tabel <code>customers</code>
-                                (atau sesuaikan ke tabel deal/opportunity).
-                            </div>
+                            <div class="fw-semibold mb-1">Belum ada data pipeline</div>
+                            <div class="mini-muted mb-2">Mulai hubungkan kontak ke campaign untuk memantau status.</div>
                             <a href="{{ $urlPipeline }}" class="btn btn-primary btn-sm">
-                                <i class="bi bi-diagram-3 me-1"></i> Kelola Pipeline
+                                <i class="bi bi-diagram-3 me-1"></i> Buka Pipeline
                             </a>
                         </div>
                     @else
-                        @if($stageSummary->isEmpty())
-                            <div class="empty-box">
-                                <div class="fw-semibold mb-1">Stage belum ada</div>
-                                <div class="mini-muted mb-2">Buat stage supaya pipeline bisa dipantau.</div>
-                                <a href="{{ $urlPipeline }}" class="btn btn-primary btn-sm">Buat Stage</a>
-                            </div>
-                        @else
-                            <div class="table-responsive">
-                                <table class="table table-sm align-middle mb-0">
-                                    <thead>
+                        <div class="table-responsive">
+                            <table class="table table-sm align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Status</th>
+                                        <th class="text-end">Jumlah</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($pipelineSummary as $row)
                                         <tr>
-                                            <th>Stage</th>
-                                            <th class="text-end">Jumlah</th>
+                                            @php
+                                                $s = strtolower($row->status ?? '');
+                                                $color = match ($s) {
+                                                    'pending' => 'secondary',
+                                                    'contacted' => 'info',
+                                                    'new' => 'primary',
+                                                    'converted' => 'success',
+                                                    'rejected' => 'danger',
+                                                    'followup', 'follow up' => 'warning',
+                                                    default => 'dark',
+                                                };
+                                            @endphp
+                                            <td class="fw-semibold"><i class="bi bi-dot text-{{ $color }} me-1"></i>{{ $row->status }}</td>
+                                            <td class="text-end">
+                                                <span class="badge bg-light text-dark border">{{ number_format($row->total) }}</span>
+                                            </td>
                                         </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach($stageSummary as $s)
-                                            <tr>
-                                                <td class="fw-semibold">{{ $s->name }}</td>
-                                                <td class="text-end">
-                                                    <span class="badge bg-light text-dark border">{{ number_format($s->count) }}</span>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        @endif
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                     @endif
                 </div>
             </div>
         </div>
 
         {{-- ROW: Leads chart + Team --}}
-        <div class="col-12 col-lg-8">
-            <div class="card chart-card">
+        <div class="col-12 col-lg-6">
+            <div class="card chart-card card-equal">
                 <div class="card-header">
-                    <span>Tren Leads (14 Hari)</span>
+                    <span><i class="bi bi-graph-up-arrow me-1"></i> Tren Leads (14 Hari)</span>
                     <span class="mini-muted">Terisi 0 bila kosong</span>
                 </div>
                 <div class="card-body">
@@ -562,10 +286,10 @@
             </div>
         </div>
 
-        <div class="col-12 col-lg-4">
-            <div class="card">
+        <div class="col-12 col-lg-6">
+            <div class="card card-equal">
                 <div class="card-header">
-                    <span>Performa Tim</span>
+                    <span><i class="bi bi-people me-1"></i> Performa Tim</span>
                     <span class="mini-muted">Top 6</span>
                 </div>
                 <div class="card-body">
@@ -604,9 +328,9 @@
 
         {{-- ROW: Source + Recent --}}
         <div class="col-12 col-lg-6">
-            <div class="card chart-card">
+            <div class="card chart-card card-equal">
                 <div class="card-header">
-                    <span>Insight Sumber Lead</span>
+                    <span><i class="bi bi-pie-chart me-1"></i> Distribusi Jenis Kontak</span>
                     <span class="mini-muted">Top 7</span>
                 </div>
                 <div class="card-body">
@@ -615,10 +339,10 @@
             </div>
         </div>
 
-        <div class="col-12 col-lg-6">
+        <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <span>Aktivitas Terakhir</span>
+                    <span><i class="bi bi-clock-history me-1"></i> Aktivitas Terakhir</span>
                     <span class="mini-muted">Lead terbaru</span>
                 </div>
                 <div class="card-body">
@@ -627,7 +351,7 @@
                             <thead>
                                 <tr>
                                     <th>Nama</th>
-                                    <th>Source</th>
+                                    <th>Jenis</th>
                                     <th>Tanggal</th>
                                 </tr>
                             </thead>
@@ -636,10 +360,9 @@
                                     <tr>
                                         <td class="fw-semibold">
                                             {{ $c->name }}
-                                            <div class="mini-muted">{{ $c->email ?? '-' }}</div>
                                         </td>
                                         <td>
-                                            <span class="badge bg-light text-dark border">{{ $c->source ?: 'Unknown' }}</span>
+                                            <span class="badge bg-light text-dark border">{{ $c->type ?: 'Unknown' }}</span>
                                         </td>
                                         <td>{{ $c->created_at?->format('d M Y') }}</td>
                                     </tr>
