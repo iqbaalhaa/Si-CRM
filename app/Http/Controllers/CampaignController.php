@@ -8,6 +8,7 @@ use App\Models\CampaignProduct;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class CampaignController extends Controller
 {
@@ -315,6 +316,92 @@ class CampaignController extends Controller
         }
 
         return response()->json(['ok' => true]);
+    }
+
+    public function importContacts(Request $request, $campaignId)
+    {
+        $companyId = Auth::user()->profile->company_id;
+        $campaign = Campaign::where('company_id', $companyId)->findOrFail($campaignId);
+
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx',
+        ]);
+
+        $file = $request->file('file');
+        $reader = IOFactory::createReader('Xlsx');
+        $spreadsheet = $reader->load($file->getRealPath());
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $highestRow = $sheet->getHighestRow();
+        $highestColumn = $sheet->getHighestColumn();
+        $highestColIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($highestColumn);
+
+        $headers = [];
+        for ($col = 1; $col <= $highestColIndex; $col++) {
+            $val = (string) $sheet->getCellByColumnAndRow($col, 1)->getValue();
+            $norm = strtolower(trim($val));
+            $norm = str_replace([' ', '-', '/'], '_', $norm);
+            $headers[$col] = $norm;
+        }
+
+        $colContactId = array_search('contact_id', $headers, true);
+        $colName = array_search('name', $headers, true);
+
+        $assigned = 0;
+        for ($row = 2; $row <= $highestRow; $row++) {
+            $rowVals = [];
+            $isEmpty = true;
+            for ($col = 1; $col <= $highestColIndex; $col++) {
+                $v = $sheet->getCellByColumnAndRow($col, $row)->getValue();
+                $v = is_string($v) ? trim($v) : $v;
+                if ($v !== null && $v !== '') $isEmpty = false;
+                $rowVals[$headers[$col] ?? ''] = $v;
+            }
+            if ($isEmpty) continue;
+
+            $cid = null;
+            if ($colContactId !== false) {
+                $raw = $rowVals['contact_id'] ?? null;
+                if ($raw !== null && $raw !== '') {
+                    $cid = (int) $raw;
+                }
+            }
+
+            if (!$cid && $colName !== false) {
+                $name = (string) ($rowVals['name'] ?? '');
+                if ($name !== '') {
+                    $cid = \App\Models\Contact::where('company_id', $companyId)
+                        ->where('created_by', Auth::id())
+                        ->where('name', $name)
+                        ->value('id');
+                }
+            }
+
+            if (!$cid) continue;
+
+            $exists = \App\Models\CampaignContact::where('campaign_id', $campaign->id)
+                ->where('contact_id', $cid)
+                ->exists();
+            if ($exists) continue;
+
+            $valid = \App\Models\Contact::where('company_id', $companyId)
+                ->where('created_by', Auth::id())
+                ->where('id', $cid)
+                ->exists();
+            if (!$valid) continue;
+
+            \App\Models\CampaignContact::create([
+                'campaign_id' => $campaign->id,
+                'contact_id' => $cid,
+                'created_by' => Auth::id(),
+                'status' => 'New',
+                'notes' => null,
+            ]);
+            $assigned++;
+        }
+
+        return redirect()->route('campaign.show', $campaign->id)
+            ->with('success', 'Import kontak ke campaign selesai: ' . $assigned . ' contact ditambahkan.');
     }
 
     public function updateTeam(Request $request, $campaignId)

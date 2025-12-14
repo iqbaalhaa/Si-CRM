@@ -2,163 +2,691 @@
 
 @push('styles')
 <style>
-    :root { --primary-500:#4f46e5; --secondary-500:#0ea5e9; --surface:#ffffff; --text-muted:#6b7280; --border:#e5e7eb; }
-    .page-heading h3{font-weight:700;letter-spacing:.2px}
+    :root{
+        --border:#e5e7eb;
+        --muted:#6b7280;
+    }
+    .page-heading h3{font-weight:700}
+
+    /* HERO (lebih pendek + actionable) */
+    .hero-card{
+        color:#fff;
+        background:radial-gradient(circle at top left,#a855f7 0,#4f46e5 35%,#0ea5e9 100%);
+        border-radius:18px;
+        box-shadow:0 18px 40px rgba(15,23,42,.35);
+        position:relative;
+        overflow:hidden
+    }
+    .hero-card::before{
+        content:"";
+        position:absolute;inset:0;
+        background-image:
+            radial-gradient(circle at 10% 20%,rgba(255,255,255,.18) 0,transparent 55%),
+            radial-gradient(circle at 80% 0%,rgba(56,189,248,.16) 0,transparent 45%);
+        opacity:.9;pointer-events:none
+    }
+    .hero-card .card-body{padding:1.25rem 1.35rem;position:relative;z-index:1}
+    .hero-card .small{color:rgba(255,255,255,.85)}
+    .chip{
+        display:inline-flex;align-items:center;gap:.35rem;
+        padding:.2rem .7rem;border-radius:999px;
+        background-color:rgba(15,23,42,.2);
+        font-size:.75rem;backdrop-filter:blur(10px)
+    }
+    .chip-dot{width:.5rem;height:.5rem;border-radius:999px;background:#22c55e}
+
+    /* CARDS */
     .card{border-radius:16px;border:1px solid var(--border);box-shadow:0 10px 25px rgba(15,23,42,.04)}
-    .card-header{border-bottom:1px solid var(--border);font-weight:600;font-size:.9rem;padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between}
-    .card-body{padding:.95rem 1rem}
-    .table thead th{background:transparent;border-bottom-color:var(--border);font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:#6b7280}
-    .table tbody td{vertical-align:middle;font-size:.84rem}
+    .card-header{
+        border-bottom:1px solid var(--border);
+        font-weight:600;font-size:.9rem;
+        padding:.75rem 1rem;
+        display:flex;align-items:center;justify-content:space-between
+    }
+    .card-body{padding:1rem}
+
+    /* KPI */
+    .kpi-label{font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:.25rem}
+    .kpi-value{font-size:1.6rem;font-weight:800;line-height:1}
+    .kpi-sub{font-size:.8rem;color:var(--muted)}
+    .mini-muted{color:var(--muted);font-size:.85rem}
+
+    /* Tables */
+    .table thead th{font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border-bottom-color:var(--border)}
+    .table tbody td{font-size:.88rem;vertical-align:middle}
     .table tbody tr:hover{background:rgba(148,163,184,.08)}
     .badge{border-radius:999px}
-    .stat-label{font-size:.8rem;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.15rem}
-    .stat-value{font-size:1.55rem;font-weight:700;line-height:1.1}
-    .stats-icon{width:42px;height:42px;border-radius:14px;display:inline-flex;align-items:center;justify-content:center;background:#fff;border:1px solid rgba(148,163,184,.45)}
-    .stats-icon i{background:linear-gradient(135deg,var(--primary-500),var(--secondary-500));-webkit-background-clip:text;background-clip:text;color:transparent;font-size:1.3rem;line-height:1}
-    .chart-card .card-body{height:clamp(280px,34vh,480px)}
-    .chart-container{width:100%;height:100%;min-height:280px}
+
+    /* Charts */
+    .chart-card .card-body{height:clamp(260px,34vh,440px)}
+    .chart-container{width:100%;height:100%;min-height:260px}
+
+    /* Nav pills small */
+    .nav-pills.nav-sm .nav-link{padding:.35rem .6rem;font-size:.85rem;border-radius:999px}
+    .nav-pills .nav-link{background:rgba(148,163,184,.10)}
+    .nav-pills .nav-link.active{background:rgba(99,102,241,.18);color:#111827}
+
+    /* Empty state dark-friendly */
+    .empty-box{
+        border:1px dashed rgba(148,163,184,.45);
+        border-radius:12px;
+        padding:1rem;
+        background:rgba(148,163,184,.08);
+    }
 </style>
 @endpush
 
 @section('title', 'Dashboard')
 
 @section('content')
-    @php
-        $companyId = Auth::user()->company_id;
-        $companyName = optional(\App\Models\Perusahaan::find($companyId))->name;
-        $customersCount = \App\Models\Customer::where('company_id', $companyId)->count();
-        $hasUserCompanyId = \Illuminate\Support\Facades\Schema::hasColumn('users', 'company_id');
-        $teamCount = $hasUserCompanyId
-            ? \App\Models\User::where('company_id', $companyId)->whereHas('roles', function($q){ $q->where('name', 'lead-operations'); })->count()
-            : \App\Models\User::whereHas('roles', function($q){ $q->where('name', 'lead-operations'); })->count();
-        $stagesCount = \App\Models\PipelineStage::where('company_id', $companyId)->count();
-        
-        $recentCustomers = \App\Models\Customer::where('company_id', $companyId)->latest()->take(5)->get(['name','email','source','created_at']);
-        $daily = \App\Models\Customer::where('company_id', $companyId)
-            ->where('created_at', '>=', now()->subDays(7))
-            ->selectRaw('DATE(created_at) d, COUNT(*) c')
-            ->groupBy('d')
-            ->orderBy('d')
-            ->get();
-        $chartLabels = $daily->pluck('d')->map(fn($d) => \Carbon\Carbon::parse($d)->format('d M'));
-        $chartSeries = $daily->pluck('c');
-    @endphp
+@php
+    use Illuminate\Support\Facades\DB;
+    use Illuminate\Support\Facades\Schema;
+    use Carbon\Carbon;
+    use Carbon\CarbonPeriod;
 
-    <div class="page-heading d-flex justify-content-between align-items-center">
-        <div>
-            <h3>Dashboard Admin Perusahaan</h3>
-            <div class="text-muted">{{ $companyName ?? 'Perusahaan' }}</div>
+    $companyId   = Auth::user()->company_id;
+    $companyName = optional(\App\Models\Perusahaan::find($companyId))->name;
+
+    $today       = now()->startOfDay();
+    $tomorrow    = now()->addDay()->startOfDay();
+    $start7      = now()->subDays(6)->startOfDay(); // 7 hari termasuk hari ini
+    $startMonth  = now()->startOfMonth();
+    $endMonth    = now()->endOfMonth();
+
+    $qCustomers = \App\Models\Customer::query()->where('company_id', $companyId);
+
+    /**
+     * SCHEMA FLAGS (di-cache biar tidak cek metadata tiap request)
+     * kalau struktur tabel kamu sudah fix, ini bisa kamu hapus dan set true/false manual.
+     */
+    $hasStageIdOnCustomer = cache()->remember('schema_customers_pipeline_stage_id', 3600, fn() =>
+        Schema::hasColumn('customers', 'pipeline_stage_id')
+    );
+    $hasNextFollowUp = cache()->remember('schema_customers_next_follow_up_at', 3600, fn() =>
+        Schema::hasColumn('customers', 'next_follow_up_at')
+    );
+    $hasOwnerId = cache()->remember('schema_customers_owner_id', 3600, fn() =>
+        Schema::hasColumn('customers', 'owner_id')
+    );
+
+    // --- KPI dalam 1 query (lebih ringan) ---
+    $kpi = (clone $qCustomers)->selectRaw("
+        COUNT(*) as customers_total,
+        SUM(created_at >= ? AND created_at < ?) as leads_today,
+        SUM(created_at >= ?) as leads_7days,
+        SUM(created_at >= ? AND created_at <= ?) as leads_month
+    ", [$today, $tomorrow, $start7, $startMonth, $endMonth])->first();
+
+    $customersTotal   = (int) ($kpi->customers_total ?? 0);
+    $leadsToday       = (int) ($kpi->leads_today ?? 0);
+    $leads7Days       = (int) ($kpi->leads_7days ?? 0);
+    $leadsMonth       = (int) ($kpi->leads_month ?? 0);
+
+    // --- Follow up counts (1 query) + lists (2 query) ---
+    $overdueCount = 0;
+    $dueTodayCount = 0;
+    $overdueFollowUps = collect();
+    $dueTodayFollowUps = collect();
+
+    if ($hasNextFollowUp) {
+        $fu = (clone $qCustomers)->selectRaw("
+            SUM(next_follow_up_at IS NOT NULL AND next_follow_up_at < ?) as overdue,
+            SUM(next_follow_up_at IS NOT NULL AND next_follow_up_at >= ? AND next_follow_up_at < ?) as due_today
+        ", [$today, $today, $tomorrow])->first();
+
+        $overdueCount  = (int) ($fu->overdue ?? 0);
+        $dueTodayCount = (int) ($fu->due_today ?? 0);
+
+        $cols = ['id','name','email','source','next_follow_up_at'];
+
+        $overdueFollowUps = (clone $qCustomers)
+            ->whereNotNull('next_follow_up_at')
+            ->where('next_follow_up_at', '<', $today)
+            ->orderBy('next_follow_up_at', 'asc')
+            ->limit(8)
+            ->get($cols);
+
+        $dueTodayFollowUps = (clone $qCustomers)
+            ->whereNotNull('next_follow_up_at')
+            ->whereBetween('next_follow_up_at', [$today, $tomorrow])
+            ->orderBy('next_follow_up_at', 'asc')
+            ->limit(8)
+            ->get($cols);
+    }
+
+    // --- Greeting ---
+    $hour = (int) now()->format('H');
+    $greet = $hour < 5 ? 'malam' : ($hour < 11 ? 'pagi' : ($hour < 15 ? 'siang' : ($hour < 19 ? 'sore' : 'malam')));
+    $userName = Auth::user()->name ?? 'Admin';
+    $todayText = now()->translatedFormat('l, d F Y');
+    $icon = $hour < 5 || $hour >= 19 ? 'moon-stars' : ($hour < 11 ? 'sunrise' : ($hour < 15 ? 'sun' : 'cloud-sun'));
+
+    // --- Recent customers ---
+    $recentCustomers = (clone $qCustomers)->latest()->take(8)->get(['name','email','source','created_at']);
+
+    // --- Leads chart 14 hari (zero-fill biar tidak bolong) ---
+    $dailyAgg = (clone $qCustomers)
+        ->where('created_at', '>=', now()->subDays(13)->startOfDay())
+        ->selectRaw('DATE(created_at) d, COUNT(*) c')
+        ->groupBy('d')
+        ->orderBy('d')
+        ->pluck('c','d'); // ['2025-12-01' => 3, ...]
+
+    $period14 = CarbonPeriod::create(now()->subDays(13)->startOfDay(), now()->startOfDay());
+    $chartLabels = [];
+    $chartSeries = [];
+
+    foreach ($period14 as $date) {
+        $key = $date->format('Y-m-d');
+        $chartLabels[] = $date->format('d M');
+        $chartSeries[] = (int) ($dailyAgg[$key] ?? 0);
+    }
+
+    // --- Insight: sumber lead (donut) ---
+    $sourceAgg = (clone $qCustomers)
+        ->selectRaw('COALESCE(NULLIF(source,""), "Unknown") as src, COUNT(*) as c')
+        ->groupBy('src')
+        ->orderByDesc('c')
+        ->take(7)
+        ->get();
+
+    $sourceLabels = $sourceAgg->pluck('src');
+    $sourceSeries = $sourceAgg->pluck('c');
+
+    // --- Pipeline stages + snapshot (anti N+1) ---
+    $stagesCount = \App\Models\PipelineStage::where('company_id', $companyId)->count();
+    $stageSummary = collect();
+
+    if ($hasStageIdOnCustomer) {
+        $stageCounts = (clone $qCustomers)
+            ->selectRaw('pipeline_stage_id, COUNT(*) c')
+            ->whereNotNull('pipeline_stage_id')
+            ->groupBy('pipeline_stage_id')
+            ->pluck('c','pipeline_stage_id'); // [id => count]
+
+        $stages = \App\Models\PipelineStage::where('company_id', $companyId)
+            ->orderBy('sort_order')
+            ->get(['id','name']);
+
+        $stageSummary = $stages->map(fn($s)=>(object)[
+            'id'=>$s->id,
+            'name'=>$s->name,
+            'count'=>(int)($stageCounts[$s->id] ?? 0),
+        ]);
+    }
+
+    // --- Performa tim (join users, anti N+1) ---
+    $teamPerf = collect();
+    if ($hasOwnerId) {
+        $teamPerf = DB::table('customers as c')
+            ->join('users as u', 'u.id', '=', 'c.owner_id')
+            ->where('c.company_id', $companyId)
+            ->whereNotNull('c.owner_id')
+            ->selectRaw('u.name, COUNT(*) as leads')
+            ->groupBy('u.name')
+            ->orderByDesc('leads')
+            ->limit(6)
+            ->get();
+    }
+
+    // --- Quick action URLs (ganti sesuai modulmu) ---
+    $urlCreateLead  = url('/contact/create'); // <-- ganti bila perlu
+    $urlDueToday    = url('/contact?filter=due_today'); // <-- ganti bila perlu
+    $urlOverdue     = url('/contact?filter=overdue'); // <-- ganti bila perlu
+    $urlPipeline    = url('/pipeline'); // <-- ganti bila perlu
+@endphp
+
+<div class="page-heading d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="mb-1">Dashboard Admin Perusahaan</h3>
+        <div class="text-muted">{{ $companyName ?? 'Perusahaan' }}</div>
+    </div>
+    <div class="text-muted">{{ now()->format('d M Y') }}</div>
+</div>
+
+<div class="page-content">
+
+    {{-- HERO / COMMAND BAR --}}
+    <div class="card hero-card border-0 mb-3">
+        <div class="card-body">
+            <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+                <div>
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                        <h4 class="mb-0">Selamat {{ $greet }}, {{ $userName }}</h4>
+                        <span class="chip"><span class="chip-dot"></span>{{ $todayText }}</span>
+                        <span class="chip"><span class="chip-dot"></span>{{ $companyName ?? 'Perusahaan' }}</span>
+                    </div>
+                    <div class="small">Fokus hari ini: follow up dan progres pipeline.</div>
+
+                    <div class="mt-2 d-flex flex-wrap gap-2">
+                        <span class="chip"><span class="chip-dot"></span>Follow Up Hari Ini: {{ $hasNextFollowUp ? number_format($dueTodayCount) : '—' }}</span>
+                        <span class="chip"><span class="chip-dot"></span>Overdue: {{ $hasNextFollowUp ? number_format($overdueCount) : '—' }}</span>
+                    </div>
+
+                    {{-- QUICK ACTIONS --}}
+                    <div class="mt-3 d-flex flex-wrap gap-2">
+                        <a href="{{ $urlCreateLead }}" class="btn btn-light btn-sm">
+                            <i class="bi bi-plus-circle me-1"></i> Tambah Lead
+                        </a>
+                        <a href="{{ $urlDueToday }}" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-calendar2-check me-1"></i> Follow Up Hari Ini
+                        </a>
+                        <a href="{{ $urlOverdue }}" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-exclamation-triangle me-1"></i> Overdue
+                        </a>
+                        <a href="{{ $urlPipeline }}" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-diagram-3 me-1"></i> Pipeline
+                        </a>
+                    </div>
+                </div>
+
+                <div class="d-flex flex-column align-items-end gap-2">
+                    <div class="rounded-circle bg-white bg-opacity-10 p-3">
+                        <i class="bi bi-{{ $icon }}"></i>
+                    </div>
+                    <div class="small text-end" style="max-width:220px">
+                        Kerjakan yang telat dulu, lalu yang jatuh tempo hari ini.
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="text-muted">{{ now()->format('d M Y') }}</div>
     </div>
 
-    <div class="page-content">
-        <section class="row">
-            <div class="col-12">
-                <div class="row">
-                    <div class="col-12 col-md-6 col-lg-3">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <div class="text-muted">Customers</div>
-                                        <div class="h4 mb-0">{{ number_format($customersCount) }}</div>
-                                    </div>
-                                    <div class="stats-icon blue"><i class="bi bi-people"></i></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-md-6 col-lg-3">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <div class="text-muted">Team</div>
-                                        <div class="h4 mb-0">{{ number_format($teamCount) }}</div>
-                                    </div>
-                                    <div class="stats-icon purple"><i class="bi bi-person-badge"></i></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-md-6 col-lg-3">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <div class="text-muted">Stages</div>
-                                        <div class="h4 mb-0">{{ number_format($stagesCount) }}</div>
-                                    </div>
-                                    <div class="stats-icon green"><i class="bi bi-kanban"></i></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <section class="row g-3">
 
-            <div class="col-12 col-lg-8">
-                <div class="card chart-card">
-                    <div class="card-header">Leads 7 Hari</div>
-                    <div class="card-body">
-                        <div id="chart-leads" class="chart-container"></div>
+        {{-- KPI CARDS (lebih action-first) --}}
+        <div class="col-12">
+            <div class="row g-3 align-items-stretch">
+
+                {{-- Overdue --}}
+                <div class="col-12 col-md-6 col-lg-2">
+                    <div class="card h-100 border-danger">
+                        <div class="card-body">
+                            <div class="kpi-label">Overdue Follow Up</div>
+                            <div class="kpi-value">{{ $hasNextFollowUp ? number_format($overdueCount) : '—' }}</div>
+                            <div class="kpi-sub">Prioritas utama</div>
+                        </div>
                     </div>
                 </div>
+
+                {{-- Due Today --}}
+                <div class="col-12 col-md-6 col-lg-2">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="kpi-label">Follow Up Hari Ini</div>
+                            <div class="kpi-value">{{ $hasNextFollowUp ? number_format($dueTodayCount) : '—' }}</div>
+                            <div class="kpi-sub">Jadwal follow up</div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Leads Today --}}
+                <div class="col-12 col-md-6 col-lg-2">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="kpi-label">Leads Hari Ini</div>
+                            <div class="kpi-value">{{ number_format($leadsToday) }}</div>
+                            <div class="kpi-sub">Update real-time</div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Leads 7 Days --}}
+                <div class="col-12 col-md-6 col-lg-2">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="kpi-label">Leads 7 Hari</div>
+                            <div class="kpi-value">{{ number_format($leads7Days) }}</div>
+                            <div class="kpi-sub">Termasuk hari ini</div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Leads Month --}}
+                <div class="col-12 col-md-6 col-lg-2">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="kpi-label">Leads Bulan Ini</div>
+                            <div class="kpi-value">{{ number_format($leadsMonth) }}</div>
+                            <div class="kpi-sub">{{ now()->format('M Y') }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Customers Total --}}
+                <div class="col-12 col-md-6 col-lg-2">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="kpi-label">Total Customer</div>
+                            <div class="kpi-value">{{ number_format($customersTotal) }}</div>
+                            <div class="kpi-sub">Total data</div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
-            <div class="col-12 col-lg-4">
-                <div class="card">
-                    <div class="card-header">Aktivitas Terakhir</div>
-                    <div class="card-body">
+        </div>
+
+        {{-- ROW: Action Center + Pipeline Snapshot --}}
+        <div class="col-12 col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <span>Daftar Prioritas</span>
+                    <span class="mini-muted">Action Center</span>
+                </div>
+                <div class="card-body">
+
+                    @if(!$hasNextFollowUp)
+                        <div class="empty-box">
+                            <div class="fw-semibold mb-1">Fitur follow up belum aktif</div>
+                            <div class="mini-muted mb-2">
+                                Tambahkan kolom <code>next_follow_up_at</code> di tabel <code>customers</code> untuk due/overdue.
+                            </div>
+                            <a href="{{ $urlPipeline }}" class="btn btn-primary btn-sm">
+                                <i class="bi bi-gear me-1"></i> Buka Pengaturan
+                            </a>
+                        </div>
+                    @else
+
+                        <ul class="nav nav-pills nav-sm mb-3" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-overdue" type="button" role="tab">
+                                    Overdue <span class="badge bg-danger ms-1">{{ number_format($overdueCount) }}</span>
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-today" type="button" role="tab">
+                                    Hari ini <span class="badge bg-warning text-dark ms-1">{{ number_format($dueTodayCount) }}</span>
+                                </button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content">
+                            {{-- Overdue --}}
+                            <div class="tab-pane fade show active" id="tab-overdue" role="tabpanel">
+                                @if($overdueFollowUps->isEmpty())
+                                    <div class="empty-box">
+                                        <div class="fw-semibold mb-1">Aman, tidak ada overdue</div>
+                                        <div class="mini-muted">Lanjutkan ke follow up hari ini.</div>
+                                    </div>
+                                @else
+                                    <div class="table-responsive">
+                                        <table class="table table-sm align-middle mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th>Nama</th>
+                                                    <th>Source</th>
+                                                    <th>Jatuh Tempo</th>
+                                                    <th class="text-end">Aksi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach($overdueFollowUps as $c)
+                                                    <tr>
+                                                        <td class="fw-semibold">
+                                                            {{ $c->name }}
+                                                            <div class="mini-muted">{{ $c->email ?? '-' }}</div>
+                                                        </td>
+                                                        <td><span class="badge bg-light text-dark border">{{ $c->source ?: 'Unknown' }}</span></td>
+                                                        <td>
+                                                            <span class="badge bg-danger-subtle text-danger border">Overdue</span>
+                                                            <div class="mini-muted">{{ \Carbon\Carbon::parse($c->next_follow_up_at)->format('d M Y H:i') }}</div>
+                                                        </td>
+                                                        <td class="text-end">
+                                                            <a href="{{ url('/contact/'.$c->id) }}" class="btn btn-outline-primary btn-sm">
+                                                                Tindak
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                @endif
+                            </div>
+
+                            {{-- Due Today --}}
+                            <div class="tab-pane fade" id="tab-today" role="tabpanel">
+                                @if($dueTodayFollowUps->isEmpty())
+                                    <div class="empty-box">
+                                        <div class="fw-semibold mb-1">Tidak ada follow up hari ini</div>
+                                        <div class="mini-muted">Kamu bisa fokus cari lead baru atau rapikan pipeline.</div>
+                                    </div>
+                                @else
+                                    <div class="table-responsive">
+                                        <table class="table table-sm align-middle mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th>Nama</th>
+                                                    <th>Source</th>
+                                                    <th>Waktu</th>
+                                                    <th class="text-end">Aksi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach($dueTodayFollowUps as $c)
+                                                    <tr>
+                                                        <td class="fw-semibold">
+                                                            {{ $c->name }}
+                                                            <div class="mini-muted">{{ $c->email ?? '-' }}</div>
+                                                        </td>
+                                                        <td><span class="badge bg-light text-dark border">{{ $c->source ?: 'Unknown' }}</span></td>
+                                                        <td>
+                                                            <span class="badge bg-warning-subtle text-warning border">Hari ini</span>
+                                                            <div class="mini-muted">{{ \Carbon\Carbon::parse($c->next_follow_up_at)->format('H:i') }}</div>
+                                                        </td>
+                                                        <td class="text-end">
+                                                            <a href="{{ url('/contact/'.$c->id) }}" class="btn btn-outline-primary btn-sm">
+                                                                Tindak
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+
+                    @endif
+
+                </div>
+            </div>
+        </div>
+
+        {{-- Pipeline Snapshot --}}
+        <div class="col-12 col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <span>Ringkasan Pipeline</span>
+                    <span class="mini-muted">Stages: {{ number_format($stagesCount) }}</span>
+                </div>
+                <div class="card-body">
+                    @if(!$hasStageIdOnCustomer)
+                        <div class="empty-box">
+                            <div class="fw-semibold mb-1">Pipeline belum bisa dihitung</div>
+                            <div class="mini-muted mb-2">
+                                Tambahkan kolom <code>pipeline_stage_id</code> di tabel <code>customers</code>
+                                (atau sesuaikan ke tabel deal/opportunity).
+                            </div>
+                            <a href="{{ $urlPipeline }}" class="btn btn-primary btn-sm">
+                                <i class="bi bi-diagram-3 me-1"></i> Kelola Pipeline
+                            </a>
+                        </div>
+                    @else
+                        @if($stageSummary->isEmpty())
+                            <div class="empty-box">
+                                <div class="fw-semibold mb-1">Stage belum ada</div>
+                                <div class="mini-muted mb-2">Buat stage supaya pipeline bisa dipantau.</div>
+                                <a href="{{ $urlPipeline }}" class="btn btn-primary btn-sm">Buat Stage</a>
+                            </div>
+                        @else
+                            <div class="table-responsive">
+                                <table class="table table-sm align-middle mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Stage</th>
+                                            <th class="text-end">Jumlah</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($stageSummary as $s)
+                                            <tr>
+                                                <td class="fw-semibold">{{ $s->name }}</td>
+                                                <td class="text-end">
+                                                    <span class="badge bg-light text-dark border">{{ number_format($s->count) }}</span>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @endif
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        {{-- ROW: Leads chart + Team --}}
+        <div class="col-12 col-lg-8">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <span>Tren Leads (14 Hari)</span>
+                    <span class="mini-muted">Terisi 0 bila kosong</span>
+                </div>
+                <div class="card-body">
+                    <div id="chart-leads" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <span>Performa Tim</span>
+                    <span class="mini-muted">Top 6</span>
+                </div>
+                <div class="card-body">
+                    @if(!$hasOwnerId)
+                        <div class="empty-box">
+                            <div class="fw-semibold mb-1">Belum bisa ranking performa</div>
+                            <div class="mini-muted mb-2">Tambahkan kolom <code>owner_id</code> di <code>customers</code> untuk mapping lead ke tim.</div>
+                            <a href="{{ url('/tim-role') }}" class="btn btn-primary btn-sm">Atur Tim</a>
+                        </div>
+                    @else
                         <div class="table-responsive">
-                            <table class="table table-sm">
+                            <table class="table table-sm mb-0">
                                 <thead>
                                     <tr>
-                                        <th>Nama</th>
-                                        <th>Email</th>
-                                        <th>Tanggal</th>
+                                        <th>Karyawan</th>
+                                        <th class="text-end">Leads</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @forelse($recentCustomers as $c)
+                                    @forelse($teamPerf as $t)
                                         <tr>
-                                            <td>{{ $c->name }}</td>
-                                            <td>{{ $c->email }}</td>
-                                            <td>{{ $c->created_at?->format('d M Y') }}</td>
+                                            <td class="fw-semibold">{{ $t->name }}</td>
+                                            <td class="text-end"><span class="badge bg-light text-dark border">{{ number_format($t->leads) }}</span></td>
                                         </tr>
                                     @empty
-                                        <tr>
-                                            <td class="text-center">Tidak ada data</td>
-                                            <td></td>
-                                            <td></td>
-                                        </tr>
+                                        <tr><td colspan="2" class="text-muted text-center">Belum ada data</td></tr>
                                     @endforelse
                                 </tbody>
                             </table>
                         </div>
-                    </div>
+                        <div class="mt-2 mini-muted">Tip: nanti bisa tambah Won/Lost + conversion per orang.</div>
+                    @endif
                 </div>
             </div>
-        </section>
-    </div>
+        </div>
+
+        {{-- ROW: Source + Recent --}}
+        <div class="col-12 col-lg-6">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <span>Insight Sumber Lead</span>
+                    <span class="mini-muted">Top 7</span>
+                </div>
+                <div class="card-body">
+                    <div id="chart-source" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <span>Aktivitas Terakhir</span>
+                    <span class="mini-muted">Lead terbaru</span>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Nama</th>
+                                    <th>Source</th>
+                                    <th>Tanggal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($recentCustomers as $c)
+                                    <tr>
+                                        <td class="fw-semibold">
+                                            {{ $c->name }}
+                                            <div class="mini-muted">{{ $c->email ?? '-' }}</div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-light text-dark border">{{ $c->source ?: 'Unknown' }}</span>
+                                        </td>
+                                        <td>{{ $c->created_at?->format('d M Y') }}</td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td class="text-center text-muted">Tidak ada data</td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-2 mini-muted">Bisa diganti jadi “Last Activity” beneran kalau kamu punya tabel log aktivitas.</div>
+                </div>
+            </div>
+        </div>
+
+    </section>
+</div>
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('admindash/assets/extensions/apexcharts/apexcharts.min.js') }}"></script>
-    <script>
-        (function(){
-            var options = {
-                chart: { type: 'area', height: '100%', parentHeightOffset: 0, toolbar: { show: false }, fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' },
-                dataLabels: { enabled: false },
-                stroke: { curve: 'smooth', width: 2 },
-                series: [{ name: 'Leads', data: @json($chartSeries) }],
-                xaxis: { categories: @json($chartLabels) },
-                colors: ['#ff9c00'],
-                grid: { strokeDashArray: 3 },
-                fill: { type: 'gradient', gradient: { shadeIntensity: 0.4, opacityFrom: 0.5, opacityTo: 0.1 } }
-            };
-            var chart = new ApexCharts(document.querySelector('#chart-leads'), options);
-            chart.render();
-        })();
-    </script>
+<script src="{{ asset('admindash/assets/extensions/apexcharts/apexcharts.min.js') }}"></script>
+<script>
+(function () {
+    // Leads chart
+    var leadOptions = {
+        chart: { type: 'area', height: '100%', parentHeightOffset: 0, toolbar: { show: false } },
+        dataLabels: { enabled: false },
+        stroke: { curve: 'smooth', width: 2 },
+        series: [{ name: 'Leads', data: @json($chartSeries) }],
+        xaxis: { categories: @json($chartLabels) },
+        grid: { strokeDashArray: 3 },
+        fill: { type: 'gradient', gradient: { shadeIntensity: 0.4, opacityFrom: 0.5, opacityTo: 0.1 } }
+    };
+    new ApexCharts(document.querySelector('#chart-leads'), leadOptions).render();
+
+    // Source donut
+    var srcOptions = {
+        chart: { type: 'donut', height: '100%' },
+        series: @json($sourceSeries),
+        labels: @json($sourceLabels),
+        legend: { position: 'bottom' },
+        dataLabels: { enabled: false }
+    };
+    new ApexCharts(document.querySelector('#chart-source'), srcOptions).render();
+})();
+</script>
 @endpush

@@ -81,6 +81,7 @@ class ProfileController extends Controller
             'email' => ['required', 'email', 'max:150', Rule::unique('users', 'email')->ignore($user->id)],
             'password' => ['nullable', 'string', 'min:8'],
             'job_title' => ['nullable', 'string', 'max:150'],
+            'company_logo' => ['nullable', 'file', 'mimes:png,jpg,jpeg,svg', 'max:3072'],
         ]);
 
         $user->name = $data['name'];
@@ -95,6 +96,23 @@ class ProfileController extends Controller
             ['job_title' => $data['job_title'] ?? null]
         );
 
-        return redirect()->to('/setting-menu');
+        if ($request->hasFile('company_logo')) {
+            $companyId = $user->company_id;
+            if ($companyId) {
+                $file = $request->file('company_logo');
+                $ext = strtolower($file->getClientOriginalExtension() ?: 'png');
+                $dir = 'company-logos';
+                $disk = \Illuminate\Support\Facades\Storage::disk('public');
+                foreach (['png','jpg','jpeg','svg'] as $e) {
+                    $oldPath = $dir . '/' . $companyId . '.' . $e;
+                    if ($disk->exists($oldPath)) {
+                        $disk->delete($oldPath);
+                    }
+                }
+                $disk->putFileAs($dir, $file, $companyId . '.' . $ext);
+            }
+        }
+
+        return redirect()->to('/setting-menu')->with('status', 'Profil berhasil diperbarui');
     }
 }

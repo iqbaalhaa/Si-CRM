@@ -58,7 +58,7 @@
                 </div>
 
                 <div class="card-body">
-                    <form method="POST" action="{{ url('/setting-menu') }}">
+                    <form method="POST" action="{{ url('/setting-menu') }}" enctype="multipart/form-data">
                         @csrf
 
                         <div class="mb-3">
@@ -130,6 +130,48 @@
                                     {{ $message }}
                                 </div>
                             @enderror
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Logo Perusahaan</label>
+                            @php
+                                $companyId = Auth::user()->company_id ?? null;
+                                $companyName = optional(\App\Models\Perusahaan::find($companyId))->name;
+                                $logoUrl = null;
+                                if ($companyId) {
+                                    $candidates = [
+                                        "company-logos/{$companyId}.png",
+                                        "company-logos/{$companyId}.jpg",
+                                        "company-logos/{$companyId}.jpeg",
+                                        "company-logos/{$companyId}.svg",
+                                    ];
+                                    foreach ($candidates as $p) {
+                                        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($p)) {
+                                            $logoUrl = \Illuminate\Support\Facades\Storage::url($p);
+                                            break;
+                                        }
+                                    }
+                                }
+                            @endphp
+                            @if ($logoUrl)
+                                <div class="mb-2">
+                                    <img src="{{ $logoUrl }}" alt="{{ $companyName ?? 'Logo' }}" style="height:40px; width:auto; object-fit:contain">
+                                </div>
+                            @endif
+                            <input
+                                type="file"
+                                class="form-control @error('company_logo') is-invalid @enderror"
+                                name="company_logo"
+                                accept="image/png,image/jpeg,image/svg+xml"
+                            >
+                            @error('company_logo')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
+                            <small class="text-muted">
+                                Format: PNG/JPG/SVG. Tinggi ideal 40–60px.
+                            </small>
                         </div>
 
                         <div class="d-flex justify-content-end mt-4">
