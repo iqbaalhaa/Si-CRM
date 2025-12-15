@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Contact;
+use App\Models\Campaign;
 use App\Models\Perusahaan;
 use App\Models\PipelineStage;
 use App\Models\User;
@@ -165,8 +166,8 @@ class DashboardController extends Controller
             ->orderByDesc('c')
             ->take(7)
             ->get();
-        $sourceLabels  = $sourceAgg->pluck('src');
-        $sourceSeries  = $sourceAgg->pluck('c');
+        $sourceLabels  = $sourceAgg->pluck('src')->values()->all();
+        $sourceSeries  = $sourceAgg->pluck('c')->values()->all();
 
         $pipelineSummary = DB::table('campaign_contacts as cc')
             ->join('campaigns as c', 'c.id', '=', 'cc.campaign_id')
@@ -190,6 +191,17 @@ class DashboardController extends Controller
                 ->get();
         }
 
+        // Campaign summary (moved from Campaign Active)
+        $campaignsActive = Campaign::where('company_id', $companyId)
+            ->where('is_active', true)
+            ->with(['contacts'])
+            ->get();
+        $campaignActiveCount = $campaignsActive->count();
+        $campaignActiveContacts = $campaignsActive->sum(function ($c) {
+            return $c->contacts->count();
+        });
+        $campaignActiveClosingRate = 18;
+
         $urlCreateLead = url('/contact/create');
         $urlDueToday   = url('/contact?filter=due_today');
         $urlOverdue    = url('/contact?filter=overdue');
@@ -206,7 +218,8 @@ class DashboardController extends Controller
             'recentCustomers',
             'sourceLabels', 'sourceSeries',
             'teamPerf',
-            'urlCreateLead', 'urlDueToday', 'urlOverdue', 'urlPipeline'
+            'urlCreateLead', 'urlDueToday', 'urlOverdue', 'urlPipeline',
+            'campaignActiveCount', 'campaignActiveContacts', 'campaignActiveClosingRate'
         ));
     }
 
@@ -236,9 +249,20 @@ class DashboardController extends Controller
 
         $myRecentCustomers = (clone $myAssigned)->latest()->take(8)->get(['id','name','type','created_at']);
 
+        $campaignsActive = \App\Models\Campaign::where('company_id', $companyId)
+            ->where('is_active', true)
+            ->with(['contacts'])
+            ->get();
+        $campaignActiveCount = $campaignsActive->count();
+        $campaignActiveContacts = $campaignsActive->sum(function ($c) {
+            return $c->contacts->count();
+        });
+        $campaignActiveClosingRate = 18;
+
         return view('lead-operations.dashboard', compact(
             'totalCustomers', 'myAssignedCount', 'stagesCount', 'last7DaysCount',
-            'chartLabels', 'chartSeries', 'myRecentCustomers'
+            'chartLabels', 'chartSeries', 'myRecentCustomers',
+            'campaignActiveCount', 'campaignActiveContacts', 'campaignActiveClosingRate'
         ));
     }
 }

@@ -236,7 +236,7 @@ class CampaignController extends Controller
         if ($start && $end) {
             $dates = $start . ' - ' . $end;
         } elseif ($start) {
-            $dates = 'Mulai: ' . $start;
+            $dates = 'Mulai: ' . $start . ' (tanpa akhir)';
         }
 
         return response()->json([
@@ -244,6 +244,18 @@ class CampaignController extends Controller
             'dates' => $dates,
             'products' => $productNames,
         ]);
+    }
+    
+    public function stop($id)
+    {
+        $companyId = Auth::user()->profile->company_id;
+        $campaign = Campaign::where('company_id', $companyId)->findOrFail($id);
+        $campaign->update([
+            'is_active' => false,
+            'to' => $campaign->to ?? now(),
+        ]);
+        return redirect()->route('campaign.history')
+            ->with('success', 'Campaign dihentikan.');
     }
     
     public function productsSearch(Request $request)

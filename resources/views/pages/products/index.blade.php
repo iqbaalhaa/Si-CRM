@@ -408,7 +408,22 @@
             $('#table-products').on('submit', '.product-delete-form', function(e) {
                 e.preventDefault();
                 const form = this;
-                if (confirm('Pindahkan produk ke sampah?')) form.submit();
+                const name = form.getAttribute('data-product-name') || 'produk';
+                if (window.Swal && typeof Swal.fire === 'function') {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Apakah Anda yakin?',
+                        text: `Produk "${name}" akan dihapus.`,
+                        showCancelButton: true,
+                        confirmButtonText: 'Ya, hapus',
+                        cancelButtonText: 'Batal',
+                        confirmButtonColor: '#d33'
+                    }).then((r) => {
+                        if (r.isConfirmed) form.submit();
+                    });
+                } else {
+                    if (confirm(`Pindahkan produk "${name}" ke sampah?`)) form.submit();
+                }
             });
         });
     </script>

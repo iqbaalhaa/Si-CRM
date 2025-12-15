@@ -283,6 +283,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/campaigns/preview', [CampaignController::class, 'preview'])
         ->name('campaign.preview');
     
+    Route::post('/campaigns/{id}/stop', [CampaignController::class, 'stop'])
+        ->whereNumber('id')
+        ->name('campaign.stop');
+    
     Route::get('/campaigns/products-search', [CampaignController::class, 'productsSearch'])
         ->name('campaign.products.search');
 

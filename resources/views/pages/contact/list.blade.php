@@ -8,7 +8,26 @@
     <div class="card shadow-sm border-0 rounded-3 mb-3">
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="mb-0">Advance Search</h6>
+                <div class="d-flex align-items-center gap-2">
+                    <h6 class="mb-0">Advance Search</h6>
+                    <button type="button"
+                            class="btn hint-btn d-inline-flex align-items-center justify-content-center"
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="right"
+                            data-bs-html="true"
+                            title="<div class='text-start'>
+                                <div class='text-uppercase small fw-semibold mb-1'>Petunjuk Pencarian</div>
+                                <ul class='small mb-0 ps-3'>
+                                    <li>Umur: gunakan <code>umur:25</code>, <code>umur&gt;20</code>, <code>umur&lt;=30</code>, atau <code>umur 20-35</code>/<code>umur 20 sampai 35</code>.</li>
+                                    <li>Gender: <code>perempuan</code>/<code>wanita</code>/<code>p</code> atau <code>laki-laki</code>/<code>pria</code>/<code>l</code>.</li>
+                                    <li>Banyak daerah: pisahkan dengan koma, mis: <code>kerinci, sungai penuh, tebo</code>.</li>
+                                    <li>Kata kunci dicari di nama, detail, dan channel kontak.</li>
+                                    <li>Gunakan filter <code>Tipe</code> dan <code>Hanya yang aktif</code> untuk mempersempit hasil.</li>
+                                </ul>
+                            </div>">
+                        <i class="bi bi-info-lg"></i>
+                    </button>
+                </div>
                 @if(method_exists($contacts, 'total') ? $contacts->total() : $contacts->count())
                     <div class="btn-group">
                         <a id="exportCsvBtn" href="{{ route('contacts.export', ['format' => 'csv']) }}" class="btn btn-outline-primary btn-sm" data-format="csv">Export CSV</a>
@@ -36,16 +55,6 @@
                     </div>
                 </div>
             </form>
-            <div class="mt-2">
-                <span class="text-uppercase text-muted small fw-semibold">Petunjuk Pencarian</span>
-                <ul class="text-muted small mb-0 ps-3">
-                    <li>Umur: gunakan <code>umur:25</code>, <code>umur&gt;20</code>, <code>umur&lt;=30</code>, atau rentang <code>umur 20-35</code>/<code>umur 20 sampai 35</code>.</li>
-                    <li>Gender: <code>perempuan</code>/<code>wanita</code>/<code>p</code> atau <code>laki-laki</code>/<code>pria</code>/<code>l</code>.</li>
-                    <li>Banyak daerah: pisahkan dengan koma, misal <code>kerinci, sungai penuh, tebo</code>.</li>
-                    <li>Kata kunci dicari di nama, detail, dan channel kontak.</li>
-                    <li>Gunakan filter <code>Tipe</code> dan <code>Hanya yang aktif</code> untuk mempersempit hasil.</li>
-                </ul>
-            </div>
         </div>
     </div>
 
@@ -460,6 +469,27 @@
             background-color: transparent !important;
             box-shadow: none !important;
         }
+        .hint-btn{
+            width: 34px;
+            height: 34px;
+            border-radius: 999px !important;
+            background: #f59e0b !important; /* orange */
+            color: #ffffff !important;
+            padding: 0;
+            border: none !important;
+            box-shadow: 0 .25rem .5rem rgba(0,0,0,.08);
+        }
+        .hint-btn:hover,
+        .hint-btn:focus{
+            background: #ea580c !important; /* darker orange */
+            color: #ffffff !important;
+        }
+        .hint-btn i{ font-size: 1.1rem; line-height: 1; }
+        .tooltip .tooltip-inner{
+            max-width: 280px;
+            font-size: .8rem;
+            padding: .35rem .5rem;
+        }
 
         @media (max-width: 768px) {
             .table-wrapper {
@@ -493,6 +523,8 @@
                 order: [[0, 'asc']],
                 dom: 'lrtip'
             });
+            [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+                .forEach(function (el) { new bootstrap.Tooltip(el); });
 
             const baseUrl = '{{ route('contacts.advanced') }}';
             const $q = $('#qInput');

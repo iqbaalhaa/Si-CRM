@@ -6,9 +6,6 @@
     <div class="page-heading mb-3 d-flex justify-content-between align-items-center">
         <div>
             <h3>Buat Campaign Baru</h3>
-            <p class="text-muted mb-0">
-                Rancang campaign seperti <strong>Winter Sale</strong>, lalu assign ke tim dan target contact.
-            </p>
         </div>
     </div>
 
@@ -18,34 +15,22 @@
             <div class="col-lg-8">
                 <div class="card mb-3">
                     <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div>
-                                <h5 class="mb-1">Informasi Utama Campaign</h5>
-                                <div class="small text-muted">
-                                    Step 1 dari 3 — Isi dasar campaign, channel, jadwal, dan target.
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <h5 class="mb-1">Informasi Utama Campaign</h5>
                                 </div>
+                                
                             </div>
-                            
-                        </div>
 
                         <form id="form-create-campaign" action="{{ route('campaign.store') }}" method="POST">
                             @csrf
 
                             {{-- STEP 1: Nama & Tipe --}}
-                            <div class="border rounded p-3 mb-3 bg-light">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <div class="small fw-semibold text-uppercase text-muted">
-                                        Step 1 • Nama & Tipe Campaign
-                                    </div>
-                                </div>
-
+                            <div class="border rounded p-3 mb-3">
                                 <div class="mb-3">
                                     <label class="form-label">Nama Campaign <span class="text-danger">*</span></label>
                                     <input type="text" name="name" class="form-control"
                                            placeholder="Winter Sale 2025" required>
-                                    <small class="text-muted">
-                                        Nama campaign yang akan muncul di daftar Campaign Active.
-                                    </small>
                                 </div>
 
                                 
@@ -53,13 +38,6 @@
 
                             {{-- STEP 2: Jadwal & Audience --}}
                             <div class="border rounded p-3 mb-3">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <div class="small fw-semibold text-uppercase text-muted">
-                                        Step 2 • Jadwal & Audience
-                                    </div>
-                                    
-                                </div>
-
                                 <div class="row g-3 mt-1">
                                     <div class="col-md-6">
                                         <label class="form-label">Tanggal Mulai <span class="text-danger">*</span></label>
@@ -68,6 +46,12 @@
                                     <div class="col-md-6">
                                         <label class="form-label">Tanggal Selesai</label>
                                         <input type="date" name="end_date" class="form-control">
+                                        <div class="d-flex justify-content-end mt-2">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="end_indefinite">
+                                                <label class="form-check-label small" for="end_indefinite">Tanpa akhir</label>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -75,7 +59,7 @@
                             </div>
 
                             {{-- STEP 3: Product --}}
-                            <div class="border rounded p-3 mb-3 bg-light">
+                            <div class="border rounded p-3 mb-3">
                                 <div class="small fw-semibold text-uppercase text-muted mb-2">Product Campaign</div>
 
                                 
@@ -143,6 +127,47 @@
         .xsmall {
             font-size: 0.7rem;
         }
+        
+        /* Samakan background komponen Select2 dengan background body/card */
+        .select2-container--default .select2-selection--multiple {
+            background-color: var(--bs-body-bg) !important;
+            border-color: var(--bs-border-color) !important;
+            color: var(--bs-body-color) !important;
+        }
+        .select2-container--default .select2-selection--multiple .select2-selection__rendered {
+            background-color: transparent !important;
+        }
+        .select2-container--default .select2-selection--multiple .select2-search__field {
+            background-color: var(--bs-body-bg) !important;
+            color: var(--bs-body-color) !important;
+        }
+        /* Hapus background abu pada chip pilihan produk */
+        .select2-container--default .select2-selection--multiple .select2-selection__choice {
+            background-color: transparent !important;
+            border-color: var(--bs-border-color) !important;
+            color: var(--bs-body-color) !important;
+        }
+        .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+            color: var(--bs-body-color) !important;
+        }
+        /* Samakan dropdown Select2 dengan tema */
+        .select2-container .select2-dropdown {
+            background-color: var(--bs-body-bg) !important;
+            border-color: var(--bs-border-color) !important;
+        }
+        .select2-container--default .select2-results__option[aria-selected=true] {
+            background-color: transparent !important;
+            color: var(--bs-body-color) !important;
+        }
+        .select2-container--default .select2-results__option--highlighted {
+            background-color: rgba(255, 156, 0, 0.08) !important;
+            color: var(--bs-body-color) !important;
+        }
+        .select2-container--default .select2-search--dropdown .select2-search__field {
+            background-color: var(--bs-body-bg) !important;
+            color: var(--bs-body-color) !important;
+            border-color: var(--bs-border-color) !important;
+        }
     </style>
 @endpush
 
@@ -151,6 +176,17 @@
         document.addEventListener('DOMContentLoaded', function () {
             const form = document.getElementById('form-create-campaign');
             const token = form.querySelector('input[name=_token]')?.value;
+            const endIndef = document.getElementById('end_indefinite');
+            const endInput = form.end_date;
+            function syncEnd() {
+                if (!endIndef) return;
+                if (endIndef.checked) {
+                    endInput.value = '';
+                    endInput.disabled = true;
+                } else {
+                    endInput.disabled = false;
+                }
+            }
             if (window.jQuery && typeof $.fn.select2 !== 'undefined') {
                 $('.js-select2-products').select2({
                     placeholder: 'Pilih product campaign',
@@ -213,6 +249,11 @@
 
             form.addEventListener('input', schedulePreview);
             form.addEventListener('change', schedulePreview);
+            endIndef?.addEventListener('change', function () {
+                syncEnd();
+                schedulePreview();
+            });
+            syncEnd();
             sendPreview();
         });
     </script>

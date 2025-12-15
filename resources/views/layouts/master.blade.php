@@ -18,6 +18,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('admindash/assets/compiled/css/app.css') }}">
     <link rel="stylesheet" href="{{ asset('admindash/assets/compiled/css/app-dark.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="{{ asset('admindash/assets/compiled/css/iconly.css') }}">
     <link rel="stylesheet" href="{{ asset('admindash/assets/extensions/sweetalert2/sweetalert2.min.css') }}">
     <style>

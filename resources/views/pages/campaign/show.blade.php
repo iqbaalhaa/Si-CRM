@@ -6,9 +6,6 @@
     <div class="page-heading mb-3 d-flex justify-content-between align-items-center">
         <div>
             <h3>{{ $campaign->name }}</h3>
-            <p class="text-muted mb-0">
-                Detail campaign, daftar contact, product, dan kolaborasi tim.
-            </p>
         </div>
     </div>
 
@@ -18,60 +15,66 @@
 
             {{-- CARD 1 --}}
             <div class="col-lg-4 d-flex">
-                <div class="card card-fixed w-100">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
+                <div class="campaign-card card-fixed w-100 p-3">
+                    <div class="d-flex justify-content-between align-items-start mb-2 title-row">
+                        <div class="d-flex align-items-center gap-2 flex-grow-1 title-left">
+                            <h6 class="mb-0 campaign-name">{{ $campaign->name }}</h6>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2 mb-2 small meta-row">
+                        <span class="badge bg-light text-muted">
+                            <i class="bi bi-calendar-event me-1"></i>
+                            @if($campaign->to)
+                                {{ optional($campaign->from)->format('d M Y') }} - {{ optional($campaign->to)->format('d M Y') }}
+                            @else
+                                Mulai: {{ optional($campaign->from)->format('d M Y') }} (tanpa akhir)
+                            @endif
+                        </span>
+                        <span class="badge bg-light text-muted">
+                            {{ $campaign->products->count() > 0 ? 'Product Campaign' : 'Tanpa Product' }}
+                        </span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2 small owner-row">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
+                                {{ strtoupper(substr($campaign->creator->name ?? 'U',0,1)) }}
+                            </div>
                             <div>
-                                <div class="d-flex align-items-center gap-2">
-                                    <h5 class="mb-0">{{ $campaign->name }}</h5>
-                                    <span class="badge {{ $campaign->is_active ? 'bg-success' : 'bg-secondary' }}">
-                                        {{ $campaign->is_active ? 'Active' : 'Inactive' }}
-                                    </span>
-                                </div>
-                                <div class="small text-muted mt-1">
-                                    <i class="bi bi-calendar-event me-1"></i>
-                                    {{ optional($campaign->from)->format('d M Y') }} - {{ optional($campaign->to)->format('d M Y') }}
-                                </div>
-                                <div class="small text-muted">
-                                    <i class="bi bi-megaphone me-1"></i>
-                                    {{ $campaign->products->count() > 0 ? 'Product Campaign' : 'Tanpa Product' }}
-                                    <span class="mx-2">•</span>
-                                    Owner: <strong>{{ $campaign->creator->name ?? 'Unknown' }}</strong>
-                                </div>
+                                <div class="fw-semibold small mb-0">{{ $campaign->creator->name ?? 'Unknown' }}</div>
+                                <div class="text-muted xsmall">Owner</div>
                             </div>
-
-                            <span class="badge text-bg-light border">Overview</span>
                         </div>
-
-                        <div class="card-grow">
-                            <div class="small text-muted mb-2">Progress Campaign</div>
-                            <div class="progress progress-thin">
+                        <div class="text-end">
+                            <div class="progress progress-thin" style="height: 8px; width: 140px;">
                                 <div class="progress-bar" role="progressbar" style="width: 35%;"
-                                    aria-valuenow="35" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                            <div class="small text-muted mt-2">
-                                35% kontak sudah mencapai stage <strong>Contacted+</strong>
+                                     aria-valuenow="35" aria-valuemin="0" aria-valuemax="100"></div>
                             </div>
                         </div>
-
-                        <div class="mt-auto pt-2">
-                            <a href="#" class="btn btn-sm btn-outline-secondary w-100">
-                                <i class="bi bi-bar-chart-line me-1"></i> Lihat Insight (opsional)
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top footer-row">
+                        <div class="d-flex flex-wrap gap-2 xsmall text-muted">
+                            <span><i class="bi bi-people me-1"></i>Tim: {{ $campaign->teams->count() }}</span>
+                        </div>
+                        <div class="text-end">
+                            <a href="#" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-bar-chart-line me-1"></i> Lihat Insight
                             </a>
                         </div>
                     </div>
+                    <span class="status-badge {{ $campaign->is_active ? 'bg-success' : 'bg-secondary' }}">
+                        {{ $campaign->is_active ? 'Aktif' : 'Nonaktif' }}
+                    </span>
                 </div>
             </div>
 
             {{-- CARD 2 --}}
             @if(Auth::user()->hasRole('admin') || Auth::user()->hasRole('lead-operations'))
             <div class="col-lg-4 d-flex">
-                <div class="card card-fixed w-100">
+                <div class="campaign-card card-fixed w-100 p-3">
                     <div class="card-body">
                         <div class="d-flex align-items-start justify-content-between mb-3">
                             <div>
                                 <h6 class="mb-1 fw-semibold">Pengaturan Tim</h6>
-                                <div class="small text-muted">Atur leader dan anggota campaign.</div>
                             </div>
                             <span class="badge text-bg-light border">Team</span>
                         </div>
@@ -117,12 +120,11 @@
 
             {{-- CARD 3 --}}
             <div class="col-lg-4 d-flex">
-                <div class="card card-fixed w-100">
+                <div class="campaign-card card-fixed w-100 p-3">
                     <div class="card-body">
                         <div class="d-flex align-items-start justify-content-between mb-3">
                             <div>
                                 <h6 class="mb-1 fw-semibold">Assign Contact ke Campaign</h6>
-                                <div class="small text-muted">Pilih contact lalu assign.</div>
                             </div>
                             <div class="d-flex flex-column align-items-end gap-2">
                                 <span class="badge text-bg-light border">Contacts</span>
@@ -185,9 +187,6 @@
                         <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-2 mb-3">
                             <div>
                                 <h6 class="mb-0">Kontak dalam Campaign</h6>
-                                <small class="text-muted">
-                                    Ubah stage & product per contact, atau sekaligus untuk banyak contact.
-                                </small>
                             </div>
                         </div>
 
@@ -869,50 +868,51 @@
 <link rel="stylesheet" href="{{ asset('admindash/assets/extensions/datatables.net-bs5/css/dataTables.bootstrap5.css') }}">
 
 <style>
-  /* Top cards: modern look + fixed/equal height */
-  .top-cards .card {
-    border: 0;
-    border-radius: 16px;
-    box-shadow: 0 .25rem .75rem rgba(16, 24, 40, .08);
+  .campaign-card {
+    border-radius: 1rem;
+    border: 1px solid var(--bs-border-color);
+    background: linear-gradient(135deg, rgba(99,102,241,.06), rgba(14,165,233,.05));
+    box-shadow: 0 12px 30px rgba(15,23,42,.08);
+    transition: box-shadow .18s ease, transform .18s ease, border-color .18s ease, background .18s ease;
+    position: relative;
+    overflow: hidden;
   }
-
-  /* Pakai 1 tinggi yang sama untuk 3 card atas */
-  .top-cards .card-fixed {
-    height: 340px;              /* <-- ubah sesuai kebutuhan */
+  .campaign-card:hover {
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.14);
+    transform: translateY(-2px);
+    border-color: rgba(99,102,241,.35);
+    background: linear-gradient(135deg, rgba(99,102,241,.10), rgba(14,165,233,.08));
   }
-
-  /* Isi card dibuat flex biar bagian bawah bisa “nempel” */
-  .top-cards .card-fixed .card-body {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
+  .xsmall { font-size: 0.7rem; }
+  .badge.bg-light.text-muted{
+    background-color: rgba(148,163,184,.12) !important;
+    border: 1px solid rgba(148,163,184,.35);
   }
-
-  /* Area konten yang boleh grow */
-  .card-grow {
-    flex: 1 1 auto;
-    min-height: 0;              /* penting untuk overflow di flex */
+  .btn.btn-sm.btn-outline-primary, .btn.btn-sm.btn-outline-danger{
+    border-radius: .6rem;
   }
-
-  /* Area yang di-scroll (khusus list) */
-  .scroll-area {
-    overflow: auto;
-    min-height: 0;
+  .title-row{ min-height: 32px; }
+  .title-left{ min-width: 0; }
+  .campaign-name{ font-size: .95rem; font-weight: 600; max-width: 75%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .meta-row{ min-height: 26px; }
+  .owner-row{ min-height: 48px; }
+  .footer-row{ min-height: 32px; }
+  .status-badge{
+    position: absolute;
+    right: .75rem;
+    bottom: .75rem;
+    padding: .25rem .5rem;
+    border-radius: .6rem;
+    font-size: .75rem;
   }
-
-  /* Hover list item (lebih modern, tanpa inline onmouseover) */
-  .hover-soft:hover {
-    background: rgba(0,0,0,.04);
-  }
-
-  /* Progress pill look */
-  .progress.progress-thin {
-    height: 8px;
-    border-radius: 999px;
-  }
-  .progress.progress-thin .progress-bar {
-    border-radius: 999px;
-  }
+  .top-cards .card-fixed { height: 340px; }
+  .top-cards .card-fixed .card-body { display: flex; flex-direction: column; height: 100%; }
+  .top-cards .campaign-card.card-fixed .card-body { padding: 0; }
+  .card-grow { flex: 1 1 auto; min-height: 0; }
+  .scroll-area { overflow: auto; min-height: 0; }
+  .hover-soft:hover { background: rgba(0,0,0,.04); }
+  .progress.progress-thin { height: 8px; border-radius: 999px; }
+  .progress.progress-thin .progress-bar { border-radius: 999px; }
 </style>
 @endpush
 

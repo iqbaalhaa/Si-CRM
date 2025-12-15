@@ -17,6 +17,11 @@
     .stats-icon i{background:linear-gradient(135deg,var(--primary-500),var(--secondary-500));-webkit-background-clip:text;background-clip:text;color:transparent;font-size:1.3rem;line-height:1}
     .chart-card .card-body{height:clamp(280px,34vh,480px)}
     .chart-container{width:100%;height:100%;min-height:280px}
+    .stat-card{position:relative;border-radius:16px;background:radial-gradient(circle at top left, rgba(79,70,229,.06) 0, transparent 55%) var(--surface);border:1px solid rgba(148,163,184,.35);box-shadow:0 12px 30px rgba(15,23,42,.08);overflow:hidden;min-height:125px;transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease}
+    .stat-card::before{content:"";position:absolute;inset:0;background:linear-gradient(135deg, rgba(79,70,229,.18), rgba(14,165,233,.05));opacity:0;pointer-events:none;transition:opacity .18s ease}
+    .stat-card:hover{transform:translateY(-2px);box-shadow:0 18px 40px rgba(15,23,42,.14);border-color:rgba(79,70,229,.45)}
+    .stat-card:hover::before{opacity:1}
+    .stat-card .card-body{position:relative;z-index:1;padding:1rem 1.1rem;display:flex;align-items:center;justify-content:space-between;gap:1rem}
 </style>
 @endpush
 
@@ -38,7 +43,7 @@
             <div class="col-12">
                 <div class="row">
                     <div class="col-12 col-md-6 col-lg-3">
-                        <div class="card">
+                        <div class="card stat-card">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
@@ -51,7 +56,7 @@
                         </div>
                     </div>
                     <div class="col-12 col-md-6 col-lg-3">
-                        <div class="card">
+                        <div class="card stat-card">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
@@ -64,7 +69,7 @@
                         </div>
                     </div>
                     <div class="col-12 col-md-6 col-lg-3">
-                        <div class="card">
+                        <div class="card stat-card">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
@@ -77,7 +82,7 @@
                         </div>
                     </div>
                     <div class="col-12 col-md-6 col-lg-3">
-                        <div class="card">
+                        <div class="card stat-card">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
@@ -86,6 +91,44 @@
                                     </div>
                                     <div class="stats-icon"><i class="bi bi-kanban"></i></div>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+                    <div class="col-12">
+                <div class="row g-3">
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <div class="card stat-card h-100">
+                            <div class="card-body d-flex align-items-center justify-content-between">
+                                <div>
+                                    <div class="stat-label">Campaign Aktif</div>
+                                    <div class="stat-value">{{ number_format($campaignActiveCount ?? 0) }}</div>
+                                </div>
+                                <div class="stats-icon"><i class="bi bi-bullseye"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <div class="card stat-card h-100">
+                            <div class="card-body d-flex align-items-center justify-content-between">
+                                <div>
+                                    <div class="stat-label">Kontak di Campaign</div>
+                                    <div class="stat-value">{{ number_format($campaignActiveContacts ?? 0) }}</div>
+                                </div>
+                                <div class="stats-icon"><i class="bi bi-people"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <div class="card stat-card h-100">
+                            <div class="card-body d-flex align-items-center justify-content-between">
+                                <div>
+                                    <div class="stat-label">Closing Rate</div>
+                                    <div class="stat-value">{{ number_format($campaignActiveClosingRate ?? 0) }}%</div>
+                                </div>
+                                <div class="stats-icon"><i class="bi bi-graph-up-arrow"></i></div>
                             </div>
                         </div>
                     </div>
