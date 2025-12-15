@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Exports\ProductsExport;
+use App\Exports\ProductsTemplateExport;
+use App\Exports\ProductsSelectedExport;
 use App\Imports\ProductsImport;
 use App\Models\Product;
 use App\Models\ProductDetail;
@@ -448,6 +450,16 @@ class ProductController extends Controller
         return Excel::download(new ProductsExport($user->company_id), $fileName);
     }
 
+    public function templateXlsx(Request $request)
+    {
+        $user = $request->user();
+        if (!$user->company_id) {
+            abort(403, 'User belum terhubung ke perusahaan.');
+        }
+        $fileName = 'products_template_' . now()->format('Ymd_His') . '.xlsx';
+        return Excel::download(new ProductsTemplateExport(), $fileName);
+    }
+
     /**
      * IMPORT XLSX (pakai maatwebsite/excel).
      */
@@ -460,7 +472,7 @@ class ProductController extends Controller
         }
 
         $request->validate([
-            'file' => 'required|file|mimes:xlsx,xls,csv',
+            'file' => 'required|file|mimes:xlsx',
         ]);
 
         Excel::import(
@@ -471,5 +483,49 @@ class ProductController extends Controller
         return redirect()
             ->route('products.index')
             ->with('success', 'Import XLSX selesai.');
+    }
+
+    public function exportSelectedXlsx(Request $request)
+    {
+        $user = $request->user();
+        if (!$user->company_id) {
+            abort(403, 'User belum terhubung ke perusahaan.');
+        }
+        $data = $request->validate([
+            'ids'   => 'required|array',
+            'ids.*' => 'integer',
+        ]);
+        $ids = Product::where('company_id', $user->company_id)
+            ->whereIn('id', $data['ids'])
+            ->pluck('id')
+            ->toArray();
+        if (empty($ids)) {
+            return back()->with('error', 'Tidak ada produk yang dipilih.');
+        }
+        $fileName = 'products_selected_' . now()->format('Ymd_His') . '.xlsx';
+        return Excel::download(new ProductsSelectedExport($user->company_id, $ids), $fileName);
+    }
+
+    public function massDelete(Request $request)
+    {
+        $user = $request->user();
+        if (!$user->company_id) {
+            abort(403, 'User belum terhubung ke perusahaan.');
+        }
+        $data = $request->validate([
+            'ids'   => 'required|array',
+            'ids.*' => 'integer',
+        ]);
+        $query = Product::where('company_id', $user->company_id)
+            ->whereIn('id', $data['ids']);
+        $products = $query->get();
+        $count = 0;
+        foreach ($products as $product) {
+            $product->updated_by = $user->id;
+            $product->save();
+            $product->delete();
+            $count++;
+        }
+        return back()->with('success', "Berhasil menghapus {$count} produk.");
     }
 }

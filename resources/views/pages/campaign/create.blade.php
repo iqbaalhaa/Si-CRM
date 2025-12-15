@@ -62,8 +62,8 @@
 
                                 <div class="row g-3 mt-1">
                                     <div class="col-md-6">
-                                        <label class="form-label">Tanggal Mulai</label>
-                                        <input type="date" name="start_date" class="form-control">
+                                        <label class="form-label">Tanggal Mulai <span class="text-danger">*</span></label>
+                                        <input type="date" name="start_date" class="form-control" required>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">Tanggal Selesai</label>
@@ -79,19 +79,13 @@
                                 <div class="small fw-semibold text-uppercase text-muted mb-2">Product Campaign</div>
 
                                 
-
                                 <div class="mt-2">
                                     <label class="form-label">Product Campaign (opsional)</label>
-                                    <div class="row g-2" id="campaign-products">
+                                    <select class="form-select js-select2-products" name="products[]" multiple style="width: 100%;">
                                         @foreach($products as $product)
-                                            <div class="col-sm-6 col-md-4">
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="checkbox" name="products[]" value="{{ $product->id }}" id="prod_{{ $product->id }}">
-                                                    <label class="form-check-label" for="prod_{{ $product->id }}">{{ $product->name }}</label>
-                                                </div>
-                                            </div>
+                                            <option value="{{ $product->id }}">{{ $product->name }}</option>
                                         @endforeach
-                                    </div>
+                                    </select>
                                 </div>
                             </div>
 
@@ -157,6 +151,32 @@
         document.addEventListener('DOMContentLoaded', function () {
             const form = document.getElementById('form-create-campaign');
             const token = form.querySelector('input[name=_token]')?.value;
+            if (window.jQuery && typeof $.fn.select2 !== 'undefined') {
+                $('.js-select2-products').select2({
+                    placeholder: 'Pilih product campaign',
+                    width: '100%',
+                    ajax: {
+                        url: "{{ route('campaign.products.search') }}",
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                q: params.term || '',
+                                page: params.page || 1
+                            };
+                        },
+                        processResults: function (data, params) {
+                            params.page = params.page || 1;
+                            return {
+                                results: data.results || [],
+                                pagination: { more: data.pagination && data.pagination.more }
+                            };
+                        },
+                        cache: true
+                    },
+                    minimumInputLength: 0
+                });
+            }
 
             let timer;
             function schedulePreview() {
@@ -168,7 +188,8 @@
                 const name = form.name.value;
                 const start_date = form.start_date.value;
                 const end_date = form.end_date.value;
-                const products = Array.from(document.querySelectorAll('#campaign-products input[name="products[]"]:checked')).map(el => el.value);
+                const productsSelect = form.querySelector('select[name="products[]"]');
+                const products = productsSelect ? Array.from(productsSelect.selectedOptions).map(el => el.value) : [];
 
                 try {
                     const resp = await fetch("{{ route('campaign.preview') }}", {

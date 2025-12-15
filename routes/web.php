@@ -282,6 +282,9 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/campaigns/preview', [CampaignController::class, 'preview'])
         ->name('campaign.preview');
+    
+    Route::get('/campaigns/products-search', [CampaignController::class, 'productsSearch'])
+        ->name('campaign.products.search');
 
     Route::get('/campaigns/active', [CampaignController::class, 'active'])
         ->name('campaign.active');
@@ -372,6 +375,15 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/products-import-xlsx', [ProductController::class, 'importXlsx'])
         ->name('products.import.xlsx');
+
+    Route::get('/products-template-xlsx', [ProductController::class, 'templateXlsx'])
+        ->name('products.template.xlsx');
+
+    Route::post('/products-export-selected-xlsx', [ProductController::class, 'exportSelectedXlsx'])
+        ->name('products.export.selected.xlsx');
+
+    Route::post('/products/mass-delete', [ProductController::class, 'massDelete'])
+        ->name('products.mass-delete');
 
     // /////////////////////////////////////////////////////////////////////
     Route::get('/activities', [ActivitiesController::class, 'index'])

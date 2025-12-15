@@ -27,7 +27,7 @@ class CampaignController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
             'type' => 'nullable|string',
             'channel' => 'nullable|string',
             'audience' => 'nullable|string',
@@ -42,7 +42,7 @@ class CampaignController extends Controller
         $campaign = Campaign::create([
             'name' => $validated['name'],
             'from' => $validated['start_date'],
-            'to' => $validated['end_date'],
+            'to' => ($validated['end_date'] ?? null),
             'is_active' => true,
             'company_id' => $companyId,
             'created_by' => Auth::id(),
@@ -136,9 +136,12 @@ class CampaignController extends Controller
             ])
             ->findOrFail($id);
 
-        // Company users for team management
+        // Company users for team management (only admin or lead-operations)
         $companyUsers = \App\Models\User::whereHas('profile', function ($q) use ($companyId) {
                 $q->where('company_id', $companyId);
+            })
+            ->whereHas('roles', function ($q) {
+                $q->whereIn('name', ['admin', 'lead-operations']);
             })
             ->orderBy('name')
             ->get();
@@ -172,7 +175,7 @@ class CampaignController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
             'is_active' => 'nullable|boolean',
             'products' => 'nullable|array',
         ]);
@@ -180,7 +183,7 @@ class CampaignController extends Controller
         $campaign->update([
             'name' => $validated['name'],
             'from' => $validated['start_date'],
-            'to' => $validated['end_date'],
+            'to' => ($validated['end_date'] ?? null),
             'is_active' => $validated['is_active'] ?? $campaign->is_active,
         ]);
 
@@ -240,6 +243,36 @@ class CampaignController extends Controller
             'name' => $name ?: 'Nama Campaign',
             'dates' => $dates,
             'products' => $productNames,
+        ]);
+    }
+    
+    public function productsSearch(Request $request)
+    {
+        $companyId = Auth::user()->profile->company_id;
+        $q = (string) $request->input('q', '');
+        $page = max(1, (int) $request->input('page', 1));
+        $perPage = 20;
+        
+        $query = Product::where('company_id', $companyId);
+        if ($q !== '') {
+            $query->where('name', 'like', '%' . $q . '%');
+        }
+        
+        $total = (clone $query)->count();
+        $items = $query->orderBy('name')
+            ->skip(($page - 1) * $perPage)
+            ->take($perPage)
+            ->get(['id', 'name']);
+        
+        $results = $items->map(function ($p) {
+            return ['id' => $p->id, 'text' => $p->name];
+        })->values();
+        
+        return response()->json([
+            'results' => $results,
+            'pagination' => [
+                'more' => ($page * $perPage) < $total
+            ]
         ]);
     }
 
@@ -427,6 +460,10 @@ class CampaignController extends Controller
             ->pluck('id')
             ->all();
 
+        // Previous team (for notification on newly added)
+        $prevUserIds = \App\Models\CampaignTeam::where('campaign_id', $campaign->id)
+            ->pluck('user_id')
+            ->all();
         // Replace team
         \App\Models\CampaignTeam::where('campaign_id', $campaign->id)->delete();
 
@@ -450,6 +487,22 @@ class CampaignController extends Controller
                 'role' => 'member',
                 'assigned_by' => Auth::id(),
             ]);
+        }
+
+        // Notify newly added users
+        $newUserIds = \App\Models\CampaignTeam::where('campaign_id', $campaign->id)
+            ->pluck('user_id')
+            ->all();
+        $addedIds = array_diff($newUserIds, $prevUserIds);
+        if (!empty($addedIds)) {
+            $usersToNotify = \App\Models\User::whereIn('id', $addedIds)->get();
+            foreach ($usersToNotify as $u) {
+                try {
+                    $u->notify(new \App\Notifications\JoinTeamCampaign($campaign, Auth::user()));
+                } catch (\Throwable $e) {
+                    // silent
+                }
+            }
         }
 
         return response()->json(['ok' => true]);

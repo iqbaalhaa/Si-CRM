@@ -64,6 +64,7 @@
             </div>
 
             {{-- CARD 2 --}}
+            @if(Auth::user()->hasRole('admin') || Auth::user()->hasRole('lead-operations'))
             <div class="col-lg-4 d-flex">
                 <div class="card card-fixed w-100">
                     <div class="card-body">
@@ -112,6 +113,7 @@
                     </div>
                 </div>
             </div>
+            @endif
 
             {{-- CARD 3 --}}
             <div class="col-lg-4 d-flex">
@@ -199,6 +201,7 @@
                                         </th>
                                         <th>Nama Contact</th>
                                         <th>Perusahaan</th>
+                                        <th>PIC</th>
                                         <th>Telepon</th>
                                         <th style="width: 220px;">Product</th>
                                         <th>Source</th>
@@ -207,6 +210,10 @@
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    @php
+                                        $picNames = $campaign->teams->map(function($t){ return optional($t->user)->name; })->filter()->values()->all();
+                                        $picStr = implode(', ', $picNames);
+                                    @endphp
                                     @foreach($campaign->contacts as $cc)
                                         <tr data-cc-id="{{ $cc->id }}" data-contact-id="{{ $cc->contact_id }}">
                                             <td class="text-center">
@@ -216,8 +223,9 @@
                                                 <strong>{{ $cc->contact->name ?? 'Unknown' }}</strong><br>
                                                 <small class="text-muted">ID: {{ $cc->contact_id }}</small>
                                             </td>
-                                            <td>-</td>
-                                            <td>-</td>
+                                            <td>{{ optional(optional($cc->contact)->company)->name ?? '-' }}</td>
+                                            <td>{{ $picStr ?: '-' }}</td>
+                                            <td>{{ optional(optional($cc->contact)->channels->firstWhere('label','phone'))->value ?? optional(optional($cc->contact)->channels->firstWhere('label','whatsapp'))->value ?? '-' }}</td>
                                             <td>
                                                 <div class="d-flex flex-column gap-1">
                                                     @php
