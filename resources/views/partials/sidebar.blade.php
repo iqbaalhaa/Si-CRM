@@ -142,8 +142,8 @@
                 </li>
             @endhasanyrole
 
-            @hasanyrole('admin|lead-operations')
-                {{-- Report --}}
+            {{-- @hasanyrole('admin|lead-operations')
+                
                 <li class="sidebar-title">Report</li>
                 <li class="sidebar-item {{ request()->is('report-customers*') ? 'active' : '' }}">
                     <a href="{{ route('reports.customers') }}" class="sidebar-link">
@@ -188,7 +188,7 @@
                     <i class="bi bi-clock-history"></i>
                     <span>Activities</span>
                 </a>
-            </li>
+            </li> --}}
 
 
 
