@@ -1,15 +1,16 @@
 <?php
 
+use App\Http\Controllers\ActivitiesController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerStageHistoryController;
 use App\Http\Controllers\PipelineStageController;
-use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\CampaignController;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
-use App\Http\Controllers\ActivitiesController;
 use App\Http\Controllers\TaskController;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\DashboardController;
+use Illuminate\Support\Facades\Route;
 
 // =========================
 // Guest only
@@ -24,7 +25,9 @@ Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 
 // Redirect root to login explicitly
-Route::get('/', function () { return redirect()->route('login'); });
+Route::get('/', function () {
+    return redirect()->route('login');
+});
 
 // =========================
 // Auth only
@@ -39,7 +42,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', function () {
         $user = Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             return redirect()->route('login');
         }
 
@@ -65,18 +68,17 @@ Route::middleware('auth')->group(function () {
         return redirect()->route('dashboard.admin');
     })->name('dashboard');
 
-    Route::get('/dashboard/superadmin', function () {
-        return view('superadmin.dashboard');
-    })->middleware('role:super-admin')->name('dashboard.superadmin');
+    Route::get('/dashboard/superadmin', [DashboardController::class, 'superadmin'])
+        ->middleware('role:super-admin')
+        ->name('dashboard.superadmin');
 
-    Route::get('/dashboard/admin', function () {
-        return view('admin.dashboard');
-    })->middleware('role:admin')->name('dashboard.admin');
+    Route::get('/dashboard/admin', [DashboardController::class, 'admin'])
+        ->middleware('role:admin')
+        ->name('dashboard.admin');
 
-    Route::get('/dashboard/lead-operations', function () {
-        return view('lead-operations.dashboard');
-    })->middleware('role:lead-operations')->name('dashboard.lead_operations');
-
+    Route::get('/dashboard/lead-operations', [DashboardController::class, 'leadOperations'])
+        ->middleware('role:lead-operations')
+        ->name('dashboard.lead_operations');
 
     // -------------------------
     // SUPER ADMIN: Perusahaan & Manage Admin Perusahaan
@@ -172,6 +174,12 @@ Route::middleware('auth')->group(function () {
 
         Route::post('/contact', [\App\Http\Controllers\ContactController::class, 'store'])
             ->name('contact.store');
+
+        Route::get('/setting-menu', [\App\Http\Controllers\ProfileController::class, 'editSelf'])
+            ->name('settings.profile');
+
+        Route::post('/setting-menu', [\App\Http\Controllers\ProfileController::class, 'updateSelf'])
+            ->name('settings.profile.update');
     });
 
     // Contacts (RESTful)
@@ -194,39 +202,18 @@ Route::middleware('auth')->group(function () {
         ->whereNumber('contact')
         ->name('contacts.destroy');
     Route::get('contacts/advanced', [\App\Http\Controllers\ContactController::class, 'advancedIndex'])
-    ->name('contacts.advanced');
+        ->name('contacts.advanced');
     Route::get('contacts/export', [\App\Http\Controllers\ContactController::class, 'export'])
-    ->name('contacts.export');
+        ->name('contacts.export');
+    // === IMPORT ===
+    Route::get('contacts/template/{type}', [\App\Http\Controllers\ContactController::class, 'downloadTemplate'])
+        ->whereIn('type', ['individual', 'company', 'organization'])
+        ->name('contacts.template');
 
+    Route::post('contacts/import', [\App\Http\Controllers\ContactController::class, 'import'])
+        ->name('contacts.import');
 
-    // -------------------------
-    // Customers
-    // -------------------------
-    Route::middleware('permission:read customers')->group(function () {
-        Route::get('/customers', [CustomerController::class, 'index'])
-            ->name('customers.index');
-    });
-
-    Route::middleware('permission:create customers')->group(function () {
-        Route::get('/customers/create', [CustomerController::class, 'create'])
-            ->name('customers.create');
-
-        Route::post('/customers', [CustomerController::class, 'store'])
-            ->name('customers.store');
-    });
-
-    Route::middleware('permission:update customers')->group(function () {
-        Route::get('/customers/{customer}/edit', [CustomerController::class, 'edit'])
-            ->name('customers.edit');
-
-        Route::put('/customers/{customer}', [CustomerController::class, 'update'])
-            ->name('customers.update');
-    });
-
-    Route::middleware('permission:delete customers')->group(function () {
-        Route::delete('/customers/{customer}', [CustomerController::class, 'destroy'])
-            ->name('customers.destroy');
-    });
+     
 
     // -------------------------
     // Pipeline Stages (CRUD per permission)
@@ -290,6 +277,19 @@ Route::middleware('auth')->group(function () {
     Route::get('/campaigns/create', [CampaignController::class, 'create'])
         ->name('campaign.create');
 
+    Route::post('/campaigns', [CampaignController::class, 'store'])
+        ->name('campaign.store');
+
+    Route::post('/campaigns/preview', [CampaignController::class, 'preview'])
+        ->name('campaign.preview');
+    
+    Route::post('/campaigns/{id}/stop', [CampaignController::class, 'stop'])
+        ->whereNumber('id')
+        ->name('campaign.stop');
+    
+    Route::get('/campaigns/products-search', [CampaignController::class, 'productsSearch'])
+        ->name('campaign.products.search');
+
     Route::get('/campaigns/active', [CampaignController::class, 'active'])
         ->name('campaign.active');
 
@@ -297,7 +297,47 @@ Route::middleware('auth')->group(function () {
         ->name('campaign.history');
 
     Route::get('/campaigns/{id}', [CampaignController::class, 'show'])
+        ->whereNumber('id')
         ->name('campaign.show');
+
+    Route::post('/campaigns/{id}/contacts/{ccId}/stage', [CampaignController::class, 'updateContactStage'])
+        ->whereNumber('id')
+        ->whereNumber('ccId')
+        ->name('campaign.contacts.stage');
+
+    Route::post('/campaigns/{id}/contacts/{contactId}/products', [CampaignController::class, 'updateContactProducts'])
+        ->whereNumber('id')
+        ->whereNumber('contactId')
+        ->name('campaign.contacts.products');
+
+    Route::post('/campaigns/{id}/team', [CampaignController::class, 'updateTeam'])
+        ->whereNumber('id')
+        ->name('campaign.team.update');
+
+    Route::post('/campaigns/{id}/contacts/assign', [CampaignController::class, 'assignContacts'])
+        ->whereNumber('id')
+        ->name('campaign.contacts.assign');
+
+    Route::post('/campaigns/{id}/contacts/import', [CampaignController::class, 'importContacts'])
+        ->whereNumber('id')
+        ->name('campaign.contacts.import');
+
+    Route::get('/campaigns/{id}/contacts/{ccId}/pipeline', [CampaignController::class, 'pipeline'])
+        ->whereNumber('id')
+        ->whereNumber('ccId')
+        ->name('campaign.contacts.pipeline');
+
+    Route::get('/campaigns/{id}/edit', [CampaignController::class, 'edit'])
+        ->whereNumber('id')
+        ->name('campaign.edit');
+
+    Route::put('/campaigns/{id}', [CampaignController::class, 'update'])
+        ->whereNumber('id')
+        ->name('campaign.update');
+
+    Route::delete('/campaigns/{id}', [CampaignController::class, 'destroy'])
+        ->whereNumber('id')
+        ->name('campaign.destroy');
     // /////////////////////////////////////////////////////////////////////////////
 
     // -------------------------
@@ -319,8 +359,6 @@ Route::middleware('auth')->group(function () {
         return redirect($notif->data['url'] ?? '/');
     })->name('notifications.read');
 
-
-
     // Resource
     Route::resource('products', ProductController::class);
 
@@ -341,6 +379,15 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/products-import-xlsx', [ProductController::class, 'importXlsx'])
         ->name('products.import.xlsx');
+
+    Route::get('/products-template-xlsx', [ProductController::class, 'templateXlsx'])
+        ->name('products.template.xlsx');
+
+    Route::post('/products-export-selected-xlsx', [ProductController::class, 'exportSelectedXlsx'])
+        ->name('products.export.selected.xlsx');
+
+    Route::post('/products/mass-delete', [ProductController::class, 'massDelete'])
+        ->name('products.mass-delete');
 
     // /////////////////////////////////////////////////////////////////////
     Route::get('/activities', [ActivitiesController::class, 'index'])

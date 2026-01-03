@@ -23,8 +23,8 @@ class CustomerStageHistoryController extends Controller
         $query = Customer::with(['company', 'stage', 'assignedTo'])
             ->where('company_id', $user->company_id);
 
-        // Kalau role marketing / cs → hanya lihat customer yang di-assign ke dia
-        if ($user->hasRole(['marketing', 'cs'])) {
+        // Kalau role lead-operations → hanya lihat customer yang di-assign ke dia
+        if ($user->hasRole(['lead-operations'])) {
             $query->where('assigned_to_id', $user->id);
         }
 

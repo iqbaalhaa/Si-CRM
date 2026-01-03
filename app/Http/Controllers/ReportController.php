@@ -32,11 +32,13 @@ class ReportController extends Controller
         $companyId = Auth::user()->company_id;
         $company = Perusahaan::find($companyId);
 
-        // list karyawan yang mau kamu tampilkan di halaman report karyawan
-        $employees = User::where('company_id', $companyId)
-            ->whereHas('roles', function ($q) {
-                $q->whereIn('name', ['marketing', 'cs']);
+        $employees = User::whereHas('profile', function ($q) use ($companyId) {
+                $q->where('company_id', $companyId);
             })
+            ->whereHas('roles', function ($q) {
+                $q->where('name', 'lead-operations');
+            })
+            ->with('profile')
             ->get();
 
         return view('pages.reports.employees', compact('company', 'employees'));
@@ -50,6 +52,9 @@ class ReportController extends Controller
         $companyId = Auth::user()->company_id;
         $company = Perusahaan::find($companyId);
 
+        // optional: per-customer via query ?customer=ID
+        $customerId = request()->input('customer');
+
         $tpl = ReportTemplate::where('company_id', $companyId)
             ->where('type', 'customers')
             ->first();
@@ -57,9 +62,17 @@ class ReportController extends Controller
         $content = $tpl?->content ?? '<p>Belum ada template laporan customers yang disimpan.</p>';
         $baseFileName = $tpl?->template_name ?: 'customers';
 
+        // data untuk tabel
+        $customersQuery = Customer::where('company_id', $companyId)->latest();
+        if ($customerId) {
+            $customersQuery->where('id', $customerId);
+        }
+        $customers = $customersQuery->take(100)->get();
+
         $html = view('pages.reports._default_customers', [
             'company' => $company,
             'content' => $content,
+            'customers' => $customers,
         ])->render();
 
         $filename = $baseFileName.'-'.now()->format('Ymd').'.html';
@@ -77,6 +90,8 @@ class ReportController extends Controller
     {
         $companyId = Auth::user()->company_id;
         $company = Perusahaan::find($companyId);
+
+        $customerId = request()->input('customer');
 
         $tpl = ReportTemplate::where('company_id', $companyId)
             ->where('type', 'customers')
@@ -104,9 +119,16 @@ class ReportController extends Controller
     CSS;
 
         // FRAGMENT BODY dari Blade (_default_customers)
+        $customersQuery = Customer::where('company_id', $companyId)->latest();
+        if ($customerId) {
+            $customersQuery->where('id', $customerId);
+        }
+        $customers = $customersQuery->take(100)->get();
+
         $bodyHtml = view('pages.reports._default_customers', [
             'company' => $company,
             'content' => $content,
+            'customers' => $customers,
         ])->render();
 
         $mpdf = new Mpdf([
@@ -137,6 +159,9 @@ class ReportController extends Controller
         $companyId = Auth::user()->company_id;
         $company = Perusahaan::find($companyId);
 
+        // optional: per-user via query ?user=ID
+        $userId = request()->input('user');
+
         $tpl = ReportTemplate::where('company_id', $companyId)
             ->where('type', 'employees')
             ->first();
@@ -144,9 +169,24 @@ class ReportController extends Controller
         $content = $tpl?->content ?? '<p>Belum ada template laporan karyawan yang disimpan.</p>';
         $baseFileName = $tpl?->template_name ?: 'employees';
 
+        // data untuk tabel
+        $employeesQuery = User::whereHas('profile', function ($q) use ($companyId) {
+                $q->where('company_id', $companyId);
+            })
+            ->whereHas('roles', function ($q) {
+                $q->where('name', 'lead-operations');
+            })
+            ->with('profile')
+            ->latest();
+        if ($userId) {
+            $employeesQuery->where('id', $userId);
+        }
+        $employees = $employeesQuery->take(100)->get();
+
         $html = view('pages.reports._default_employees', [
             'company' => $company,
             'content' => $content,
+            'employees' => $employees,
         ])->render();
 
         $filename = $baseFileName.'-'.now()->format('Ymd').'.html';
@@ -162,6 +202,8 @@ class ReportController extends Controller
         $companyId = Auth::user()->company_id;
         $company = Perusahaan::find($companyId);
 
+        $userId = request()->input('user');
+
         $tpl = ReportTemplate::where('company_id', $companyId)
             ->where('type', 'employees')
             ->first();
@@ -170,9 +212,23 @@ class ReportController extends Controller
         $baseFileName = $tpl?->template_name ?: 'employees';
 
         // Render HTML final (A4 + konten TinyMCE)
+        $employeesQuery = User::whereHas('profile', function ($q) use ($companyId) {
+                $q->where('company_id', $companyId);
+            })
+            ->whereHas('roles', function ($q) {
+                $q->where('name', 'lead-operations');
+            })
+            ->with('profile')
+            ->latest();
+        if ($userId) {
+            $employeesQuery->where('id', $userId);
+        }
+        $employees = $employeesQuery->take(100)->get();
+
         $html = view('pages.reports._default_employees', [
             'company' => $company,
             'content' => $content,
+            'employees' => $employees,
         ])->render();
 
         // Pakai config mPDF yang eksplisit & bersih

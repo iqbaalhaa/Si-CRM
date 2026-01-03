@@ -95,5 +95,40 @@ class UserSeeder extends Seeder
                 'photo'      => null,
             ]
         );
+
+        // ---------------------------------------------------------------------
+        // Ensure 5 companies exist (COMP1..COMP5) and collect their IDs
+        // ---------------------------------------------------------------------
+        $companyIds = [];
+        for ($i = 1; $i <= 5; $i++) {
+            $code = 'COMP' . $i;
+            $comp = Perusahaan::firstOrCreate(
+                ['code' => $code],
+                [
+                    'name'    => 'Perusahaan ' . $i,
+                    'address' => 'Alamat Perusahaan ' . $i,
+                    'phone'   => '0812' . str_pad((string) $i, 8, '0', STR_PAD_LEFT),
+                    'email'   => 'company' . $i . '@example.com',
+                    'status'  => 'active',
+                ]
+            );
+            $companyIds[] = $comp->id;
+        }
+
+        // ---------------------------------------------------------------------
+        // Create 50 users via factory and assign random company_id (from the 5)
+        // ---------------------------------------------------------------------
+        User::factory()->count(50)->create()->each(function (User $user) use ($companyIds) {
+            $randomCompanyId = $companyIds[array_rand($companyIds)];
+
+            Profile::firstOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'company_id' => $randomCompanyId,
+                    'job_title'  => 'Staff',
+                    'photo'      => null,
+                ]
+            );
+        });
     }
 }

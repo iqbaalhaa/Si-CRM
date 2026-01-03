@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Exports\ProductsExport;
+use App\Exports\ProductsTemplateExport;
+use App\Exports\ProductsSelectedExport;
 use App\Imports\ProductsImport;
 use App\Models\Product;
 use App\Models\ProductDetail;
@@ -58,7 +60,7 @@ class ProductController extends Controller
             'name'        => 'required|string|max:150',
             'base_price'  => 'required|numeric|min:0',
             'description' => 'nullable|string',
-            'photo_path'  => 'nullable|string',
+            'photo_path'  => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'is_active'   => 'nullable|boolean',
             'details'     => 'nullable|array',
             'details.*.label' => 'nullable|string|max:100',
@@ -69,8 +71,13 @@ class ProductController extends Controller
         $data['slug']       = Str::slug($data['name']) . '-' . Str::random(5);
         $data['created_by'] = $user->id;
         $data['updated_by'] = $user->id;
-        // default true jika tidak diberikan; jika checkbox ada, gunakan nilai boolean
         $data['is_active']  = $request->has('is_active') ? $request->boolean('is_active') : true;
+
+        // Handle photo upload
+        if ($request->hasFile('photo_path')) {
+            $photoPath = $request->file('photo_path')->store('products', 'public');
+            $data['photo_path'] = $photoPath;
+        }
 
         $product = null;
 
@@ -83,12 +90,10 @@ class ProductController extends Controller
                     $label = isset($d['label']) ? trim((string)$d['label']) : null;
                     $value = isset($d['value']) ? trim((string)$d['value']) : null;
 
-                    // skip jika kedua field kosong
                     if ($label === '' && $value === '') {
                         continue;
                     }
 
-                    // hanya simpan jika minimal ada label atau value
                     if ($label !== '' || $value !== '') {
                         ProductDetail::create([
                             'product_id' => $product->id,
@@ -152,15 +157,75 @@ class ProductController extends Controller
             'name'        => 'required|string|max:150',
             'base_price'  => 'required|numeric|min:0',
             'description' => 'nullable|string',
-            'photo_path'  => 'nullable|string',
+            'photo_path'  => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'is_active'   => 'nullable|boolean',
+            'details'     => 'nullable|array',
+            'details.*.label' => 'nullable|string|max:100',
+            'details.*.value' => 'nullable|string|max:1000',
         ]);
 
         $data['slug']       = $product->slug ?? (Str::slug($data['name']) . '-' . Str::random(5));
         $data['updated_by'] = $user->id;
-        $data['is_active']  = $request->boolean('is_active', true);
+        $data['is_active']  = $request->has('is_active') ? $request->boolean('is_active') : false;
 
-        $product->update($data);
+        // Handle photo upload (hapus file lama jika ada file baru)
+        if ($request->hasFile('photo_path')) {
+            if ($product->photo_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($product->photo_path)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($product->photo_path);
+            }
+            $photoPath = $request->file('photo_path')->store('products', 'public');
+            $data['photo_path'] = $photoPath;
+        } else {
+            unset($data['photo_path']);
+        }
+
+        DB::transaction(function () use ($product, $data, $request) {
+            $product->update($data);
+
+            // Proses details: update existing, add new, delete empty
+            $incomingDetails = $request->input('details', []);
+            $existingDetails = $product->details()->pluck('id')->toArray();
+            $processedIds = [];
+
+            if (is_array($incomingDetails) && !empty($incomingDetails)) {
+                foreach ($incomingDetails as $index => $d) {
+                    $label = isset($d['label']) ? trim((string)$d['label']) : null;
+                    $value = isset($d['value']) ? trim((string)$d['value']) : null;
+
+                    // skip jika kedua field kosong
+                    if ($label === '' && $value === '') {
+                        continue;
+                    }
+
+                    // hanya proses jika minimal ada label atau value
+                    if ($label !== '' || $value !== '') {
+                        // Jika detail punya ID (edit mode), update; jika tidak, create baru
+                        if (isset($d['id']) && $d['id'] && in_array($d['id'], $existingDetails)) {
+                            // Update existing detail
+                            ProductDetail::where('id', $d['id'])->update([
+                                'label' => $label ?: null,
+                                'value' => $value ?: null,
+                            ]);
+                            $processedIds[] = $d['id'];
+                        } else {
+                            // Create new detail
+                            $detail = ProductDetail::create([
+                                'product_id' => $product->id,
+                                'label'      => $label ?: null,
+                                'value'      => $value ?: null,
+                            ]);
+                            $processedIds[] = $detail->id;
+                        }
+                    }
+                }
+            }
+
+            // Hapus detail yang tidak ada di incoming list
+            $detailsToDelete = array_diff($existingDetails, $processedIds);
+            if (!empty($detailsToDelete)) {
+                ProductDetail::whereIn('id', $detailsToDelete)->delete();
+            }
+        });
 
         return redirect()
             ->route('products.index')
@@ -203,10 +268,9 @@ class ProductController extends Controller
         }
 
         $data = $request->validate([
-            'ids'        => 'required|array',
-            'ids.*'      => 'integer|exists:products,id',
-            'is_active'  => 'nullable|boolean',
-            'base_price' => 'nullable|numeric|min:0',
+            'ids'       => 'required|array',
+            'ids.*'     => 'integer|exists:products,id',
+            'is_active' => 'required|boolean',
         ]);
 
         $ids = $data['ids'];
@@ -214,34 +278,15 @@ class ProductController extends Controller
         $query = Product::where('company_id', $user->company_id)
             ->whereIn('id', $ids);
 
-        $payload = [];
-        if ($request->has('is_active')) {
-            $payload['is_active'] = $request->boolean('is_active');
-        }
-        if ($request->filled('base_price')) {
-            $payload['base_price'] = $request->input('base_price');
-        }
-
-        if (empty($payload)) {
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'status'  => 'error',
-                    'message' => 'Tidak ada field yang diupdate.',
-                ], 422);
-            }
-
-            return back()->with('error', 'Tidak ada field yang diupdate.');
-        }
-
-        $payload['updated_by'] = $user->id;
+        $payload = ['is_active' => $data['is_active'], 'updated_by' => $user->id];
 
         $affected = $query->update($payload);
 
         if ($request->expectsJson()) {
             return response()->json([
-                'status'   => 'success',
-                'message'  => "Berhasil update {$affected} produk.",
-                'updated'  => $affected,
+                'status'  => 'success',
+                'message' => "Berhasil update {$affected} produk.",
+                'updated' => $affected,
             ]);
         }
 
@@ -405,6 +450,16 @@ class ProductController extends Controller
         return Excel::download(new ProductsExport($user->company_id), $fileName);
     }
 
+    public function templateXlsx(Request $request)
+    {
+        $user = $request->user();
+        if (!$user->company_id) {
+            abort(403, 'User belum terhubung ke perusahaan.');
+        }
+        $fileName = 'products_template_' . now()->format('Ymd_His') . '.xlsx';
+        return Excel::download(new ProductsTemplateExport(), $fileName);
+    }
+
     /**
      * IMPORT XLSX (pakai maatwebsite/excel).
      */
@@ -417,7 +472,7 @@ class ProductController extends Controller
         }
 
         $request->validate([
-            'file' => 'required|file|mimes:xlsx,xls,csv',
+            'file' => 'required|file|mimes:xlsx',
         ]);
 
         Excel::import(
@@ -428,5 +483,49 @@ class ProductController extends Controller
         return redirect()
             ->route('products.index')
             ->with('success', 'Import XLSX selesai.');
+    }
+
+    public function exportSelectedXlsx(Request $request)
+    {
+        $user = $request->user();
+        if (!$user->company_id) {
+            abort(403, 'User belum terhubung ke perusahaan.');
+        }
+        $data = $request->validate([
+            'ids'   => 'required|array',
+            'ids.*' => 'integer',
+        ]);
+        $ids = Product::where('company_id', $user->company_id)
+            ->whereIn('id', $data['ids'])
+            ->pluck('id')
+            ->toArray();
+        if (empty($ids)) {
+            return back()->with('error', 'Tidak ada produk yang dipilih.');
+        }
+        $fileName = 'products_selected_' . now()->format('Ymd_His') . '.xlsx';
+        return Excel::download(new ProductsSelectedExport($user->company_id, $ids), $fileName);
+    }
+
+    public function massDelete(Request $request)
+    {
+        $user = $request->user();
+        if (!$user->company_id) {
+            abort(403, 'User belum terhubung ke perusahaan.');
+        }
+        $data = $request->validate([
+            'ids'   => 'required|array',
+            'ids.*' => 'integer',
+        ]);
+        $query = Product::where('company_id', $user->company_id)
+            ->whereIn('id', $data['ids']);
+        $products = $query->get();
+        $count = 0;
+        foreach ($products as $product) {
+            $product->updated_by = $user->id;
+            $product->save();
+            $product->delete();
+            $count++;
+        }
+        return back()->with('success', "Berhasil menghapus {$count} produk.");
     }
 }

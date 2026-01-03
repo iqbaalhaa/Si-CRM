@@ -8,6 +8,13 @@ use App\Models\ContactDetail;
 use App\Models\Perusahaan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Color;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
 
 
 class ContactController extends Controller
@@ -411,7 +418,23 @@ class ContactController extends Controller
             $parts = array_map('trim', explode(',', $raw));
             $keywords = array_filter($parts, fn ($v) => $v !== '');
 
+            $generalKeywords = [];
             foreach ($keywords as $kw) {
+                $kwLower = strtolower($kw);
+                // rentang umur: "umur 20-30", "umur:20-30", atau "umur 20 sampai 30"
+                if (preg_match('/^umur\s*(?::\s*)?(\d{1,3})\s*(?:-|sampai)\s*(\d{1,3})$/i', $kw, $m)) {
+                    $min = (int) $m[1];
+                    $max = (int) $m[2];
+                    if ($min > $max) { [$min, $max] = [$max, $min]; }
+                    $now = now();
+                    $lower = $now->copy()->subYears($max)->toDateString();
+                    $upper = $now->copy()->subYears($min)->toDateString();
+                    $query->whereHas('details', function ($q) use ($lower, $upper) {
+                        $q->where('label', 'tanggal_lahir')
+                          ->whereBetween('value', [$lower, $upper]);
+                    });
+                    continue;
+                }
                 // dukung pencarian umur: "umur:25", "umur 25", "umur>30", "umur<=40"
                 if (preg_match('/^umur\s*(?:(>=|<=|>|<|:)?\s*)?(\d{1,3})$/i', $kw, $m)) {
                     $op = $m[1] ?: ':';
@@ -451,15 +474,33 @@ class ContactController extends Controller
                     }
                     continue;
                 }
-
-                $query->where(function ($sub) use ($kw) {
-                    $sub->where('name', 'like', "%{$kw}%")
-                        ->orWhereHas('details', function ($q) use ($kw) {
-                            $q->where('value', 'like', "%{$kw}%");
-                        })
-                        ->orWhereHas('channels', function ($q) use ($kw) {
-                            $q->where('value', 'like', "%{$kw}%");
-                        });
+                if (in_array($kwLower, ['perempuan','wanita','female','cewek','putri','p'], true)) {
+                    $query->whereHas('details', function ($q) {
+                        $q->where('label', 'jenis_kelamin')
+                          ->whereIn('value', ['P','p','Perempuan','perempuan','Wanita','wanita','Female','female']);
+                    });
+                    continue;
+                }
+                if (in_array($kwLower, ['laki-laki','pria','lelaki','male','cowok','putra','l'], true)) {
+                    $query->whereHas('details', function ($q) {
+                        $q->where('label', 'jenis_kelamin')
+                          ->whereIn('value', ['L','l','Laki-laki','laki-laki','Pria','pria','Male','male']);
+                    });
+                    continue;
+                }
+                $generalKeywords[] = $kw;
+            }
+            if (!empty($generalKeywords)) {
+                $query->where(function ($sub) use ($generalKeywords) {
+                    foreach ($generalKeywords as $gk) {
+                        $sub->orWhere('name', 'like', "%{$gk}%")
+                            ->orWhereHas('details', function ($q) use ($gk) {
+                                $q->where('value', 'like', "%{$gk}%");
+                            })
+                            ->orWhereHas('channels', function ($q) use ($gk) {
+                                $q->where('value', 'like', "%{$gk}%");
+                            });
+                    }
                 });
             }
         }
@@ -590,7 +631,7 @@ class ContactController extends Controller
         }
 
         if ($format === 'xlsx') {
-            return $this->streamXlsx($rows, 'contacts_' . now()->format('Ymd_His') . '.xlsx');
+            return $this->streamXlsx($rows, 'contacts_' . now()->format('Ymd_His') . '.xlsx', ['styled' => true]);
         }
 
         $filename = 'contacts_' . now()->format('Ymd_His') . '.csv';
@@ -608,42 +649,154 @@ class ContactController extends Controller
         return response()->stream($callback, 200, $headers);
     }
 
-    protected function streamXlsx(array $rows, string $filename)
+    public function import(Request $request)
     {
-        $zip = new \ZipArchive();
-        $tmp = tempnam(sys_get_temp_dir(), 'xlsx');
-        $zip->open($tmp, \ZipArchive::OVERWRITE);
-        $zip->addFromString('[Content_Types].xml', '<?xml version="1.0" encoding="UTF-8"?>\n<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>');
-        $zip->addFromString('_rels/.rels', '<?xml version="1.0" encoding="UTF-8"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="/xl/workbook.xml"/></Relationships>');
-        $zip->addFromString('xl/workbook.xml', '<?xml version="1.0" encoding="UTF-8"?>\n<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Contacts" sheetId="1" r:id="rId1"/></sheets></workbook>');
-        $zip->addFromString('xl/_rels/workbook.xml.rels', '<?xml version="1.0" encoding="UTF-8"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>');
-        $zip->addFromString('xl/styles.xml', '<?xml version="1.0" encoding="UTF-8"?>\n<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"/>');
-        $sheet = '<?xml version="1.0" encoding="UTF-8"?>\n<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>';
-        $r = 1;
-        foreach ($rows as $row) {
-            $sheet .= '<row r="' . $r . '">';
-            $c = 1;
-            foreach ($row as $val) {
-                $v = htmlspecialchars((string) $val, ENT_XML1 | ENT_COMPAT, 'UTF-8');
-                $col = $this->xlsxCol($c) . $r;
-                $sheet .= '<c r="' . $col . '" t="inlineStr"><is><t>' . $v . '</t></is></c>';
-                $c++;
-            }
-            $sheet .= '</row>';
-            $r++;
+        $this->ensureRoleIdsAllowed();
+
+        $request->validate([
+            'type' => 'required|in:individual,company,organization',
+            'file' => 'required|file|mimes:xlsx',
+        ]);
+
+        $user = Auth::user();
+        if (! $user || ! $user->company_id) {
+            abort(403);
         }
-        $sheet .= '</sheetData></worksheet>';
-        $zip->addFromString('xl/worksheets/sheet1.xml', $sheet);
-        $zip->close();
-        $headers = [
-            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'Content-Disposition' => "attachment; filename=\"$filename\"",
-        ];
-        $callback = function () use ($tmp) {
-            readfile($tmp);
-            unlink($tmp);
-        };
-        return response()->stream($callback, 200, $headers);
+
+        $companyId = $user->company_id;
+        $createdBy = $user->id;
+
+        $type = strtolower($request->input('type'));
+
+        $detailLabels = [];
+        if ($type === 'individual') {
+            $detailLabels = [
+                'alamat_lengkap',
+                'kota_kabupaten',
+                'provinsi',
+                'negara',
+                'jenis_kelamin',
+                'tanggal_lahir',
+                'agama',
+                'status_pernikahan',
+            ];
+        } elseif ($type === 'company') {
+            $detailLabels = [
+                'nama_brand',
+                'industri',
+                'npwp',
+                'alamat_lengkap',
+                'kota_kabupaten',
+                'provinsi',
+                'negara',
+            ];
+        } else {
+            $detailLabels = [
+                'tipe_organisasi',
+                'bidang_kegiatan',
+                'jumlah_anggota',
+                'alamat_lengkap',
+                'kota_kabupaten',
+                'provinsi',
+                'negara',
+            ];
+        }
+
+        $file = $request->file('file');
+        $reader = IOFactory::createReader('Xlsx');
+        $spreadsheet = $reader->load($file->getRealPath());
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $highestRow = $sheet->getHighestRow();
+        $highestColumn = $sheet->getHighestColumn();
+        $highestColIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($highestColumn);
+
+        $headers = [];
+        for ($col = 1; $col <= $highestColIndex; $col++) {
+            $val = (string) $sheet->getCellByColumnAndRow($col, 1)->getValue();
+            $norm = strtolower(trim($val));
+            $norm = str_replace([' ', '-', '/'], '_', $norm);
+            $headers[$col] = $norm;
+        }
+
+        $required = ['name'];
+        foreach ($required as $req) {
+            if (! in_array($req, $headers, true)) {
+                return redirect()->route('contacts.index')->with('error', 'Header tidak valid.');
+            }
+        }
+
+        $created = 0;
+        for ($row = 3; $row <= $highestRow; $row++) {
+            $rowVals = [];
+            $isEmptyRow = true;
+            for ($col = 1; $col <= $highestColIndex; $col++) {
+                $v = $sheet->getCellByColumnAndRow($col, $row)->getValue();
+                $v = is_string($v) ? trim($v) : $v;
+                if ($v !== null && $v !== '') $isEmptyRow = false;
+                $rowVals[$headers[$col] ?? ''] = $v;
+            }
+            if ($isEmptyRow) continue;
+
+            $name = (string) ($rowVals['name'] ?? '');
+            if ($name === '') continue;
+
+            $contact = Contact::create([
+                'company_id' => $companyId,
+                'type' => $type,
+                'name' => $name,
+                'is_active' => true,
+                'created_by' => $createdBy,
+            ]);
+
+            $email = (string) ($rowVals['email'] ?? '');
+            if ($email !== '') {
+                ContactChannel::create([
+                    'company_id' => $companyId,
+                    'contact_id' => $contact->id,
+                    'label' => 'email',
+                    'value' => $email,
+                    'is_primary' => true,
+                ]);
+            }
+
+            $phone = (string) ($rowVals['phone'] ?? '');
+            if ($phone !== '') {
+                ContactChannel::create([
+                    'company_id' => $companyId,
+                    'contact_id' => $contact->id,
+                    'label' => 'phone',
+                    'value' => $phone,
+                    'is_primary' => true,
+                ]);
+            }
+
+            foreach ($detailLabels as $label) {
+                $val = $rowVals[$label] ?? null;
+                if ($val === null || $val === '') continue;
+                if ($label === 'jumlah_anggota') {
+                    if (is_numeric($val)) $val = (string) (int) $val;
+                }
+                if ($label === 'tanggal_lahir') {
+                    try {
+                        $dt = \Carbon\Carbon::parse((string) $val);
+                        $val = $dt->toDateString();
+                    } catch (\Exception $e) {
+                        $val = (string) $val;
+                    }
+                }
+                ContactDetail::create([
+                    'company_id' => $companyId,
+                    'contact_id' => $contact->id,
+                    'label' => $label,
+                    'value' => (string) $val,
+                ]);
+            }
+
+            $created++;
+        }
+
+        return redirect()->route('contacts.index')->with('success', 'Import selesai: ' . $created . ' baris.');
     }
 
     protected function xlsxCol(int $index): string
@@ -657,6 +810,122 @@ class ContactController extends Controller
         return $s;
     }
 
+    public function downloadTemplate(string $type)
+    {
+        $user = Auth::user();
+        if (! $user) {
+            abort(403);
+        }
+
+        $type = strtolower($type);
+
+        // Kolom dasar untuk semua tipe kontak
+        $baseColumns = [
+            'name',   // Nama kontak
+            'email',  // Email utama
+            'phone',  // Nomor telepon / WhatsApp
+        ];
+
+        // Tambahan kolom per tipe kontak
+        $extraColumnsByType = [
+            'individual' => [
+                'alamat_lengkap',
+                'kota_kabupaten',
+                'provinsi',
+                'negara',
+                'jenis_kelamin',
+                'tanggal_lahir',
+                'agama',
+                'status_pernikahan',
+            ],
+            'company' => [
+                'nama_brand',
+                'industri',
+                'npwp',
+                'alamat_lengkap',
+                'kota_kabupaten',
+                'provinsi',
+                'negara',
+            ],
+            'organization' => [
+                'tipe_organisasi',
+                'bidang_kegiatan',
+                'jumlah_anggota',
+                'alamat_lengkap',
+                'kota_kabupaten',
+                'provinsi',
+                'negara',
+            ],
+        ];
+
+        if (! array_key_exists($type, $extraColumnsByType)) {
+            abort(404);
+        }
+
+        $headers = array_merge($baseColumns, $extraColumnsByType[$type]);
+
+        // Baris 2: keterangan / contoh isi (supaya user paham)
+        $hintsBase = [
+            'name'  => 'Nama lengkap kontak',
+            'email' => 'Email aktif (boleh dikosongkan)',
+            'phone' => 'Nomor HP / WhatsApp',
+        ];
+
+        $hintsByType = [
+            'individual' => [
+                'alamat_lengkap'    => 'Alamat rumah lengkap',
+                'kota_kabupaten'    => 'Kota / Kabupaten',
+                'provinsi'          => 'Provinsi',
+                'negara'            => 'Negara',
+                'jenis_kelamin'     => 'L / P',
+                'tanggal_lahir'     => 'Format: YYYY-MM-DD (contoh: 1990-01-31)',
+                'agama'             => 'Agama',
+                'status_pernikahan' => 'Lajang / Menikah / Dll',
+            ],
+            'company' => [
+                'nama_brand'      => 'Nama brand / nama dagang',
+                'industri'        => 'Industri (mis: F&B, IT, Pendidikan)',
+                'npwp'            => 'Nomor NPWP perusahaan',
+                'alamat_lengkap'  => 'Alamat kantor',
+                'kota_kabupaten'  => 'Kota / Kabupaten',
+                'provinsi'        => 'Provinsi',
+                'negara'          => 'Negara',
+            ],
+            'organization' => [
+                'tipe_organisasi'  => 'Mis: Komunitas, Yayasan, LSM, dll',
+                'bidang_kegiatan'  => 'Bidang kegiatan utama',
+                'jumlah_anggota'   => 'Perkiraan jumlah anggota',
+                'alamat_lengkap'   => 'Alamat sekretariat / kantor',
+                'kota_kabupaten'   => 'Kota / Kabupaten',
+                'provinsi'         => 'Provinsi',
+                'negara'           => 'Negara',
+            ],
+        ];
+
+        $hints = [];
+        foreach ($headers as $col) {
+            $hints[] = $hintsBase[$col]
+                ?? $hintsByType[$type][$col]
+                ?? ''; // default kosong
+        }
+
+        $rows = [
+            $headers,
+            $hints,
+        ];
+
+        $defaults = array_map(function ($h) { return ''; }, $headers);
+        $negaraIndex = array_search('negara', $headers, true);
+        if ($negaraIndex !== false) {
+            $defaults[$negaraIndex] = 'Indonesia';
+        }
+        $rows[] = $defaults;
+
+        $filename = 'contacts_template_' . $type . '_' . now()->format('Ymd_His') . '.xlsx';
+
+        return $this->streamXlsx($rows, $filename, ['template' => true]);
+    }
+
     public function destroy(Contact $contact)
     {
         $this->ensureRoleIdsAllowed();
@@ -666,4 +935,97 @@ class ContactController extends Controller
 
         return redirect()->route('contacts.index')->with('success', 'Kontak dihapus');
     }
+
+    protected function streamXlsx(array $rows, string $filename, array $options = [])
+    {
+        // Buat workbook baru
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Contacts');
+
+        // Isi data baris per baris
+        foreach ($rows as $rowIndex => $row) {
+            $excelRow = $rowIndex + 1; // Excel mulai dari 1
+            foreach ($row as $colIndex => $value) {
+                $excelCol = $colIndex + 1;
+                $sheet->setCellValueByColumnAndRow($excelCol, $excelRow, $value);
+            }
+        }
+
+        // Optional: bikin header bold biar enak dipakai
+        $headerColumnCount = count($rows[0] ?? []);
+        if ($headerColumnCount > 0) {
+            $lastColLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($headerColumnCount);
+            $sheet->getStyle("A1:{$lastColLetter}1")->getFont()->setBold(true);
+
+            if (!empty($options['template']) || !empty($options['styled'])) {
+                $headers = $rows[0] ?? [];
+                for ($col = 1; $col <= $headerColumnCount; $col++) {
+                    $label = strtolower((string) ($headers[$col - 1] ?? ''));
+                    $width = 22;
+                    if ($label === 'name') $width = 30;
+                    elseif ($label === 'email') $width = 28;
+                    elseif ($label === 'phone') $width = 18;
+                    elseif ($label === 'alamat_lengkap') $width = 30;
+                    elseif ($label === 'kota_kabupaten') $width = 20;
+                    elseif ($label === 'provinsi') $width = 18;
+                    elseif ($label === 'negara') $width = 16;
+                    elseif ($label === 'jenis_kelamin') $width = 16;
+                    elseif ($label === 'tanggal_lahir') $width = 16;
+                    elseif ($label === 'agama') $width = 18;
+                    elseif ($label === 'status_pernikahan') $width = 20;
+                    elseif ($label === 'nama_brand') $width = 24;
+                    elseif ($label === 'industri') $width = 20;
+                    elseif ($label === 'npwp') $width = 20;
+                    elseif ($label === 'tipe_organisasi') $width = 20;
+                    elseif ($label === 'bidang_kegiatan') $width = 24;
+                    elseif ($label === 'jumlah_anggota') $width = 16;
+                    elseif ($label === 'contact_id') $width = 12;
+                    elseif ($label === 'company_id') $width = 12;
+                    elseif ($label === 'type') $width = 14;
+                    elseif ($label === 'is_active') $width = 10;
+                    elseif ($label === 'umur') $width = 10;
+                    elseif ($label === 'created_at' || $label === 'updated_at') $width = 20;
+                    elseif ($label === 'email_primary') $width = 28;
+                    elseif ($label === 'phone_primary') $width = 18;
+                    elseif ($label === 'whatsapp_primary') $width = 18;
+                    elseif ($label === 'emails') $width = 30;
+                    elseif ($label === 'phones') $width = 26;
+                    elseif ($label === 'whatsapps') $width = 26;
+                    $letter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col);
+                    $sheet->getColumnDimension($letter)->setWidth($width);
+                }
+
+                $sheet->getStyle("A1:{$lastColLetter}1")->applyFromArray([
+                    'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+                    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '03A6E5']],
+                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+                    'borders' => ['bottom' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'FF9C00']]]
+                ]);
+                $sheet->getRowDimension(1)->setRowHeight(24);
+                if (!empty($options['template'])) {
+                    $sheet->getStyle("A2:{$lastColLetter}2")->applyFromArray([
+                        'font' => ['italic' => true, 'color' => ['rgb' => '8A5A00']],
+                        'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFF6E5']],
+                        'alignment' => ['wrapText' => true, 'vertical' => Alignment::VERTICAL_TOP]
+                    ]);
+                    $sheet->getRowDimension(2)->setRowHeight(34);
+                    $sheet->freezePane('A3');
+                } else {
+                    $sheet->freezePane('A2');
+                }
+                $sheet->setAutoFilter("A1:{$lastColLetter}1");
+            }
+        }
+
+        // Stream ke browser
+        return response()->streamDownload(function () use ($spreadsheet) {
+            $writer = new Xlsx($spreadsheet);
+            // Tulis langsung ke output, bukan ke file sementara
+            $writer->save('php://output');
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
+    }
+
 }

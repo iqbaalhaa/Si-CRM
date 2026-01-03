@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Campaign extends Model
 {
     protected $fillable = [
-        'nama',
+        'name',
         'from',
         'to',
         'is_active',
@@ -29,5 +29,25 @@ class Campaign extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function teams()
+    {
+        return $this->hasMany(CampaignTeam::class);
+    }
+
+    public function products()
+    {
+        return $this->hasMany(CampaignProduct::class);
+    }
+
+    public function contacts()
+    {
+        return $this->hasMany(CampaignContact::class);
+    }
+    
+    public function productContacts()
+    {
+        return $this->hasManyThrough(CampaignProductContact::class, CampaignProduct::class);
     }
 }

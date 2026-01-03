@@ -142,8 +142,8 @@
                 </li>
             @endhasanyrole
 
-            @hasanyrole('admin|lead-operations')
-                {{-- Report --}}
+            {{-- @hasanyrole('admin|lead-operations')
+                
                 <li class="sidebar-title">Report</li>
                 <li class="sidebar-item {{ request()->is('report-customers*') ? 'active' : '' }}">
                     <a href="{{ route('reports.customers') }}" class="sidebar-link">
@@ -165,13 +165,14 @@
                         <span>Report Settings</span>
                     </a>
                 </li>
+                @role('admin')
                 <li class="sidebar-item {{ request()->is('setting-menu*') ? 'active' : '' }}">
-                    {{-- asumsi belum ada named route untuk setting-menu --}}
                     <a href="{{ url('/setting-menu') }}" class="sidebar-link">
                         <i class="bi bi-gear-fill"></i>
                         <span>Setting Profile</span>
                     </a>
                 </li>
+                @endrole
             @endhasanyrole
 
             <li class="sidebar-title">Log & Activity</li>
@@ -187,9 +188,8 @@
                     <i class="bi bi-clock-history"></i>
                     <span>Activities</span>
                 </a>
-            </li>
+            </li> --}}
 
-            {{-- ///////////////////////////////////////////////////////////////////////////// --}}
 
 
         </ul>

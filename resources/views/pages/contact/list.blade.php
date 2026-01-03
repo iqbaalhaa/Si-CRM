@@ -8,18 +8,37 @@
     <div class="card shadow-sm border-0 rounded-3 mb-3">
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="mb-0">Advance Search</h6>
+                <div class="d-flex align-items-center gap-2">
+                    <h6 class="mb-0">Advance Search</h6>
+                    <button type="button"
+                            class="btn hint-btn d-inline-flex align-items-center justify-content-center"
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="right"
+                            data-bs-html="true"
+                            title="<div class='text-start'>
+                                <div class='text-uppercase small fw-semibold mb-1'>Petunjuk Pencarian</div>
+                                <ul class='small mb-0 ps-3'>
+                                    <li>Umur: gunakan <code>umur:25</code>, <code>umur&gt;20</code>, <code>umur&lt;=30</code>, atau <code>umur 20-35</code>/<code>umur 20 sampai 35</code>.</li>
+                                    <li>Gender: <code>perempuan</code>/<code>wanita</code>/<code>p</code> atau <code>laki-laki</code>/<code>pria</code>/<code>l</code>.</li>
+                                    <li>Banyak daerah: pisahkan dengan koma, mis: <code>kerinci, sungai penuh, tebo</code>.</li>
+                                    <li>Kata kunci dicari di nama, detail, dan channel kontak.</li>
+                                    <li>Gunakan filter <code>Tipe</code> dan <code>Hanya yang aktif</code> untuk mempersempit hasil.</li>
+                                </ul>
+                            </div>">
+                        <i class="bi bi-info-lg"></i>
+                    </button>
+                </div>
                 @if(method_exists($contacts, 'total') ? $contacts->total() : $contacts->count())
                     <div class="btn-group">
-                        <a id="exportCsvBtn" href="{{ route('contacts.export', ['format' => 'csv']) }}" class="btn btn-outline-primary btn-sm">Export CSV</a>
-                        <a id="exportXlsxBtn" href="{{ route('contacts.export', ['format' => 'xlsx']) }}" class="btn btn-outline-success btn-sm">Export XLSX</a>
+                        <a id="exportCsvBtn" href="{{ route('contacts.export', ['format' => 'csv']) }}" class="btn btn-outline-primary btn-sm" data-format="csv">Export CSV</a>
+                        <a id="exportXlsxBtn" href="{{ route('contacts.export', ['format' => 'xlsx']) }}" class="btn btn-outline-success btn-sm" data-format="xlsx">Export XLSX</a>
                     </div>
                 @endif
             </div>
 
             <form method="GET" action="{{ route('contacts.advanced') }}" class="row g-2" id="contactSearchForm">
                 <div class="col-12 col-md-6">
-                    <input type="text" name="q" value="{{ request('q') }}" class="form-control" placeholder="Contoh: muhammad, kerinci, sungai penuh" id="qInput">
+                    <input type="text" name="q" value="{{ request('q') }}" class="form-control" placeholder="Contoh: umur:20 / umur>20 / umur<20, kerinci, sungai penuh" id="qInput">
                 </div>
                 <div class="col-6 col-md-3">
                     <select name="type" class="form-select" id="typeSelect">
@@ -35,14 +54,9 @@
                         <label class="form-check-label" for="onlyActive">Hanya yang aktif</label>
                     </div>
                 </div>
-                
-                
             </form>
         </div>
     </div>
-
- 
-
 
     <div class="page-content">
         <div class="row">
@@ -54,12 +68,23 @@
                                 <h5 class="mb-1">Daftar Kontak</h5>
                                 <p class="text-muted small mb-0">Kelola dan hubungi kontak dengan cepat.</p>
                             </div>
-                            <div>
+
+                            {{-- ❗️ BAGIAN INI DITAMBAH: Tombol Tambah + Dropdown Import --}}
+                            <div class="d-flex gap-2">
+                                <button type="button"
+                                        class="btn btn-success btn-sm d-flex align-items-center gap-1 import-trigger"
+                                        title="Import kontak dari file">
+                                    <i class="bi bi-upload"></i>
+                                    <span>Import</span>
+                                </button>
                                 <a href="{{ route('contacts.create') }}" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
                                     <i class="bi bi-plus-circle"></i>
                                     <span>Tambah Kontak</span>
                                 </a>
+
                             </div>
+                            {{-- ❗️ END BAGIAN BARU --}}
+
                         </div>
 
                         <div class="table-responsive table-wrapper">
@@ -83,15 +108,11 @@
                                         @endphp
                                         <tr>
                                             <td class="text-center">{{ $loop->iteration }}</td>
-
                                             <td>
                                                 <div class="contact-main">
                                                     <span class="contact-name">{{ $c->name }}</span>
                                                 </div>
                                             </td>
-
-                                            
-
                                             <td>
                                                 <span class="badge-type
                                                     @if($c->type === 'individual') badge-type-individual
@@ -103,7 +124,6 @@
                                                 </span>
                                             </td>
 
-                                            {{-- Informasi kontak digabung: tel / email / WA --}}
                                             <td>
                                                 <div class="contact-info-cell">
                                                     <div class="contact-chips">
@@ -164,19 +184,115 @@
                                     @empty
                                         <tr>
                                             <td class="text-muted py-4">Belum ada data kontak</td>
-                                            <td></td>
-                                            <td></td>
-                                            <td></td>
-                                            <td></td>
-                                            <td></td>
+                                            <td></td><td></td><td></td><td></td><td></td>
                                         </tr>
                                     @endforelse
                                 </tbody>
                             </table>
                         </div>
-                        
+
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- ❗️ MODAL IMPORT KONTAK --}}
+    <div class="modal fade" id="importContactsModal" tabindex="-1" aria-labelledby="importContactsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg rounded-3">
+                <div class="modal-header border-0">
+                    <div>
+                        <h5 class="modal-title" id="importContactsModalLabel">Import Kontak</h5>
+                        <p class="text-muted small mb-0">
+                            Langkah: 1) Pilih tipe kontak, 2) Download template, 3) Isi template, 4) Upload file di bawah.
+                        </p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <form action="{{ route('contacts.import') }}" method="POST" enctype="multipart/form-data" id="importContactsForm">
+                    @csrf
+                    <input type="hidden" name="type" id="importType" value="individual">
+
+                    <div class="modal-body pt-0">
+                        <div class="mb-3">
+                            <span class="text-uppercase text-muted small fw-semibold">Tipe Kontak</span>
+                            <div class="row g-2 mt-1">
+                                <div class="col-md-4">
+                                    <div class="form-check border rounded-3 p-2 h-100">
+                                        <input class="form-check-input import-type-radio" type="radio" name="type_radio" id="import_type_individual" value="individual" checked>
+                                        <label class="form-check-label d-block" for="import_type_individual">
+                                            <strong>Individu</strong>
+                                            <small class="d-block text-muted">Customer perorangan</small>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check border rounded-3 p-2 h-100">
+                                        <input class="form-check-input import-type-radio" type="radio" name="type_radio" id="import_type_company" value="company">
+                                        <label class="form-check-label d-block" for="import_type_company">
+                                            <strong>Perusahaan</strong>
+                                            <small class="d-block text-muted">Badan usaha / client</small>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check border rounded-3 p-2 h-100">
+                                        <input class="form-check-input import-type-radio" type="radio" name="type_radio" id="import_type_organization" value="organization">
+                                        <label class="form-check-label d-block" for="import_type_organization">
+                                            <strong>Organisasi</strong>
+                                            <small class="d-block text-muted">Komunitas / yayasan</small>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-3">
+
+                        <div class="mb-3">
+                            <span class="text-uppercase text-muted small fw-semibold">Download Template</span>
+                            <p class="text-muted small mb-2">
+                                Download template sesuai tipe kontak, isi datanya, lalu upload kembali menggunakan form di bawah.
+                            </p>
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <a href="{{ route('contacts.template', ['type' => 'individual']) }}" class="btn btn-outline-secondary w-100 btn-sm">
+                                        <i class="bi bi-file-earmark-spreadsheet me-1"></i> Template Individu
+                                    </a>
+                                </div>
+                                <div class="col-md-4">
+                                    <a href="{{ route('contacts.template', ['type' => 'company']) }}" class="btn btn-outline-secondary w-100 btn-sm">
+                                        <i class="bi bi-file-earmark-spreadsheet me-1"></i> Template Perusahaan
+                                    </a>
+                                </div>
+                                <div class="col-md-4">
+                                    <a href="{{ route('contacts.template', ['type' => 'organization']) }}" class="btn btn-outline-secondary w-100 btn-sm">
+                                        <i class="bi bi-file-earmark-spreadsheet me-1"></i> Template Organisasi
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-3">
+
+                        <div class="mb-2">
+                            <label class="form-label">Upload File (.xlsx)</label>
+                            <input type="file" name="file" class="form-control" accept=".xlsx" required>
+                            <small class="text-muted d-block mt-1">
+                                Pastikan format kolom mengikuti template yang sudah di-download.
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer border-0 d-flex justify-content-between">
+                        <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-upload me-1"></i> Import Kontak
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -200,10 +316,10 @@
             width: 100%;
         }
 
-        .table-modern thead {
+        /* .table-modern thead {
             background: linear-gradient(135deg, #2563eb, #4f46e5);
             color: #ffffff;
-        }
+        } */
 
         .table-modern thead th {
             border: none;
@@ -341,11 +457,6 @@
             font-size: 1rem;
             line-height: 1;
         }
-        .table-actions .btn-icon .bi:before {
-            display: inline-block;
-            line-height: 1;
-            vertical-align: middle;
-        }
 
         .dataTables_wrapper .pagination .page-link {
             color: var(--bs-body-color) !important;
@@ -357,6 +468,27 @@
             color: var(--bs-body-color) !important;
             background-color: transparent !important;
             box-shadow: none !important;
+        }
+        .hint-btn{
+            width: 34px;
+            height: 34px;
+            border-radius: 999px !important;
+            background: #f59e0b !important; /* orange */
+            color: #ffffff !important;
+            padding: 0;
+            border: none !important;
+            box-shadow: 0 .25rem .5rem rgba(0,0,0,.08);
+        }
+        .hint-btn:hover,
+        .hint-btn:focus{
+            background: #ea580c !important; /* darker orange */
+            color: #ffffff !important;
+        }
+        .hint-btn i{ font-size: 1.1rem; line-height: 1; }
+        .tooltip .tooltip-inner{
+            max-width: 280px;
+            font-size: .8rem;
+            padding: .35rem .5rem;
         }
 
         @media (max-width: 768px) {
@@ -391,6 +523,8 @@
                 order: [[0, 'asc']],
                 dom: 'lrtip'
             });
+            [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+                .forEach(function (el) { new bootstrap.Tooltip(el); });
 
             const baseUrl = '{{ route('contacts.advanced') }}';
             const $q = $('#qInput');
@@ -404,17 +538,20 @@
                 const tVal = ($type.val() || '').trim();
                 if (tVal) params.type = tVal;
                 if ($onlyActive.is(':checked')) params.only_active = 1;
-                const qs = $.param(params);
                 const $csv = $('#exportCsvBtn');
                 const $xlsx = $('#exportXlsxBtn');
                 if ($csv.length) {
                     const baseCsv = ($csv.data('base') || $csv.attr('href').split('?')[0]);
-                    $csv.attr('href', qs ? baseCsv + '?' + qs : baseCsv);
+                    const fmtCsv = ($csv.data('format') || 'csv');
+                    const hrefCsv = baseCsv + '?' + $.param(Object.assign({ format: fmtCsv }, params));
+                    $csv.attr('href', hrefCsv);
                     $csv.data('base', baseCsv);
                 }
                 if ($xlsx.length) {
                     const baseXlsx = ($xlsx.data('base') || $xlsx.attr('href').split('?')[0]);
-                    $xlsx.attr('href', qs ? baseXlsx + '?' + qs : baseXlsx);
+                    const fmtXlsx = ($xlsx.data('format') || 'xlsx');
+                    const hrefXlsx = baseXlsx + '?' + $.param(Object.assign({ format: fmtXlsx }, params));
+                    $xlsx.attr('href', hrefXlsx);
                     $xlsx.data('base', baseXlsx);
                 }
             }
@@ -464,9 +601,34 @@
             });
             $type.on('change', fetchContacts);
             $onlyActive.on('change', fetchContacts);
-            
 
             updateExportHref();
+
+            // ❗️ LOGIKA IMPORT: sinkron dropdown -> modal
+            const typeLabelMap = {
+                individual: 'Individu',
+                company: 'Perusahaan',
+                organization: 'Organisasi'
+            };
+
+            $('.import-trigger').on('click', function () {
+                const type = $(this).data('type') || 'individual';
+                $('#importType').val(type);
+
+                // set radio di modal
+                $('.import-type-radio').prop('checked', false);
+                $(`.import-type-radio[value="${type}"]`).prop('checked', true);
+
+                // buka modal
+                const modalEl = document.getElementById('importContactsModal');
+                const modal = new bootstrap.Modal(modalEl);
+                modal.show();
+            });
+
+            // kalau user ganti tipe di radio, sinkron ke hidden input
+            $(document).on('change', '.import-type-radio', function () {
+                $('#importType').val($(this).val());
+            });
         });
     </script>
 @endpush

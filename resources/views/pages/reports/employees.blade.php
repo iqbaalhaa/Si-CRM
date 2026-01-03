@@ -32,14 +32,14 @@
                             <td>{{ $u->created_at?->format('d M Y') }}</td>
                             <td class="text-center text-nowrap">
                                 {{-- Download HTML per karyawan --}}
-                                <a href="{{ route('reports.employees.download', $u->id) }}"
+                                <a href="{{ route('reports.employees.download', ['user' => $u->id]) }}"
                                    class="btn btn-sm btn-light"
                                    title="Download Report HTML">
                                     <i class="bi bi-download"></i>
                                 </a>
 
                                 {{-- Download PDF per karyawan --}}
-                                <a href="{{ route('reports.employees.pdf', $u->id) }}"
+                                <a href="{{ route('reports.employees.pdf', ['user' => $u->id]) }}"
                                    class="btn btn-sm btn-outline-danger"
                                    title="Download Report PDF">
                                     <i class="bi bi-filetype-pdf"></i>

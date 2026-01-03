@@ -18,6 +18,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('admindash/assets/compiled/css/app.css') }}">
     <link rel="stylesheet" href="{{ asset('admindash/assets/compiled/css/app-dark.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="{{ asset('admindash/assets/compiled/css/iconly.css') }}">
     <link rel="stylesheet" href="{{ asset('admindash/assets/extensions/sweetalert2/sweetalert2.min.css') }}">
     <style>
@@ -133,6 +134,7 @@
         html[data-bs-theme="dark"] .dropdown-menu { background-color: var(--surface) !important; color: #e5e7eb !important; border-color: var(--border) !important; }
         html[data-bs-theme="dark"] .badge-soft { background-color: #334155 !important; color: #e5e7eb !important; }
     </style>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
     @if(session('force_dark'))
     <script>
         localStorage.setItem('theme', 'dark');
@@ -210,6 +212,8 @@
     @endif
     <script src="{{ asset('admindash/assets/static/js/pages/sweetalert2.js') }}"></script>
     <script src="{{ asset('admindash/assets/extensions/sweetalert2/sweetalert2.min.js') }}"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 
     @stack('scripts')

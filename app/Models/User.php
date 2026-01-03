@@ -89,7 +89,7 @@ class User extends Authenticatable
     public function dashboardRoute()
     {
         $map = [
-            'superadmin'      => 'dashboard.superadmin',
+            'super-admin'     => 'dashboard.superadmin',
             'admin'           => 'dashboard.admin',
             'lead-operations' => 'dashboard.lead_operations',
         ];
