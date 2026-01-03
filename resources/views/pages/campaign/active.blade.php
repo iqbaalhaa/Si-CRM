@@ -107,6 +107,50 @@
                     </div>
                 </div>
 
+                {{-- WA BLAST - CARD INFORMASI TERAKHIR (PURE FRONTEND) --}}
+                <div class="card mb-3" id="wa-blast-info" style="display: none;">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <h6 class="mb-0">
+                                    <i class="bi bi-whatsapp me-1 text-success"></i>
+                                    WA Blast Terakhir
+                                </h6>
+                                <small class="text-muted">
+                                    Informasi blast terakhir yang kamu jalankan dari halaman ini.
+                                </small>
+                            </div>
+                            <span class="badge bg-success-subtle text-success" id="wa-info-status">
+                                Sukses (Dummy)
+                            </span>
+                        </div>
+                        <div class="row g-2 small">
+                            <div class="col-md-3">
+                                <div class="text-muted xsmall">Campaign</div>
+                                <div id="wa-info-campaign" class="fw-semibold">-</div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-muted xsmall">Jumlah Kontak</div>
+                                <div id="wa-info-contacts">-</div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-muted xsmall">Waktu Blast</div>
+                                <div id="wa-info-time">-</div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-muted xsmall">Channel</div>
+                                <div id="wa-info-channel">WhatsApp</div>
+                            </div>
+                            <div class="col-12 mt-2">
+                                <div class="text-muted xsmall mb-1">Preview Format Pesan</div>
+                                <pre class="bg-light border rounded p-2 xsmall mb-0" id="wa-info-message"
+                                     style="white-space: pre-wrap;">-</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {{-- END WA BLAST CARD INFO --}}
+
                 {{-- Campaign list as cards --}}
                 <div class="card">
                     <div class="card-body">
@@ -130,7 +174,8 @@
                                      data-desc="Diskon akhir tahun untuk customer lama dan baru"
                                      data-channel="whatsapp"
                                      data-status="active"
-                                     data-period="this-month">
+                                     data-period="this-month"
+                                     data-contacts="520">
                                     <div class="d-flex justify-content-between align-items-start mb-2">
                                         <div>
                                             <div class="d-flex align-items-center gap-2">
@@ -186,6 +231,12 @@
                                             <span><i class="bi bi-person-lines-fill me-1"></i>Segment: Customer lama & lead baru</span>
                                         </div>
                                         <div class="btn-group btn-group-sm">
+                                            {{-- WA BLAST BUTTON --}}
+                                            <button type="button"
+                                                    class="btn btn-outline-success btn-campaign-wa-blast">
+                                                <i class="bi bi-whatsapp"></i>
+                                            </button>
+                                            {{-- END WA BLAST BUTTON --}}
                                             <button type="button"
                                                     class="btn btn-outline-secondary btn-campaign-pause">
                                                 <i class="bi bi-pause-circle"></i>
@@ -206,7 +257,8 @@
                                      data-desc="Follow up semua lead yang masuk dari iklan"
                                      data-channel="email"
                                      data-status="active"
-                                     data-period="last-3-months">
+                                     data-period="last-3-months"
+                                     data-contacts="380">
                                     <div class="d-flex justify-content-between align-items-start mb-2">
                                         <div>
                                             <div class="d-flex align-items-center gap-2">
@@ -221,7 +273,7 @@
                                            class="btn btn-sm btn-outline-primary">
                                             <i class="bi bi-eye"></i>
                                         </a>
-                                    </div>
+                                    </div`
 
                                     <div class="d-flex flex-wrap gap-2 mb-2 small">
                                         <span class="badge bg-info-subtle text-info">
@@ -262,6 +314,12 @@
                                             <span><i class="bi bi-funnel me-1"></i>Segment: Lead inbound dari Ads</span>
                                         </div>
                                         <div class="btn-group btn-group-sm">
+                                            {{-- WA BLAST BUTTON --}}
+                                            <button type="button"
+                                                    class="btn btn-outline-success btn-campaign-wa-blast">
+                                                <i class="bi bi-whatsapp"></i>
+                                            </button>
+                                            {{-- END WA BLAST BUTTON --}}
                                             <button type="button"
                                                     class="btn btn-outline-secondary btn-campaign-pause">
                                                 <i class="bi bi-pause-circle"></i>
@@ -282,7 +340,8 @@
                                      data-desc="Naikkan ARPU dari customer aktif"
                                      data-channel="telemarketing"
                                      data-status="active"
-                                     data-period="last-6-months">
+                                     data-period="last-6-months"
+                                     data-contacts="350">
                                     <div class="d-flex justify-content-between align-items-start mb-2">
                                         <div>
                                             <div class="d-flex align-items-center gap-2">
@@ -338,6 +397,12 @@
                                             <span><i class="bi bi-stars me-1"></i>Segment: Customer aktif (upsell)</span>
                                         </div>
                                         <div class="btn-group btn-group-sm">
+                                            {{-- WA BLAST BUTTON --}}
+                                            <button type="button"
+                                                    class="btn btn-outline-success btn-campaign-wa-blast">
+                                                <i class="bi bi-whatsapp"></i>
+                                            </button>
+                                            {{-- END WA BLAST BUTTON --}}
                                             <button type="button"
                                                     class="btn btn-outline-secondary btn-campaign-pause">
                                                 <i class="bi bi-pause-circle"></i>
@@ -360,6 +425,84 @@
             </div>
         </div>
     </div>
+
+    {{-- WA BLAST MODAL --}}
+    <div class="modal fade" id="modal-wa-blast" tabindex="-1" aria-labelledby="modalWaBlastLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalWaBlastLabel">
+                        <i class="bi bi-whatsapp me-1 text-success"></i>
+                        WA Blast Campaign
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+
+                {{-- PURE FRONTEND ONLY --}}
+                <form id="form-wa-blast" action="javascript:void(0)" method="POST">
+                    @csrf
+                    <div class="modal-body">
+                        <div class="alert alert-warning xsmall mb-3">
+                            Ini masih prototype. Tidak benar-benar mengirim pesan WhatsApp.
+                            Di versi production, sistem akan mengirim pesan ke seluruh kontak di campaign terpilih.
+                        </div>
+
+                        <input type="hidden" id="wa-campaign-name-hidden">
+                        <input type="hidden" id="wa-campaign-contacts-hidden">
+                        <input type="hidden" id="wa-campaign-channel-hidden">
+
+                        <div class="mb-3">
+                            <label class="form-label small">Campaign</label>
+                            <div class="fw-semibold" id="wa-campaign-name">-</div>
+                            <div class="text-muted xsmall" id="wa-campaign-meta">Channel: WhatsApp · 0 kontak</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small">
+                                Format Pesan WhatsApp <span class="text-danger">*</span>
+                            </label>
+                            <textarea class="form-control form-control-sm" id="wa-message" rows="5"
+                                      placeholder="Contoh:
+Halo 'nama udin', kami dari Depati Digital.
+Saat ini ada promo spesial untuk campaign 'nama campaiign'.
+
+Balas pesan ini jika tertarik ya."></textarea>
+                            <div class="form-text xsmall">
+                                Kamu bisa gunakan placeholder seperti <code>{{ '{nama}' }}</code> atau
+                                <code>{{ '{campaign}' }}</code> (dummy, belum ada parser).
+                            </div>
+                        </div>
+
+                        <div class="mb-0">
+                            <label class="form-label small">Simulasi Target Kontak</label>
+                            <div class="d-flex flex-wrap gap-3 small">
+                                <div>
+                                    <span class="text-muted xsmall d-block">Total kontak</span>
+                                    <span id="wa-summary-contacts" class="fw-semibold">0</span>
+                                </div>
+                                <div>
+                                    <span class="text-muted xsmall d-block">Perkiraan terkirim</span>
+                                    <span id="wa-summary-delivered" class="fw-semibold">0</span>
+                                </div>
+                                <div>
+                                    <span class="text-muted xsmall d-block">Perkiraan respon</span>
+                                    <span id="wa-summary-response" class="fw-semibold">0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-whatsapp me-1"></i> Blast Sekarang (Prototype)
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {{-- END WA BLAST MODAL --}}
 @endsection
 
 @push('styles')
@@ -461,6 +604,88 @@
                     icon: 'success',
                     title: 'Duplicate Campaign (Prototype)',
                     text: 'Di versi production, akan dibuat draft campaign baru berdasarkan "' + name + '".'
+                });
+            });
+
+            // ==== WA BLAST HANDLER (PROTOTYPE) ====
+            $(document).on('click', '.btn-campaign-wa-blast', function () {
+                const $card = $(this).closest('.campaign-card');
+                const name = $card.data('name') || 'Campaign';
+                const channel = $card.data('channel') || 'whatsapp';
+                const contacts = parseInt($card.data('contacts') || '0', 10);
+
+                $('#wa-campaign-name-hidden').val(name);
+                $('#wa-campaign-contacts-hidden').val(contacts);
+                $('#wa-campaign-channel-hidden').val(channel);
+
+                $('#wa-campaign-name').text(name);
+                $('#wa-campaign-meta').text(
+                    'Channel: WhatsApp · ' + contacts + ' kontak'
+                );
+
+                // Default format pesan
+                const defaultMessage =
+`Halo udin, kami dari Depati Digital.
+
+Saat ini kami sedang menjalankan campaign "nama campaign".
+Ada penawaran khusus yang sayang kalau dilewatkan.
+
+Balas pesan ini jika tertarik ya.`;
+                $('#wa-message').val(defaultMessage.replace('nama campaign', name));
+
+                // Simulasi angka (dummy)
+                $('#wa-summary-contacts').text(contacts);
+                $('#wa-summary-delivered').text(Math.round(contacts * 0.9));
+                $('#wa-summary-response').text(Math.round(contacts * 0.15));
+
+                // Buka modal
+                $('#modal-wa-blast').modal('show');
+            });
+
+            // Submit WA Blast (Prototype)
+            $('#form-wa-blast').on('submit', function (e) {
+                e.preventDefault();
+
+                const message = ($('#wa-message').val() || '').trim();
+                if (!message) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Format pesan kosong',
+                        text: 'Silakan isi format pesan WA terlebih dahulu.'
+                    });
+                    return;
+                }
+
+                const name = $('#wa-campaign-name-hidden').val() || 'Campaign';
+                const contacts = parseInt($('#wa-campaign-contacts-hidden').val() || '0', 10);
+
+                // Update card info blast terakhir (pure frontend)
+                $('#wa-blast-info').show();
+                $('#wa-info-campaign').text(name);
+                $('#wa-info-contacts').text(contacts + ' kontak');
+                $('#wa-info-channel').text('WhatsApp');
+                $('#wa-info-message').text(message);
+
+                const now = new Date();
+                const formatted = now.toLocaleString('id-ID', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                $('#wa-info-time').text(formatted);
+
+                $('#wa-info-status').removeClass('bg-danger-subtle text-danger')
+                    .addClass('bg-success-subtle text-success')
+                    .text('Sukses (Dummy)');
+
+                $('#modal-wa-blast').modal('hide');
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'WA Blast (Prototype)',
+                    text: 'Di versi production, pesan WA akan dikirim ke ' + contacts + ' kontak dari campaign "' + name + '".'
                 });
             });
 
